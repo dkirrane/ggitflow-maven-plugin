@@ -1,0 +1,6 @@
+### Maven Invoker build.log ###
+*.log
+
+### Maven ###
+target/
+

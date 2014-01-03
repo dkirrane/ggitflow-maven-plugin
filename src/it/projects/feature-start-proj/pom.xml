@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.dkirrane.maven.plugins.it</groupId>
+    <artifactId>feature-start-proj</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <description>A simple IT verifying the basic feature start use case.</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>@project.groupId@</groupId>
+                <artifactId>@project.artifactId@</artifactId>
+                <version>@project.version@</version>
+                <executions>
+                    <execution>
+                        <id>feature-start</id>
+                        <goals>
+                            <goal>feature-start</goal>
+                        </goals>
+                        <configuration>
+                            <featureName>Feature-123</featureName>
+                            <msgPrefix>Message Prefix</msgPrefix>
+                            <msgSuffix>Message Suffix</msgSuffix>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-eclipse-compiler</artifactId>
+                        <version>2.6.0-01</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <compilerId>groovy-eclipse-compiler</compilerId>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>groovy-eclipse-compiler</artifactId>
+                <groupId>org.codehaus.groovy</groupId>
+                <version>2.6.0-01</version>
+                <extensions>true</extensions>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <artifactId>groovy-all</artifactId>
+            <groupId>org.codehaus.groovy</groupId>
+            <version>2.0.5</version>
+        </dependency>
+    </dependencies>
+</project>
