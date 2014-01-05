@@ -41,7 +41,7 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
         super.execute();
 
         if (StringUtils.isBlank(featureName)) {
-            String prefix = (null != getFeatureBranchPrefix()) ? getFeatureBranchPrefix() : DEFAULT_FEATURE_BRN_PREFIX;
+            String prefix = getFeatureBranchPrefix();
             System.out.println("prefix = " + prefix);
             System.out.println("prompter = " + prompter);
             String message = "What is the feature branch name? " + prefix;
@@ -49,7 +49,7 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
             try {
                 featureName = prompter.prompt(message);
                 if (StringUtils.isBlank(featureName)) {
-                    throw new MojoFailureException("Parameter feature name cannot be null or empty.");
+                    throw new MojoFailureException("Parameter <featureName> cannot be null or empty.");
                 }
             } catch (PrompterException ex) {
                 throw new MojoExecutionException("Error reading feature name from command line " + ex.getMessage(), ex);

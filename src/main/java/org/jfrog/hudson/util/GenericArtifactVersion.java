@@ -341,10 +341,21 @@ public class GenericArtifactVersion {
      *
      * [[-_]<annotation>][[-_]<annotation_revision>]
      *
-     * @return The primary numbers as a single string.
+     * @return The annotation as a single string.
      */
     public String getAnnotationAsString() {
         return createAnnotationString(new StringBuilder(0)).toString();
+    }
+
+    /**
+     * Returns the string representation of the annotation string.
+     *
+     * [[-_]<build_specifier>]
+     *
+     * @return The build specifier as a single string.
+     */
+    public String getBuildSpecifierAsString() {
+        return createBuildSpecifierString(new StringBuilder(0)).toString();
     }
 
     /**
@@ -656,4 +667,16 @@ public class GenericArtifactVersion {
         return result;
     }
 
+    /**
+     * [[-_]<build_specifier>]
+     *
+     * @param result
+     * @return
+     */
+    private StringBuilder createBuildSpecifierString(final StringBuilder result) {
+        if (null != this.buildSpecifier) {
+            result.append(this.buildSpecifierSeparator).append(this.buildSpecifier);
+        }
+        return result;
+    }
 }
