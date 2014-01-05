@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Desmond Kirrane.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.List;
 import jline.console.ConsoleReader;
 import jline.console.completer.StringsCompleter;
-//import org.apache.commons.lang.StringUtils;
 import org.codehaus.plexus.components.interactivity.DefaultPrompter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 

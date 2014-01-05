@@ -89,6 +89,8 @@ public class AbstractGitflowMojo extends AbstractMojo {
     @Component
     protected BuildPluginManager pluginManager;
 
+    private GitflowInit init;
+
     protected final MavenProject getProject() {
         return project;
     }
@@ -108,8 +110,6 @@ public class AbstractGitflowMojo extends AbstractMojo {
     public String getMsgSuffix() {
         return (StringUtils.isBlank(msgSuffix)) ? "" : " " + msgSuffix;
     }
-
-    private GitflowInit init;
 
     public GitflowInit getGitflowInit() {
         if (null == init) {
