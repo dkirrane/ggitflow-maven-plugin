@@ -21,7 +21,6 @@ import org.jfrog.hudson.util.GenericArtifactVersion;
 
 import static com.dkirrane.gitflow.groovy.Constants.*;
 
-import com.dkirrane.gitflow.groovy.GitflowInit;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -34,16 +33,6 @@ public class AbstractReleaseMojo extends AbstractGitflowMojo {
 
     @Parameter(defaultValue = "false", property = "pushReleases")
     private boolean pushReleases = false;
-
-    private GitflowInit init;
-
-    public GitflowInit getGitflowInit() {
-        if (null == init) {
-            init = new GitflowInit();
-            init.setRepoDir(getProject().getBasedir());
-        }
-        return init;
-    }
 
     public String getReleaseBranchPrefix() {
         String prefix = getGitflowInit().getReleaseBranchPrefix();
@@ -70,5 +59,15 @@ public class AbstractReleaseMojo extends AbstractGitflowMojo {
         }
 
         return result.toString();
+    }
+
+    public String getNextDevelopmentVersion(String version) throws MojoFailureException {
+        getLog().info("Project version '" + version + "'");
+
+        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(version);
+        GenericArtifactVersion nextDevelopVersion = artifactVersion.upgradeLeastSignificantNumber();
+
+        getLog().info("Project version '" + nextDevelopVersion + "'");
+        return nextDevelopVersion.toString();
     }
 }

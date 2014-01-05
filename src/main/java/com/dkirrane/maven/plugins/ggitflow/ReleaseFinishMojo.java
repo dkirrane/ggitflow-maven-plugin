@@ -16,6 +16,7 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowFeature;
+import com.dkirrane.gitflow.groovy.GitflowRelease;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -39,6 +40,11 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         super.execute();
         getLog().info("Finishing release '" + releaseName + "'");
 
+        // checkout develop branch to get it's version
+        String developBranch = (String) getGitflowInit().getDevelopBrnName();
+        getGitflowInit().executeLocal("git checkout " + developBranch);
+        String developVersion = project.getVersion();
+
         List<String> releaseBranches = getGitflowInit().gitLocalReleaseBranches();
 
         if (releaseBranches.isEmpty()) {
@@ -51,47 +57,25 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
             releaseName = promptForExistingReleaseName(releaseBranches, releaseName);
         }
 
-        //make sure we're on the release branch
+        // 1. make sure we're on the release branch
         if (!getGitflowInit().gitCurrentBranch().equals(releaseName)) {
-            getGitflowInit().executeLocal("git checkout -b " + releaseName);
+            getGitflowInit().executeLocal("git checkout " + releaseName);
         }
 
-        getLog().info("START org.codehaus.mojo:versions-maven-plugin:2.1:set '" + releaseName + "'");
-        executeMojo(
-                plugin(
-                        groupId("org.codehaus.mojo"),
-                        artifactId("versions-maven-plugin"),
-                        version("2.1")
-                ),
-                goal("set"),
-                configuration(
-                        element(name("generateBackupPoms"), "false"),
-                        element(name("newVersion"), releaseName)
-                ),
-                executionEnvironment(
-                        project,
-                        session,
-                        pluginManager
-                )
-        );
-        getLog().info("DONE org.codehaus.mojo:versions-maven-plugin:2.1:set '" + releaseName + "'");
+        String releaseVersion = getReleaseVersion(project.getVersion());
 
-        if (!getGitflowInit().gitIsCleanWorkingTree()) {
-            String msg = getMsgPrefix() + "Updating poms for " + releaseName + " branch" + getMsgSuffix();
-            getGitflowInit().executeLocal("git add -A .");
-            String[] cmtPom = {"git", "commit", "-m", "\"" + msg + "\""};
-            getGitflowInit().executeLocal(cmtPom);
-        } else {
-            getLog().error("Failed to update poms to the release version " + releaseName);
-        }
+        // @todo we should run clean install first
+        // 2. update poms to release version
+        setVersion(releaseVersion);
 
-        GitflowFeature gitflowFeature = new GitflowFeature();
-        gitflowFeature.setInit(getGitflowInit());
-        gitflowFeature.setMsgPrefix(getMsgPrefix());
-        gitflowFeature.setMsgSuffix(getMsgSuffix());
+        // 4. finish feature
+        GitflowRelease gitflowRelease = new GitflowRelease();
+        gitflowRelease.setInit(getGitflowInit());
+        gitflowRelease.setMsgPrefix(getMsgPrefix());
+        gitflowRelease.setMsgSuffix(getMsgSuffix());
 
         try {
-            gitflowFeature.finish(releaseName);
+            gitflowRelease.finish(releaseName);
         } catch (GitflowException ge) {
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {
@@ -102,11 +86,11 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         String currentBranch = getGitflowInit().gitCurrentBranch();
         String developBrnName = (String) getGitflowInit().getDevelopBrnName();
         if (!currentBranch.equals(developBrnName)) {
-            getLog().error("Current branch should be " + developBrnName + " but was " + currentBranch);
-            getGitflowInit().executeLocal("git checkout -b " + developBrnName);
+            throw new MojoFailureException("Current branch should be " + developBrnName + " but was " + currentBranch);
         }
 
-        // @todo we should merge ours the release branch into develop
+        // @todo checkout and deploy the release tag
+        getGitflowInit().executeLocal("git checkout " + releaseVersion);
     }
 
     private String promptForExistingReleaseName(List<String> releaseBranches, String defaultReleaseName) throws MojoFailureException {

@@ -76,34 +76,7 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
 
         String featureVersion = getFeatureVersion(version, featureName);
 
-        getLog().info("START org.codehaus.mojo:versions-maven-plugin:2.1:set '" + featureVersion + "'");
-        executeMojo(
-                plugin(
-                        groupId("org.codehaus.mojo"),
-                        artifactId("versions-maven-plugin"),
-                        version("2.1")
-                ),
-                goal("set"),
-                configuration(
-                        element(name("generateBackupPoms"), "false"),
-                        element(name("newVersion"), featureVersion)
-                ),
-                executionEnvironment(
-                        project,
-                        session,
-                        pluginManager
-                )
-        );
-        getLog().info("DONE org.codehaus.mojo:versions-maven-plugin:2.1:set '" + featureName + "'");
-
-        if (!getGitflowInit().gitIsCleanWorkingTree()) {
-            String msg = getMsgPrefix() + "Updating poms for " + featureName + " branch " + featureVersion + " version " + getMsgSuffix();
-            getGitflowInit().executeLocal("git add -A .");
-            String[] cmtPom = {"git", "commit", "-m", "\"" + msg + "\""};
-            getGitflowInit().executeLocal(cmtPom);
-        } else {
-            getLog().error("Failed to update poms to the feature version " + featureVersion);
-        }
+        setVersion(featureVersion);
     }
 
     public String getFeatureName() {

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Desmond Kirrane.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,6 @@ import org.jfrog.hudson.util.GenericArtifactVersion;
 
 import static com.dkirrane.gitflow.groovy.Constants.*;
 
-import com.dkirrane.gitflow.groovy.GitflowInit;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -37,16 +36,6 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
 
     @Parameter(defaultValue = "false", property = "pushFeatures")
     protected boolean pushFeatures = false;
-
-    private GitflowInit init;
-
-    public GitflowInit getGitflowInit() {
-        if (null == init) {
-            init = new GitflowInit();
-            init.setRepoDir(getProject().getBasedir());
-        }
-        return init;
-    }
 
     public String getFeatureBranchPrefix() {
         String prefix = getGitflowInit().getFeatureBranchPrefix();

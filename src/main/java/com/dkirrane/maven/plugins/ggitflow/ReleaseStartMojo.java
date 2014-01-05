@@ -43,10 +43,11 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         super.execute();
 
         String releaseVersion = getReleaseVersion(project.getVersion());
+        String nextDevelopmentVersion = getNextDevelopmentVersion(project.getVersion());
+        String prefix = getReleaseBranchPrefix();
 
-        // first we should create release branch
+        // 1. first we should create release branch
         if (StringUtils.isBlank(releaseName)) {
-            String prefix = getReleaseBranchPrefix();
             System.out.println("prefix = " + prefix);
             System.out.println("prompter = " + prompter);
             String message = "What is the release branch name? " + prefix;
@@ -82,8 +83,19 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
             throw new MojoFailureException(ge.getMessage());
         }
 
-        // @todo second we should update develop to new version
-        // @todo then we should merge ours release branch into develop
+        // current branch should be the release branch
+        String releaseBranch = getGitflowInit().gitCurrentBranch();
+        if (!releaseBranch.startsWith(prefix)) {
+            throw new MojoFailureException("Failed to create release version.");
+        }
+
+        // checkout develop branch and update it's version
+        String developBranch = (String) getGitflowInit().getDevelopBrnName();
+        getGitflowInit().executeLocal("git checkout " + developBranch);
+        setVersion(nextDevelopmentVersion);
+
+        // 3. then checkout release branch again
+        getGitflowInit().executeLocal("git checkout " + releaseBranch);
     }
 
     public String getReleaseName() {

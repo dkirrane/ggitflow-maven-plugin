@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Desmond Kirrane.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +15,7 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
+import com.dkirrane.gitflow.groovy.GitflowInit;
 import com.dkirrane.maven.plugins.ggitflow.prompt.Prompter;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -27,6 +28,16 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.util.StringUtils;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.executeMojo;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.executionEnvironment;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.name;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
 /**
  *
@@ -97,4 +108,46 @@ public class AbstractGitflowMojo extends AbstractMojo {
     public String getMsgSuffix() {
         return (StringUtils.isBlank(msgSuffix)) ? "" : " " + msgSuffix;
     }
+
+    private GitflowInit init;
+
+    public GitflowInit getGitflowInit() {
+        if (null == init) {
+            init = new GitflowInit();
+            init.setRepoDir(getProject().getBasedir());
+        }
+        return init;
+    }
+
+    public void setVersion(String version) throws MojoExecutionException, MojoFailureException {
+        getLog().info("START org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
+        executeMojo(
+                plugin(
+                        groupId("org.codehaus.mojo"),
+                        artifactId("versions-maven-plugin"),
+                        version("2.1")
+                ),
+                goal("set"),
+                configuration(
+                        element(name("generateBackupPoms"), "false"),
+                        element(name("newVersion"), version)
+                ),
+                executionEnvironment(
+                        project,
+                        session,
+                        pluginManager
+                )
+        );
+        getLog().info("DONE org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
+
+        if (!getGitflowInit().gitIsCleanWorkingTree()) {
+            String msg = getMsgPrefix() + "Updating poms to version " + version + "" + getMsgSuffix();
+            getGitflowInit().executeLocal("git add -A .");
+            String[] cmtPom = {"git", "commit", "-m", "\"" + msg + "\""};
+            getGitflowInit().executeLocal(cmtPom);
+        } else {
+            throw new MojoFailureException("Failed to update poms to version " + version);
+        }
+    }
+
 }

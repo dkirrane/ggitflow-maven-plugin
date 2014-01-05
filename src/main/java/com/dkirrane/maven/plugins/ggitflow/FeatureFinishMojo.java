@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Desmond Kirrane.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,34 +55,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
         String version = project.getVersion();
         String nonFeatureVersion = getNonFeatureVersion(version, featureName);
 
-        getLog().info("START org.codehaus.mojo:versions-maven-plugin:2.1:set '" + nonFeatureVersion + "'");
-        executeMojo(
-                plugin(
-                        groupId("org.codehaus.mojo"),
-                        artifactId("versions-maven-plugin"),
-                        version("2.1")
-                ),
-                goal("set"),
-                configuration(
-                        element(name("generateBackupPoms"), "false"),
-                        element(name("newVersion"), nonFeatureVersion)
-                ),
-                executionEnvironment(
-                        project,
-                        session,
-                        pluginManager
-                )
-        );
-        getLog().info("DONE org.codehaus.mojo:versions-maven-plugin:2.1:set '" + featureName + "'");
-
-        if (!getGitflowInit().gitIsCleanWorkingTree()) {
-            String msg = getMsgPrefix() + "Updating poms for " + featureName + " branch " + nonFeatureVersion + " version " + getMsgSuffix();
-            getGitflowInit().executeLocal("git add -A .");
-            String[] cmtPom = {"git", "commit", "-m", "\"" + msg + "\""};
-            getGitflowInit().executeLocal(cmtPom);
-        } else {
-            getLog().error("Failed to update poms to the develop version " + nonFeatureVersion);
-        }
+        setVersion(nonFeatureVersion);
 
         GitflowFeature gitflowFeature = new GitflowFeature();
         gitflowFeature.setInit(getGitflowInit());
