@@ -15,20 +15,15 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
-import static com.dkirrane.gitflow.groovy.Constants.*;
 import com.dkirrane.gitflow.groovy.GitflowFeature;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.component.annotations.Requirement;
-import org.codehaus.plexus.components.interactivity.Prompter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 /**
  *

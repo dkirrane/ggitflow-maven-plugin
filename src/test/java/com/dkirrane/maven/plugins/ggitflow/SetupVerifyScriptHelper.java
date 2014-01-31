@@ -18,7 +18,6 @@ package com.dkirrane.maven.plugins.ggitflow;
 import com.dkirrane.gitflow.groovy.GitflowInit;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import org.codehaus.plexus.util.FileUtils;
 

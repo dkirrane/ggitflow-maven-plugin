@@ -15,13 +15,11 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
+import static com.dkirrane.gitflow.groovy.Constants.DEFAULT_RELEASE_BRN_PREFIX;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.jfrog.hudson.util.GenericArtifactVersion;
-
-import static com.dkirrane.gitflow.groovy.Constants.*;
-
 import org.codehaus.plexus.util.StringUtils;
+import org.jfrog.hudson.util.GenericArtifactVersion;
 
 /**
  *
