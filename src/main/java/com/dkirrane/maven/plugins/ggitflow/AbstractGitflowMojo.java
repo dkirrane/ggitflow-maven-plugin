@@ -16,7 +16,7 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowInit;
-import com.dkirrane.maven.plugins.ggitflow.prompt.Prompter;
+//import com.dkirrane.maven.plugins.ggitflow.prompt.Prompter;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
@@ -38,6 +38,8 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.name;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
+import org.codehaus.plexus.components.interactivity.Prompter;
+import org.codehaus.plexus.components.interactivity.PrompterException;
 
 /**
  *
@@ -50,8 +52,11 @@ public class AbstractGitflowMojo extends AbstractMojo {
     @Parameter(property = "msgSuffix", defaultValue = "")
     protected String msgSuffix;
 
-    @Requirement(role = Prompter.class, hint = "prompter", optional = false)
-    protected Prompter prompter;
+    /**
+     * Component used to prompt for input.
+     */
+    @Component
+    protected Prompter prompter;      
 
 //    /**
 //     * @parameter property="plugin"

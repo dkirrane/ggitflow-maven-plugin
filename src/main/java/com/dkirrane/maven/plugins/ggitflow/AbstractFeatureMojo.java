@@ -15,13 +15,14 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.jfrog.hudson.util.GenericArtifactVersion;
 
 import static com.dkirrane.gitflow.groovy.Constants.*;
 
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.codehaus.plexus.components.interactivity.Prompter;
 import org.codehaus.plexus.util.StringUtils;
+import org.jfrog.hudson.util.GenericArtifactVersion;
 
 /**
  *
@@ -35,7 +36,7 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
     protected boolean enableFeatureVersions = false;
 
     @Parameter(defaultValue = "false", property = "pushFeatures")
-    protected boolean pushFeatures = false;
+    protected boolean pushFeatures = false;   
 
     public String getFeatureBranchPrefix() {
         String prefix = getGitflowInit().getFeatureBranchPrefix();
