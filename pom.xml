@@ -146,4 +146,43 @@
             </build>
         </profile>
     </profiles>
+
+
+
+    <!--
+        Sonatype upload details:
+        http://jedicoder.blogspot.de/2011/11/automated-gradle-project-deployment-to.html
+        https://support.sonatype.com/entries/21580432-how-do-i-configure-my-gradle-build-to-publish-artifacts-to-nexus
+        https://support.sonatype.com/entries/21597257-how-do-i-stage-artifacts-to-a-nexus-staging-profile-from-a-gradle-build
+        https://support.sonatype.com/entries/21596297-how-do-i-configure-my-gradle-build-to-download-artifacts-from-nexus
+
+            - Deploy snapshot artifacts into repository https://oss.sonatype.org/content/repositories/snapshots
+            - Deploy release artifacts into the staging repository https://oss.sonatype.org/service/local/staging/deploy/maven2
+            - Promote staged artifacts into repository 'Releases'
+            - Download snapshot and release artifacts from group https://oss.sonatype.org/content/groups/public
+            - Download snapshot, release and staged artifacts from staging group https://oss.sonatype.org/content/groups/staging
+    -->
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>sonatype</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>sonatype</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+    <repositories>
+        <repository>
+            <id>sonatype</id>
+            <url>https://oss.sonatype.org/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
