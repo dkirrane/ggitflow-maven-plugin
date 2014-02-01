@@ -42,6 +42,9 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
  */
 public class AbstractGitflowMojo extends AbstractMojo {
 
+    @Parameter(defaultValue = "${prefixes}")
+    protected Prefixes prefixes;
+    
     @Parameter(property = "msgPrefix", defaultValue = "")
     protected String msgPrefix;
 
@@ -116,6 +119,13 @@ public class AbstractGitflowMojo extends AbstractMojo {
         if (null == init) {
             init = new GitflowInit();
             init.setRepoDir(getProject().getBasedir());
+            init.setMasterBrnName(prefixes.getMasterBranch());
+            init.setDevelopBrnName(prefixes.getDevelopBranch());
+            init.setFeatureBrnPref(prefixes.getFeatureBranchPrefix());
+            init.setReleaseBrnPref(prefixes.getReleaseBranchPrefix());
+            init.setHotfixBrnPref(prefixes.getHotfixBranchPrefix());
+            init.setSupportBrnPref(prefixes.getSupportBranchPrefix());
+            init.setVersionTagPref(prefixes.getVersionTagPrefix());
         }
         return init;
     }

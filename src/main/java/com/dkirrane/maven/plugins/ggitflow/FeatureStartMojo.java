@@ -56,8 +56,8 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
         featureName = getFeatureName(featureName);
 
         getLog().info("Starting feature '" + featureName + "'");
-        getLog().info("msgPrefix '" + getMsgPrefix() + "'");
-        getLog().info("msgSuffix '" + getMsgSuffix() + "'");
+        getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
+        getLog().debug("msgSuffix '" + getMsgSuffix() + "'");
 
         GitflowFeature gitflowFeature = new GitflowFeature();
         gitflowFeature.setInit(getGitflowInit());
