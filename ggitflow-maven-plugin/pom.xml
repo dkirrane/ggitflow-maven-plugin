@@ -160,8 +160,6 @@
         </profile>
     </profiles>
 
-
-
     <!--
         Sonatype upload details:
         http://jedicoder.blogspot.de/2011/11/automated-gradle-project-deployment-to.html

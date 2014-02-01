@@ -1,0 +1,55 @@
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+    <action>
+        <actionName>CUSTOM-ggitflow:feature-start</actionName>
+        <displayName>ggitflow:feature-start</displayName>
+        <goals>
+            <goal>ggitflow:feature-start</goal>
+        </goals>
+    </action>
+    <action>
+        <actionName>CUSTOM-ggitflow:feature-finish</actionName>
+        <displayName>ggitflow:feature-finish</displayName>
+        <goals>
+            <goal>ggitflow:feature-finish</goal>
+        </goals>
+    </action>
+    <action>
+        <actionName>CUSTOM-ggitflow:release-start</actionName>
+        <displayName>ggitflow:release-start</displayName>
+        <goals>
+            <goal>ggitflow:release-start</goal>
+        </goals>
+    </action>
+    <action>
+        <actionName>CUSTOM-ggitflow:release-finish</actionName>
+        <displayName>ggitflow:release-finish</displayName>
+        <goals>
+            <goal>ggitflow:release-finish</goal>
+        </goals>
+    </action>
+    <action>
+        <actionName>CUSTOM-ggitflow:hotfix-start</actionName>
+        <displayName>ggitflow:hotfix-start</displayName>
+        <goals>
+            <goal>ggitflow:hotfix-start</goal>
+        </goals>
+    </action>
+    <action>
+        <actionName>CUSTOM-ggitflow:hotfix-finish</actionName>
+        <displayName>ggitflow:hotfix-finish</displayName>
+        <goals>
+            <goal>ggitflow:hotfix-finish</goal>
+        </goals>
+    </action>
+    <action>
+        <actionName>CUSTOM-ggitflow:support-start</actionName>
+        <displayName>ggitflow:support-start</displayName>
+        <goals>
+            <goal>ggitflow:support-start</goal>
+        </goals>
+    </action>
+</actions>
