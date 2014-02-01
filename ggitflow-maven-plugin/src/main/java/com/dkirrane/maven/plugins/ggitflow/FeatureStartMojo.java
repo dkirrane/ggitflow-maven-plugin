@@ -38,8 +38,8 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
 
-        if (StringUtils.isBlank(featureName)) {
-            String prefix = getFeatureBranchPrefix();
+        String prefix = getFeatureBranchPrefix();
+        if (StringUtils.isBlank(featureName)) {            
             System.out.println("prefix = " + prefix);
             System.out.println("prompter = " + prompter);
             String message = "What is the feature branch name? " + prefix;
@@ -74,6 +74,10 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
             String currentVersion = project.getVersion();
             String featureVersion = getFeatureVersion(currentVersion, featureName);
             setVersion(featureVersion);
+
+            if (getGitflowInit().gitRemoteBranchExists(prefix + featureName)) {
+                getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + prefix + featureName);
+            }
         }
     }
 

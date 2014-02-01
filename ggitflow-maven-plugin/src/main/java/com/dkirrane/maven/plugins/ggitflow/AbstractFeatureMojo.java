@@ -15,7 +15,6 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
-
 import static com.dkirrane.gitflow.groovy.Constants.DEFAULT_FEATURE_BRN_PREFIX;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -34,7 +33,7 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
     protected boolean enableFeatureVersions = false;
 
     @Parameter(defaultValue = "false", property = "pushFeatures")
-    protected boolean pushFeatures = false;   
+    protected boolean pushFeatures = false;
 
     public String getFeatureBranchPrefix() {
         String prefix = getGitflowInit().getFeatureBranchPrefix();
@@ -54,10 +53,12 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
         return featureLabel;
     }
 
-    public String getFeatureVersion(String version, String featureLabel) throws MojoFailureException {
-        getLog().info("Project version '" + version + "'");
+    public String getFeatureVersion(String currentVersion, String featureLabel) throws MojoFailureException {
+        getLog().info("Project version '" + currentVersion + "'");
+        featureLabel = getValidFeatureVersionAnnotation(featureLabel);
+        getLog().info("Feature version annotation '" + featureLabel + "'");
 
-        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(version);
+        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
         String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
         String annotationAsString = artifactVersion.getAnnotationAsString();
         Character annotationSeparator = artifactVersion.getAnnotationRevisionSeparator();
@@ -85,6 +86,8 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
 
     public String getNonFeatureVersion(String version, String featureLabel) {
         getLog().info("Project version '" + version + "'");
+        featureLabel = getValidFeatureVersionAnnotation(featureLabel);
+        getLog().info("Feature version annotation '" + featureLabel + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(version);
         String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
@@ -114,5 +117,11 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
             getLog().warn("Cannot remove feature name from pom version. The version annotation [" + annotationAsString + "] does not match the feature label [" + featureLabel + "]");
             return version;
         }
+    }
+
+    private String getValidFeatureVersionAnnotation(String featureLabel) {
+        featureLabel = featureLabel.trim().replaceAll("\\s+", "_");
+        featureLabel = featureLabel.trim().replaceAll("-+", "_");
+        return featureLabel;
     }
 }

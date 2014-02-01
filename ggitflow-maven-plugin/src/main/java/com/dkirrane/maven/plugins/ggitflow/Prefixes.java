@@ -29,6 +29,8 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
+import com.dkirrane.gitflow.groovy.Constants;
+
 /**
  *
  */
@@ -43,13 +45,13 @@ public class Prefixes {
     private String versionTagPrefix;
 
     public Prefixes() {
-        this.masterBranch = "master";
-        this.developBranch = "develop";
-        this.featureBranchPrefix = "feature/";
-        this.releaseBranchPrefix = "release/";
-        this.hotfixBranchPrefix = "hotfix/";
-        this.supportBranchPrefix = "support/";
-        this.versionTagPrefix = "v-";
+        this.masterBranch = Constants.DEFAULT_MASTER_BRN_NAME;
+        this.developBranch = Constants.DEFAULT_DEVELOP_BRN_NAME;
+        this.featureBranchPrefix = Constants.DEFAULT_FEATURE_BRN_PREFIX;
+        this.releaseBranchPrefix = Constants.DEFAULT_RELEASE_BRN_PREFIX;
+        this.hotfixBranchPrefix = Constants.DEFAULT_HOTFIX_BRN_PREFIX;
+        this.supportBranchPrefix = Constants.DEFAULT_SUPPORT_BRN_PREFIX;
+        this.versionTagPrefix = Constants.DEFAULT_VERSION_TAG_PREFIX;
     }
 
     public String getMasterBranch() {
