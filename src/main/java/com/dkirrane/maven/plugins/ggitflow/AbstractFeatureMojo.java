@@ -98,7 +98,7 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
             return version;
         }
 
-        if (featureLabel.equals(annotationAsString)) {
+        if (('-' + featureLabel).equals(annotationAsString)) {
             final StringBuilder result = new StringBuilder(30);
             result.append(primaryNumbersAsString);
 
