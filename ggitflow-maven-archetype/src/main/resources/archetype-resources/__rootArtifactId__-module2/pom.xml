@@ -11,7 +11,7 @@
     <groupId>${groupId}</groupId>
     <artifactId>${artifactId}</artifactId>
     <version>${version}</version>
-    <name>my-app-module2</name>
+    <name>${artifactId}</name>
     
     <dependencies>
         <dependency>
