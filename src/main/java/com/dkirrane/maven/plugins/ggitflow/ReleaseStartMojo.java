@@ -89,13 +89,13 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
             throw new MojoFailureException("Failed to create release version.");
         }
 
-        // checkout develop branch and update it's version
-        String developBranch = (String) getGitflowInit().getDevelopBrnName();
-        getGitflowInit().executeLocal("git checkout " + developBranch);
-        setVersion(nextDevelopmentVersion);
-
-        // 3. then checkout release branch again
-        getGitflowInit().executeLocal("git checkout " + releaseBranch);
+//        // checkout develop branch and update it's version
+//        String developBranch = (String) getGitflowInit().getDevelopBrnName();
+//        getGitflowInit().executeLocal("git checkout " + developBranch);
+//        setVersion(nextDevelopmentVersion);
+//
+//        // 3. then checkout release branch again
+//        getGitflowInit().executeLocal("git checkout " + releaseBranch);
     }
 
     public String getReleaseName() {

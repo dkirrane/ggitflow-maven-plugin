@@ -77,15 +77,15 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         } catch (GitflowException ge) {
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {
-            
-            FixPomMergeConflicts fixPomMergeConflicts = new FixPomMergeConflicts();
-            try {
-                fixPomMergeConflicts.resolveConflicts2();
-            } catch (GitflowException ge) {
-                throw new MojoFailureException(ge.getMessage());
-            } catch (GitflowMergeConflictException gmce2) {
-                throw new MojoFailureException(gmce2.getMessage());
-            }
+            throw new MojoFailureException(gmce.getMessage());
+//            FixPomMergeConflicts fixPomMergeConflicts = new FixPomMergeConflicts();
+//            try {
+//                fixPomMergeConflicts.resolveConflicts2();
+//            } catch (GitflowException ge) {
+//                throw new MojoFailureException(ge.getMessage());
+//            } catch (GitflowMergeConflictException gmce2) {
+//                throw new MojoFailureException(gmce2.getMessage());
+//            }
         }
 
         //make sure we're on the develop branch

@@ -16,6 +16,7 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowInit;
+import java.util.Map;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
@@ -24,6 +25,8 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.MavenProjectBuilder;
+import org.apache.maven.shared.release.exec.MavenExecutor;
 import org.codehaus.plexus.components.interactivity.Prompter;
 import org.codehaus.plexus.util.StringUtils;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
@@ -55,7 +58,13 @@ public class AbstractGitflowMojo extends AbstractMojo {
      * Component used to prompt for input.
      */
     @Component
-    protected Prompter prompter;      
+    protected Prompter prompter;  
+    
+    @Component
+    protected Map<String, MavenExecutor> mavenExecutors;
+
+    @Component
+    protected MavenProjectBuilder projectBuilder;    
 
 //    /**
 //     * @parameter property="plugin"
@@ -159,6 +168,6 @@ public class AbstractGitflowMojo extends AbstractMojo {
         } else {
             throw new MojoFailureException("Failed to update poms to version " + version);
         }
-    }
+    }  
 
 }
