@@ -35,7 +35,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
         getLog().info("Finishing feature '" + featureName + "'");
-        
+
         String featureBranchPrefix = getFeatureBranchPrefix();
         if (StringUtils.isBlank(featureName)) {
             String currentBranch = getGitflowInit().gitCurrentBranch();
@@ -50,10 +50,11 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
 
         featureName = promptForExistingFeatureName(featureBranches, featureName);
 
-        String version = project.getVersion();
-        String nonFeatureVersion = getNonFeatureVersion(version, featureName.replace(featureBranchPrefix, ""));
-
-        setVersion(nonFeatureVersion);
+        if (enableFeatureVersions) {
+            String featureVersion = project.getVersion();
+            String nonFeatureVersion = getNonFeatureVersion(featureVersion, featureName.replace(featureBranchPrefix, ""));
+            setVersion(nonFeatureVersion);
+        }
 
         GitflowFeature gitflowFeature = new GitflowFeature();
         gitflowFeature.setInit(getGitflowInit());

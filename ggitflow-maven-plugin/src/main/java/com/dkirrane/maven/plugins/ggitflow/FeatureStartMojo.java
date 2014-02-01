@@ -32,7 +32,7 @@ import org.codehaus.plexus.util.StringUtils;
 public class FeatureStartMojo extends AbstractFeatureMojo {
 
     @Parameter(property = "startCommit", defaultValue = "")
-    private String startCommit;    
+    private String startCommit;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -70,11 +70,11 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
             throw new MojoFailureException(ge.getMessage());
         }
 
-        String version = project.getVersion();
-
-        String featureVersion = getFeatureVersion(version, featureName);
-
-        setVersion(featureVersion);
+        if (enableFeatureVersions) {
+            String currentVersion = project.getVersion();
+            String featureVersion = getFeatureVersion(currentVersion, featureName);
+            setVersion(featureVersion);
+        }
     }
 
     public String getFeatureName() {
