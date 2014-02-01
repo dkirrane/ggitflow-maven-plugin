@@ -16,9 +16,12 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowRelease;
+import com.dkirrane.gitflow.groovy.conflicts.FixPomMergeConflicts;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -36,9 +39,9 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         getLog().info("Finishing release '" + releaseName + "'");
 
         // checkout develop branch to get it's version
-        String developBranch = (String) getGitflowInit().getDevelopBrnName();
-        getGitflowInit().executeLocal("git checkout " + developBranch);
-        String developVersion = project.getVersion();
+//        String developBranch = (String) getGitflowInit().getDevelopBrnName();
+//        getGitflowInit().executeLocal("git checkout " + developBranch);
+//        String developVersion = project.getVersion();
 
         List<String> releaseBranches = getGitflowInit().gitLocalReleaseBranches();
 
@@ -47,7 +50,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         }
 
         if (releaseBranches.size() == 1) {
-            releaseName = releaseBranches.get(1);
+            releaseName = releaseBranches.get(0);
         } else {
             releaseName = promptForExistingReleaseName(releaseBranches, releaseName);
         }
@@ -74,7 +77,15 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         } catch (GitflowException ge) {
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {
-            throw new MojoFailureException(gmce.getMessage());
+            
+            FixPomMergeConflicts fixPomMergeConflicts = new FixPomMergeConflicts();
+            try {
+                fixPomMergeConflicts.resolveConflicts2();
+            } catch (GitflowException ge) {
+                throw new MojoFailureException(ge.getMessage());
+            } catch (GitflowMergeConflictException gmce2) {
+                throw new MojoFailureException(gmce2.getMessage());
+            }
         }
 
         //make sure we're on the develop branch
