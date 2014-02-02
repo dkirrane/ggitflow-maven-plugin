@@ -54,7 +54,7 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
     }
 
     public String getFeatureVersion(String currentVersion, String featureLabel) throws MojoFailureException {
-        getLog().info("Project version '" + currentVersion + "'");
+        getLog().info("getFeatureVersion from '" + currentVersion + "'");
         featureLabel = getValidFeatureVersionAnnotation(featureLabel);
         getLog().info("Feature version annotation '" + featureLabel + "'");
 
@@ -85,7 +85,7 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
     }
 
     public String getNonFeatureVersion(String version, String featureLabel) {
-        getLog().info("Project version '" + version + "'");
+        getLog().info("getNonFeatureVersion from '" + version + "'");
         featureLabel = getValidFeatureVersionAnnotation(featureLabel);
         getLog().info("Feature version annotation '" + featureLabel + "'");
 
