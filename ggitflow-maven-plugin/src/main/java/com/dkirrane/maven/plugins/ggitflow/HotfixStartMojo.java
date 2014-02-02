@@ -93,9 +93,9 @@ public class HotfixStartMojo extends HotfixAbstractMojo {
         final StringBuilder result = new StringBuilder(30);
         result.append(primaryNumbersAsString).append(annotationAsString);
 
-        if (!StringUtils.isBlank(buildSpecifierAsString)) {
+        if (StringUtils.isBlank(buildSpecifierAsString)) {
             getLog().warn("Adding build specifier " + SNAPSHOT_QUALIFIER + " to hotfix version " + currentVersion);
-            result.append(SNAPSHOT_QUALIFIER);
+            result.append('-').append(SNAPSHOT_QUALIFIER);
         }
 
         return result.toString();
