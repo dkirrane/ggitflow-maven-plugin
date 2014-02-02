@@ -40,7 +40,7 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
 
-        List<String> hotfixBranches = getGitflowInit().gitLocalReleaseBranches();
+        List<String> hotfixBranches = getGitflowInit().gitLocalHotfixBranches();
 
         if (hotfixBranches.isEmpty()) {
             throw new MojoFailureException("Could not find release branch!");
