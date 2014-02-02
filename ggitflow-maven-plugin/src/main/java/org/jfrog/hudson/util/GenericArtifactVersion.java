@@ -55,7 +55,7 @@ public class GenericArtifactVersion {
 
     public static final String SNAPSHOT_QUALIFIER = "SNAPSHOT";
 
-    private static final Character DEFAULT_VERSION_COMPONENT_SEPARATOR = '-';
+    public static final Character DEFAULT_VERSION_COMPONENT_SEPARATOR = '-';
 
     private static final Integer DEFAULT_BASE_ANNOTATION_REVISION = 1;
 

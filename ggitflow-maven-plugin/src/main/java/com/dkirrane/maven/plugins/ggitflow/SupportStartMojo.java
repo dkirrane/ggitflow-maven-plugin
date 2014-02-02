@@ -26,6 +26,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
+import static org.jfrog.hudson.util.GenericArtifactVersion.DEFAULT_VERSION_COMPONENT_SEPARATOR;
 import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
 
 /**
@@ -48,7 +49,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
             throw new MojoFailureException("Could not find any tags to create support branch from!");
         }
 
-        String baseName = promptForExistingTagName(tags, tags.get(0));
+        String baseName = promptForExistingTagName(tags, tags.get(tags.size() - 1));
 
         getGitflowInit().executeLocal("git checkout " + baseName);
 
@@ -109,10 +110,10 @@ public class SupportStartMojo extends AbstractGitflowMojo {
 //                sb.append(primaryNumber);
 //            }
 //        }
-        sb.append(artifactVersion.getPrimaryNumbersAsString()).append('x');
+        sb.append(artifactVersion.getPrimaryNumbersAsString()).append('.').append('x');
         sb.append(artifactVersion.getAnnotationAsString()).append(artifactVersion.getBuildSpecifierAsString());
-        
-        return artifactVersion.toString();
+
+        return sb.toString();
     }
 
     private String getSupportSnapshotVersion(String currentVersion) throws MojoFailureException {
@@ -120,18 +121,18 @@ public class SupportStartMojo extends AbstractGitflowMojo {
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
 
-        String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
-        String annotationAsString = artifactVersion.getAnnotationAsString();
-        String buildSpecifierAsString = artifactVersion.getBuildSpecifierAsString();
-
         final StringBuilder result = new StringBuilder(30);
-        result.append(primaryNumbersAsString).append(annotationAsString);
-
-        if (StringUtils.isBlank(buildSpecifierAsString)) {
-            getLog().warn("Adding build specifier " + SNAPSHOT_QUALIFIER + " to support version " + currentVersion);
-            result.append('-').append(SNAPSHOT_QUALIFIER);
+        if (artifactVersion.getPrimaryNumberCount() < 3) {
+            String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
+            String annotationAsString = artifactVersion.getAnnotationAsString();
+            result.append(primaryNumbersAsString).append('.').append('0');
+            result.append(annotationAsString);
+            result.append(DEFAULT_VERSION_COMPONENT_SEPARATOR).append(SNAPSHOT_QUALIFIER);
+        } else {
+            artifactVersion.upgradeAnnotationRevision();
+            result.append(artifactVersion.toString());
+            result.append(DEFAULT_VERSION_COMPONENT_SEPARATOR).append(SNAPSHOT_QUALIFIER);            
         }
-
         return result.toString();
     }
 }
