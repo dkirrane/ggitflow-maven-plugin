@@ -48,7 +48,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
             throw new MojoFailureException("Could not find any tags to create support branch from!");
         }
 
-        String baseName = promptForExistingReleaseOrHotfixName(tags, tags.get(0));
+        String baseName = promptForExistingTagName(tags, tags.get(0));
 
         getGitflowInit().executeLocal("git checkout " + baseName);
 
@@ -81,14 +81,14 @@ public class SupportStartMojo extends AbstractGitflowMojo {
         }
     }
 
-    private String promptForExistingReleaseOrHotfixName(List<String> branches, String defaultBrnName) throws MojoFailureException {
-        String message = "Please select a release or hotfix branch to start support from?";
+    private String promptForExistingTagName(List<String> branches, String defaultBrnName) throws MojoFailureException {
+        String message = "Please select the Tag to create the support branch from?";
 
         String name = "";
         try {
             name = prompter.prompt(message, branches, defaultBrnName);
         } catch (PrompterException e) {
-            throw new MojoFailureException("Error reading selected branch name from command line " + e.getMessage());
+            throw new MojoFailureException("Error reading selected Tag name from command line " + e.getMessage());
         }
 
         return name;
@@ -100,15 +100,16 @@ public class SupportStartMojo extends AbstractGitflowMojo {
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
 
         StringBuilder sb = new StringBuilder(10);
-        int pCount = artifactVersion.getPrimaryNumberCount();
-        for (int i = 0; i < pCount; i++) {
-            Integer primaryNumber = artifactVersion.getPrimaryNumber(i);
-            if (i == (pCount - 1)) {
-                sb.append('x');
-            } else {
-                sb.append(primaryNumber);
-            }
-        }
+//        int pCount = artifactVersion.getPrimaryNumberCount();
+//        for (int i = 0; i < pCount; i++) {
+//            Integer primaryNumber = artifactVersion.getPrimaryNumber(i);
+//            if (i == (pCount - 1)) {
+//                sb.append('x');
+//            } else {
+//                sb.append(primaryNumber);
+//            }
+//        }
+        sb.append(artifactVersion.getPrimaryNumbersAsString()).append('x');
         sb.append(artifactVersion.getAnnotationAsString()).append(artifactVersion.getBuildSpecifierAsString());
         
         return artifactVersion.toString();
