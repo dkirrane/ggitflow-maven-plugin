@@ -53,7 +53,7 @@ import org.codehaus.plexus.util.StringUtils;
  */
 public class GenericArtifactVersion {
 
-    private static final String SNAPSHOT_QUALIFIER = "SNAPSHOT";
+    public static final String SNAPSHOT_QUALIFIER = "SNAPSHOT";
 
     private static final Character DEFAULT_VERSION_COMPONENT_SEPARATOR = '-';
 

@@ -24,6 +24,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
+import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
 
 /**
  *
@@ -41,6 +42,7 @@ public class HotfixStartMojo extends HotfixAbstractMojo {
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getMasterBrnName());
 
         String hotfixVersion = getHotfixVersion(project.getVersion());
+        String hotfixSnapshotVersion = getHotfixSnapshotVersion(hotfixVersion);
 
         getLog().info("Starting hotfix '" + hotfixVersion + "'");
         getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
@@ -60,6 +62,13 @@ public class HotfixStartMojo extends HotfixAbstractMojo {
         } catch (GitflowException ge) {
             throw new MojoFailureException(ge.getMessage());
         }
+
+        setVersion(hotfixSnapshotVersion);
+        
+        String prefix = getGitflowInit().getHotfixBranchPrefix();
+        if (getGitflowInit().gitRemoteBranchExists(prefix + hotfixVersion)) {
+            getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + prefix + hotfixVersion);
+        }
     }
 
     private String getHotfixVersion(String currentVersion) throws MojoFailureException {
@@ -70,5 +79,25 @@ public class HotfixStartMojo extends HotfixAbstractMojo {
         artifactVersion.upgradeLeastSignificantNumber();
 
         return artifactVersion.toString();
+    }
+
+    private String getHotfixSnapshotVersion(String currentVersion) throws MojoFailureException {
+        getLog().info("Project version '" + currentVersion + "'");
+
+        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
+
+        String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
+        String annotationAsString = artifactVersion.getAnnotationAsString();
+        String buildSpecifierAsString = artifactVersion.getBuildSpecifierAsString();
+
+        final StringBuilder result = new StringBuilder(30);
+        result.append(primaryNumbersAsString).append(annotationAsString);
+
+        if (!StringUtils.isBlank(buildSpecifierAsString)) {
+            getLog().warn("Adding build specifier " + SNAPSHOT_QUALIFIER + " to hotfix version " + currentVersion);
+            result.append(SNAPSHOT_QUALIFIER);
+        }
+
+        return result.toString();
     }
 }

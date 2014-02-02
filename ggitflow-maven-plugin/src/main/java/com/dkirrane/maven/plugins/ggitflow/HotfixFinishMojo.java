@@ -51,6 +51,9 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         } else {
             hotfixName = promptForExistingHotfixName(hotfixBranches, hotfixName);
         }
+        
+        String hotfixReleaseVersion = getReleaseVersion(project.getVersion());
+        setVersion(hotfixReleaseVersion);
 
         GitflowHotfix gitflowHotfix = new GitflowHotfix();
         gitflowHotfix.setInit(getGitflowInit());

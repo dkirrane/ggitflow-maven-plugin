@@ -40,25 +40,6 @@ public class AbstractReleaseMojo extends AbstractGitflowMojo {
         return prefix;
     }
 
-    public String getReleaseVersion(String version) throws MojoFailureException {
-        getLog().info("Project version '" + version + "'");
-
-        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(version);
-
-        String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
-        String annotationAsString = artifactVersion.getAnnotationAsString();
-        String buildSpecifierAsString = artifactVersion.getBuildSpecifierAsString();
-
-        final StringBuilder result = new StringBuilder(30);
-        result.append(primaryNumbersAsString).append(annotationAsString);
-
-        if (!StringUtils.isBlank(buildSpecifierAsString)) {
-            getLog().warn("Removing build specifier " + buildSpecifierAsString + " from version " + version);
-        }
-
-        return result.toString();
-    }
-
     public String getNextDevelopmentVersion(String version) throws MojoFailureException {
         getLog().info("Project version '" + version + "'");
 

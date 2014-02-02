@@ -29,6 +29,7 @@ import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.shared.release.exec.MavenExecutor;
 import org.codehaus.plexus.components.interactivity.Prompter;
 import org.codehaus.plexus.util.StringUtils;
+import org.jfrog.hudson.util.GenericArtifactVersion;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
@@ -47,7 +48,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${prefixes}")
     protected Prefixes prefixes;
-    
+
     @Parameter(property = "msgPrefix", defaultValue = "")
     protected String msgPrefix;
 
@@ -58,13 +59,13 @@ public class AbstractGitflowMojo extends AbstractMojo {
      * Component used to prompt for input.
      */
     @Component
-    protected Prompter prompter;  
-    
+    protected Prompter prompter;
+
     @Component
     protected Map<String, MavenExecutor> mavenExecutors;
 
     @Component
-    protected MavenProjectBuilder projectBuilder;    
+    protected MavenProjectBuilder projectBuilder;
 
 //    /**
 //     * @parameter property="plugin"
@@ -168,6 +169,25 @@ public class AbstractGitflowMojo extends AbstractMojo {
         } else {
             throw new MojoFailureException("Failed to update poms to version " + version);
         }
-    }  
+    }
+
+    public String getReleaseVersion(String version) throws MojoFailureException {
+        getLog().info("Project version '" + version + "'");
+
+        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(version);
+
+        String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
+        String annotationAsString = artifactVersion.getAnnotationAsString();
+        String buildSpecifierAsString = artifactVersion.getBuildSpecifierAsString();
+
+        final StringBuilder result = new StringBuilder(30);
+        result.append(primaryNumbersAsString).append(annotationAsString);
+
+        if (!StringUtils.isBlank(buildSpecifierAsString)) {
+            getLog().warn("Removing build specifier " + buildSpecifierAsString + " from version " + version);
+        }
+
+        return result.toString();
+    }
 
 }
