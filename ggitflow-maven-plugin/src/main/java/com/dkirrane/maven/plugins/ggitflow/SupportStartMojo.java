@@ -105,8 +105,18 @@ public class SupportStartMojo extends AbstractGitflowMojo {
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
 
-        artifactVersion.upgradeLeastSignificantNumber();
-
+        StringBuilder sb = new StringBuilder(10);
+        int pCount = artifactVersion.getPrimaryNumberCount();
+        for (int i = 0; i < pCount; i++) {
+            Integer primaryNumber = artifactVersion.getPrimaryNumber(i);
+            if (i == (pCount - 1)) {
+                sb.append('x');
+            } else {
+                sb.append(primaryNumber);
+            }
+        }
+        sb.append(artifactVersion.getAnnotationAsString()).append(artifactVersion.getBuildSpecifierAsString());
+        
         return artifactVersion.toString();
     }
 
