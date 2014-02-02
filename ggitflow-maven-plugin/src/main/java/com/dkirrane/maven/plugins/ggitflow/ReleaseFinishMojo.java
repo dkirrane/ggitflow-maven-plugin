@@ -96,7 +96,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         }
 
         // @todo checkout and deploy the release tag
-        getGitflowInit().executeLocal("git checkout " + releaseName);
+        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getHotfixBranchPrefix() + releaseVersion);
     }
 
     private String promptForExistingReleaseName(List<String> releaseBranches, String defaultReleaseName) throws MojoFailureException {
