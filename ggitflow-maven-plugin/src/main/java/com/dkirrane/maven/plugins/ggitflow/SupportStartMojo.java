@@ -59,7 +59,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
         getGitflowInit().executeLocal("git checkout " + baseName);
 
         String supportVersion = getSupportVersion(project.getVersion());
-        String supportSnapshotVersion = getSupportSnapshotVersion(supportVersion);
+        String supportSnapshotVersion = getSupportSnapshotVersion(project.getVersion());
 
         getLog().info("Starting support branch '" + supportVersion + "'");
         getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
