@@ -56,6 +56,13 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             setVersion(nonFeatureVersion);
         }
 
+        if (!skipBuild) {
+            clean();
+            install();
+        } else {
+            getLog().debug("Skipping both install and deploy");
+        }
+
         GitflowFeature gitflowFeature = new GitflowFeature();
         gitflowFeature.setInit(getGitflowInit());
         gitflowFeature.setMsgPrefix(getMsgPrefix());

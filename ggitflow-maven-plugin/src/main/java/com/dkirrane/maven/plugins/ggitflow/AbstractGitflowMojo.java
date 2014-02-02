@@ -55,6 +55,12 @@ public class AbstractGitflowMojo extends AbstractMojo {
     @Parameter(property = "msgSuffix", defaultValue = "")
     protected String msgSuffix;
 
+    @Parameter(property = "skipBuild", defaultValue = "false")
+    protected Boolean skipBuild;
+
+    @Parameter(property = "skipDeploy", defaultValue = "false")
+    protected Boolean skipDeploy;
+
     /**
      * Component used to prompt for input.
      */
@@ -214,7 +220,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         );
         getLog().info("DONE org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
     }
-    
+
     public void deploy() throws MojoExecutionException, MojoFailureException {
         getLog().info("START org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
         executeMojo(
@@ -236,7 +242,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                 )
         );
         getLog().info("DONE org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
-    }     
+    }
 
     public String getReleaseVersion(String version) throws MojoFailureException {
         getLog().info("Project version '" + version + "'");

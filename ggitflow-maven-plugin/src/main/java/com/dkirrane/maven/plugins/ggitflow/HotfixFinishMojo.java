@@ -23,7 +23,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 
 /**
@@ -49,9 +48,19 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         } else {
             hotfixName = promptForExistingHotfixName(hotfixBranches, hotfixName);
         }
-        
+
         String hotfixReleaseVersion = getReleaseVersion(project.getVersion());
         setVersion(hotfixReleaseVersion);
+
+        if (!skipDeploy) {
+            clean();
+            deploy();
+        } else if (!skipBuild) {
+            clean();
+            install();
+        } else {
+            getLog().debug("Skipping both install and deploy");
+        }
 
         GitflowHotfix gitflowHotfix = new GitflowHotfix();
         gitflowHotfix.setInit(getGitflowInit());

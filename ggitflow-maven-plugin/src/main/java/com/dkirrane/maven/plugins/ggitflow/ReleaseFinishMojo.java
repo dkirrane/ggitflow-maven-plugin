@@ -16,12 +16,9 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowRelease;
-import com.dkirrane.gitflow.groovy.conflicts.FixPomMergeConflicts;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -65,6 +62,16 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         // @todo we should run clean install first
         // 2. update poms to release version
         setVersion(releaseVersion);
+        
+        if (!skipDeploy) {
+            clean();
+            deploy();
+        } else if (!skipBuild) {
+            clean();
+            install();
+        } else {
+            getLog().debug("Skipping both install and deploy");
+        }        
 
         // 4. finish feature
         GitflowRelease gitflowRelease = new GitflowRelease();
