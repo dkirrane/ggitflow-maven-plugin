@@ -44,17 +44,12 @@ public class SupportStartMojo extends AbstractGitflowMojo {
 
         String prefix = getGitflowInit().getSupportBranchPrefix();
 
-        List<String> releaseBranches = getGitflowInit().gitLocalReleaseBranches();
-        List<String> hotfixBranches = getGitflowInit().gitLocalHotfixBranches();
-        if (releaseBranches.isEmpty() && hotfixBranches.isEmpty()) {
-            throw new MojoFailureException("Could not find any release or hotfix branch to create support branch from!");
+        List<String> tags = getGitflowInit().gitAllTags();
+        if (tags.isEmpty()) {
+            throw new MojoFailureException("Could not find any tags to create support branch from!");
         }
 
-        List<String> allBranches = new ArrayList<String>();
-        allBranches.addAll(releaseBranches);
-        allBranches.addAll(hotfixBranches);
-        String defaultBrn = (hotfixBranches.isEmpty()) ? releaseBranches.get(0) : hotfixBranches.get(0);
-        String baseName = promptForExistingReleaseOrHotfixName(allBranches, defaultBrn);
+        String baseName = promptForExistingReleaseOrHotfixName(tags, tags.get(0));
 
         getGitflowInit().executeLocal("git checkout " + baseName);
 
