@@ -72,8 +72,8 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
 //    @Component
 //    protected MavenProjectBuilder projectBuilder;
-    @Component
-    protected DefaultProjectBuilder projectBuilder;
+//    @Component
+//    protected DefaultProjectBuilder projectBuilder;
 
 //    /**
 //     * @parameter property="plugin"
@@ -174,16 +174,18 @@ public class AbstractGitflowMojo extends AbstractMojo {
             getGitflowInit().executeLocal("git add -A .");
             String[] cmtPom = {"git", "commit", "-m", "\"" + msg + "\""};
             getGitflowInit().executeLocal(cmtPom);
-        } else {
-            throw new MojoFailureException("Failed to update poms to version " + version);
         }
+        /* We don't want to fail maybe the version was manually set correctly */
+//        else {
+//            throw new MojoFailureException("Failed to update poms to version " + version);
+//        }
     }
 
     public void clean() throws MojoExecutionException, MojoFailureException {
         getLog().info("START org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
         executeMojo(
                 plugin(
-                        groupId("org.codehaus.mojo"),
+                        groupId("org.apache.maven.plugins"),
                         artifactId("maven-clean-plugin"),
                         version("2.5")
                 ),
@@ -204,7 +206,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         getLog().info("START org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
         executeMojo(
                 plugin(
-                        groupId("org.codehaus.mojo"),
+                        groupId("org.apache.maven.plugins"),
                         artifactId("maven-install-plugin"),
                         version("2.5.1")
                 ),
@@ -225,7 +227,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         getLog().info("START org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
         executeMojo(
                 plugin(
-                        groupId("org.codehaus.mojo"),
+                        groupId("org.apache.maven.plugins"),
                         artifactId("maven-deploy-plugin"),
                         version("2.8.1")
                 ),
