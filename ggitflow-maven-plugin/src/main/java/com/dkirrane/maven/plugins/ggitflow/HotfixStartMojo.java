@@ -21,9 +21,9 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
+import static org.jfrog.hudson.util.GenericArtifactVersion.DEFAULT_VERSION_COMPONENT_SEPARATOR;
 import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
 
 /**
@@ -31,9 +31,6 @@ import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
  */
 @Mojo(name = "hotfix-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class HotfixStartMojo extends HotfixAbstractMojo {
-
-    @Parameter(property = "startCommit", defaultValue = "")
-    private String startCommit;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -53,10 +50,6 @@ public class HotfixStartMojo extends HotfixAbstractMojo {
         gitflowHotfix.setMsgPrefix(getMsgPrefix());
         gitflowHotfix.setMsgSuffix(getMsgSuffix());
 
-        if (!StringUtils.isEmpty(startCommit)) {
-            gitflowHotfix.setStartCommit(startCommit);
-        }
-
         try {
             gitflowHotfix.start(hotfixVersion);
         } catch (GitflowException ge) {
@@ -64,7 +57,7 @@ public class HotfixStartMojo extends HotfixAbstractMojo {
         }
 
         setVersion(hotfixSnapshotVersion);
-        
+
         String prefix = getGitflowInit().getHotfixBranchPrefix();
         if (getGitflowInit().gitRemoteBranchExists(prefix + hotfixVersion)) {
             getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + prefix + hotfixVersion);
@@ -76,27 +69,28 @@ public class HotfixStartMojo extends HotfixAbstractMojo {
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
 
-        artifactVersion.upgradeLeastSignificantNumber();
-
-        return artifactVersion.toString();
+        final StringBuilder result = new StringBuilder(30);
+        if (artifactVersion.getPrimaryNumberCount() < 3) {
+            String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
+            String annotationAsString = artifactVersion.getAnnotationAsString();
+            result.append(primaryNumbersAsString).append('.').append('0');
+            result.append(annotationAsString);
+        } else {
+            artifactVersion.upgradeAnnotationRevision();
+            result.append(artifactVersion.toString());
+        }
+        return result.toString();
     }
 
     private String getHotfixSnapshotVersion(String currentVersion) throws MojoFailureException {
         getLog().info("Project version '" + currentVersion + "'");
 
-        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
-
-        String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
-        String annotationAsString = artifactVersion.getAnnotationAsString();
-        String buildSpecifierAsString = artifactVersion.getBuildSpecifierAsString();
-
         final StringBuilder result = new StringBuilder(30);
-        result.append(primaryNumbersAsString).append(annotationAsString);
 
-        if (StringUtils.isBlank(buildSpecifierAsString)) {
-            getLog().warn("Adding build specifier " + SNAPSHOT_QUALIFIER + " to hotfix version " + currentVersion);
-            result.append('-').append(SNAPSHOT_QUALIFIER);
-        }
+        String hotfixVersion = getHotfixVersion(currentVersion);
+        result.append(hotfixVersion);
+
+        result.append(DEFAULT_VERSION_COMPONENT_SEPARATOR).append(SNAPSHOT_QUALIFIER);
 
         return result.toString();
     }

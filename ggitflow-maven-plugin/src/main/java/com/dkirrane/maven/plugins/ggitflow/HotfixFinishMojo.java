@@ -25,7 +25,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  *
@@ -33,7 +32,6 @@ import org.codehaus.plexus.util.StringUtils;
 @Mojo(name = "hotfix-finish", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class HotfixFinishMojo extends HotfixAbstractMojo {
 
-    @Parameter(property = "hotfixName")
     protected String hotfixName;
 
     @Override
