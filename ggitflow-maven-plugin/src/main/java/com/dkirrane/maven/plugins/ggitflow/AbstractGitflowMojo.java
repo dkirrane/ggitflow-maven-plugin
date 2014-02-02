@@ -24,8 +24,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.DefaultProjectBuilder;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.shared.release.exec.MavenExecutor;
 import org.codehaus.plexus.components.interactivity.Prompter;
 import org.codehaus.plexus.util.StringUtils;
@@ -64,8 +64,10 @@ public class AbstractGitflowMojo extends AbstractMojo {
     @Component
     protected Map<String, MavenExecutor> mavenExecutors;
 
+//    @Component
+//    protected MavenProjectBuilder projectBuilder;
     @Component
-    protected MavenProjectBuilder projectBuilder;
+    protected DefaultProjectBuilder projectBuilder;
 
 //    /**
 //     * @parameter property="plugin"
@@ -170,6 +172,71 @@ public class AbstractGitflowMojo extends AbstractMojo {
             throw new MojoFailureException("Failed to update poms to version " + version);
         }
     }
+
+    public void clean() throws MojoExecutionException, MojoFailureException {
+        getLog().info("START org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
+        executeMojo(
+                plugin(
+                        groupId("org.codehaus.mojo"),
+                        artifactId("maven-clean-plugin"),
+                        version("2.5")
+                ),
+                goal("clean"),
+                configuration(
+                        element(name("skip"), "false")
+                ),
+                executionEnvironment(
+                        project,
+                        session,
+                        pluginManager
+                )
+        );
+        getLog().info("DONE org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
+    }
+
+    public void install() throws MojoExecutionException, MojoFailureException {
+        getLog().info("START org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
+        executeMojo(
+                plugin(
+                        groupId("org.codehaus.mojo"),
+                        artifactId("maven-install-plugin"),
+                        version("2.5.1")
+                ),
+                goal("install"),
+                configuration(
+                        element(name("skip"), "false")
+                ),
+                executionEnvironment(
+                        project,
+                        session,
+                        pluginManager
+                )
+        );
+        getLog().info("DONE org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
+    }
+    
+    public void deploy() throws MojoExecutionException, MojoFailureException {
+        getLog().info("START org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
+        executeMojo(
+                plugin(
+                        groupId("org.codehaus.mojo"),
+                        artifactId("maven-deploy-plugin"),
+                        version("2.8.1")
+                ),
+                goal("deploy"),
+                configuration(
+                        element(name("skip"), "false"),
+                        element(name("deployAtEnd"), "true"),
+                        element(name("retryFailedDeploymentCount"), "1")
+                ),
+                executionEnvironment(
+                        project,
+                        session,
+                        pluginManager
+                )
+        );
+        getLog().info("DONE org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
+    }     
 
     public String getReleaseVersion(String version) throws MojoFailureException {
         getLog().info("Project version '" + version + "'");
