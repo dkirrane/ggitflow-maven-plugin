@@ -90,23 +90,21 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         if (!currentBranch.equals(developBrnName)) {
             throw new MojoFailureException("Current branch should be " + developBrnName + " but was " + currentBranch);
         }
-      
-        System.out.println("skipDeploy = " + skipDeploy);
-        System.out.println("skipBuild = " + skipBuild);
+
         if (skipDeploy == false) {
             // checkout and deploy the release tag
-            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);            
+            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);
             clean();
             deploy();
         } else if (skipBuild == false) {
             // checkout and install the release tag
-            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);            
+            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);
             clean();
             install();
         } else {
             getLog().debug("Skipping both install and deploy");
         }
-        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch()); 
+        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
     }
 
     private String promptForExistingReleaseName(List<String> releaseBranches, String defaultReleaseName) throws MojoFailureException {
