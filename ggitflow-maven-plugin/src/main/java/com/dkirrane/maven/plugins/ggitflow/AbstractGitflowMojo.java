@@ -234,7 +234,6 @@ public class AbstractGitflowMojo extends AbstractMojo {
                 goal("deploy"),
                 configuration(
                         element(name("skip"), "false"),
-                        element(name("deployAtEnd"), "true"),
                         element(name("retryFailedDeploymentCount"), "1")
                 ),
                 executionEnvironment(

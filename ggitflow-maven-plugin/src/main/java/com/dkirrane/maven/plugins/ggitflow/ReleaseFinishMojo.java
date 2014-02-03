@@ -39,7 +39,6 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
 //        String developBranch = (String) getGitflowInit().getDevelopBrnName();
 //        getGitflowInit().executeLocal("git checkout " + developBranch);
 //        String developVersion = project.getVersion();
-
         List<String> releaseBranches = getGitflowInit().gitLocalReleaseBranches();
 
         if (releaseBranches.isEmpty()) {
@@ -62,16 +61,6 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         // @todo we should run clean install first
         // 2. update poms to release version
         setVersion(releaseVersion);
-        
-        if (!skipDeploy) {
-            clean();
-            deploy();
-        } else if (!skipBuild) {
-            clean();
-            install();
-        } else {
-            getLog().debug("Skipping both install and deploy");
-        }        
 
         // 4. finish feature
         GitflowRelease gitflowRelease = new GitflowRelease();
@@ -101,9 +90,23 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         if (!currentBranch.equals(developBrnName)) {
             throw new MojoFailureException("Current branch should be " + developBrnName + " but was " + currentBranch);
         }
-
-        // @todo checkout and deploy the release tag
-        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);
+      
+        System.out.println("skipDeploy = " + skipDeploy);
+        System.out.println("skipBuild = " + skipBuild);
+        if (skipDeploy == false) {
+            // checkout and deploy the release tag
+            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);            
+            clean();
+            deploy();
+        } else if (skipBuild == false) {
+            // checkout and install the release tag
+            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);            
+            clean();
+            install();
+        } else {
+            getLog().debug("Skipping both install and deploy");
+        }
+//        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion); 
     }
 
     private String promptForExistingReleaseName(List<String> releaseBranches, String defaultReleaseName) throws MojoFailureException {

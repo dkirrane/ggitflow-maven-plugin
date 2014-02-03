@@ -52,16 +52,6 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         String hotfixReleaseVersion = getReleaseVersion(project.getVersion());
         setVersion(hotfixReleaseVersion);
 
-        if (!skipDeploy) {
-            clean();
-            deploy();
-        } else if (!skipBuild) {
-            clean();
-            install();
-        } else {
-            getLog().debug("Skipping both install and deploy");
-        }
-
         GitflowHotfix gitflowHotfix = new GitflowHotfix();
         gitflowHotfix.setInit(getGitflowInit());
         gitflowHotfix.setMsgPrefix(getMsgPrefix());
@@ -74,6 +64,20 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         } catch (GitflowMergeConflictException gmce) {
             throw new MojoFailureException(gmce.getMessage());
         }
+        
+        if (skipDeploy == false) {
+            // checkout and deploy the hotfix tag
+            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixName);            
+            clean();
+            deploy();
+        } else if (skipBuild == false) {
+            // checkout and install the hotfix tag
+            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixName);            
+            clean();
+            install();
+        } else {
+            getLog().debug("Skipping both install and deploy");
+        }        
     }
 
     private String promptForExistingHotfixName(List<String> hotfixBranches, String defaultHotfixName) throws MojoFailureException {
