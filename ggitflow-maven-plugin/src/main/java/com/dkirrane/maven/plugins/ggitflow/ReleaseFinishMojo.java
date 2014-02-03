@@ -106,7 +106,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         } else {
             getLog().debug("Skipping both install and deploy");
         }
-//        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion); 
+        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch()); 
     }
 
     private String promptForExistingReleaseName(List<String> releaseBranches, String defaultReleaseName) throws MojoFailureException {

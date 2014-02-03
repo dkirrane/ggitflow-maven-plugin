@@ -64,20 +64,21 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         } catch (GitflowMergeConflictException gmce) {
             throw new MojoFailureException(gmce.getMessage());
         }
-        
+
         if (skipDeploy == false) {
             // checkout and deploy the hotfix tag
-            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixName);            
+            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixName);
             clean();
             deploy();
         } else if (skipBuild == false) {
             // checkout and install the hotfix tag
-            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixName);            
+            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixName);
             clean();
             install();
         } else {
             getLog().debug("Skipping both install and deploy");
-        }        
+        }
+        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
     }
 
     private String promptForExistingHotfixName(List<String> hotfixBranches, String defaultHotfixName) throws MojoFailureException {
