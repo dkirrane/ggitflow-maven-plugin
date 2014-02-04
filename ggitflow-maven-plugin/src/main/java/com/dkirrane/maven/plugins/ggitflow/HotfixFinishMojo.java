@@ -18,7 +18,9 @@ package com.dkirrane.maven.plugins.ggitflow;
 import com.dkirrane.gitflow.groovy.GitflowHotfix;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
+import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 import java.util.List;
+import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -36,22 +38,32 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
+        getLog().info("Finishing hotfix '" + hotfixName + "'");
 
+        /* Get hotfix branch name */
         List<String> hotfixBranches = getGitflowInit().gitLocalHotfixBranches();
-
         if (hotfixBranches.isEmpty()) {
             throw new MojoFailureException("Could not find release branch!");
-        }
-
-        if (hotfixBranches.size() == 1) {
+        } else if (hotfixBranches.size() == 1) {
             hotfixName = hotfixBranches.get(0);
         } else {
             hotfixName = promptForExistingHotfixName(hotfixBranches, hotfixName);
         }
 
-        String hotfixReleaseVersion = getReleaseVersion(project.getVersion());
+        /* Switch to develop branch and get current develop version */
+        String developBranch = getGitflowInit().getDevelopBranch();
+        getGitflowInit().executeLocal("git checkout " + developBranch);
+        Model devModel = MavenUtil.readPom(reactorProjects);
+        String developVersion = devModel.getVersion();
+
+        /* Switch to hotfix branch and set poms to hotfix version */
+        getGitflowInit().executeLocal("git checkout " + hotfixName);
+        Model hotModel = MavenUtil.readPom(reactorProjects);
+        String hotVersion = hotModel.getVersion();
+        String hotfixReleaseVersion = getReleaseVersion(hotVersion);
         setVersion(hotfixReleaseVersion);
 
+        /* finish hotfix */
         GitflowHotfix gitflowHotfix = new GitflowHotfix();
         gitflowHotfix.setInit(getGitflowInit());
         gitflowHotfix.setMsgPrefix(getMsgPrefix());
@@ -64,7 +76,14 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         } catch (GitflowMergeConflictException gmce) {
             throw new MojoFailureException(gmce.getMessage());
         }
+        
+        /* make sure we're on the develop branch */
+        String currentBranch = getGitflowInit().gitCurrentBranch();
+        if (!currentBranch.equals(developBranch)) {
+            throw new MojoFailureException("Current branch should be " + developBranch + " but was " + currentBranch);
+        }        
 
+        /* install or deploy */
         if (skipDeploy == false) {
             // checkout and deploy the hotfix tag
             getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixName);
@@ -78,7 +97,7 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         } else {
             getLog().debug("Skipping both install and deploy");
         }
-        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
+        getGitflowInit().executeLocal("git checkout " + developBranch);
     }
 
     private String promptForExistingHotfixName(List<String> hotfixBranches, String defaultHotfixName) throws MojoFailureException {

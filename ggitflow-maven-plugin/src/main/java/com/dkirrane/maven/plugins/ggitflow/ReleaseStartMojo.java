@@ -53,7 +53,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         String releaseVersion = getReleaseVersion(developVersion);
 //        String nextDevelopmentVersion = getNextDevelopmentVersion(project.getVersion());        
 
-        // 1. first we should create release branch
+        /* create release branch */
         String prefix = getReleaseBranchPrefix();
         if (StringUtils.isBlank(releaseName)) {
             System.out.println("prefix = " + prefix);
@@ -102,7 +102,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
 //        getGitflowInit().executeLocal("git checkout " + developBranch);
 //        setVersion(nextDevelopmentVersion);
 //
-//        // 3. then checkout release branch again
+//        // checkout release branch again
 //        getGitflowInit().executeLocal("git checkout " + releaseBranch);
     }
 

@@ -51,7 +51,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
 
         /* Switch to develop branch and get current develop version */
         String developBranch = getGitflowInit().getDevelopBranch();
-        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
+        getGitflowInit().executeLocal("git checkout " + developBranch);
         Model devModel = MavenUtil.readPom(reactorProjects);
         String developVersion = devModel.getVersion();
 
@@ -62,7 +62,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         String releaseVersion = getReleaseVersion(relVersion);
         setVersion(releaseVersion);
 
-        /* finish feature */
+        /* finish release */
         GitflowRelease gitflowRelease = new GitflowRelease();
         gitflowRelease.setInit(getGitflowInit());
         gitflowRelease.setMsgPrefix(getMsgPrefix());

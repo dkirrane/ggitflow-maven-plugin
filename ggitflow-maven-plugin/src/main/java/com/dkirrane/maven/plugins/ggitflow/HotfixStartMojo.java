@@ -17,6 +17,8 @@ package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowHotfix;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
+import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -35,11 +37,13 @@ public class HotfixStartMojo extends HotfixAbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
 
+        /* Switch to master branch and get current version i.e. lastest tag */
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getMasterBrnName());
-        
-        String currentVersion = project.getVersion();
-        String hotfixVersion = getHotfixVersion(currentVersion);
-        String hotfixSnapshotVersion = getHotfixSnapshotVersion(currentVersion);
+        Model masterModel = MavenUtil.readPom(reactorProjects);
+        String masterVersion = masterModel.getVersion();        
+
+        String hotfixVersion = getHotfixVersion(masterVersion);
+        String hotfixSnapshotVersion = getHotfixSnapshotVersion(masterVersion);
 
         getLog().info("Starting hotfix '" + hotfixVersion + "'");
         getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
