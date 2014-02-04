@@ -16,6 +16,7 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowHotfix;
+import com.dkirrane.gitflow.groovy.conflicts.FixPomMergeConflicts;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
 import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
@@ -74,14 +75,23 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         } catch (GitflowException ge) {
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {
-            throw new MojoFailureException(gmce.getMessage());
+            getLog().info("Attempting to auto-resolve any pom version conflicts.", gmce);
+            FixPomMergeConflicts fixPomMergeConflicts = new FixPomMergeConflicts();
+            fixPomMergeConflicts.setInit(getGitflowInit());
+            try {
+                fixPomMergeConflicts.resolveConflicts2();
+            } catch (GitflowException ge) {
+                throw new MojoFailureException(ge.getMessage());
+            } catch (GitflowMergeConflictException gmce2) {
+                throw new MojoFailureException(gmce2.getMessage());
+            }
         }
-        
+
         /* make sure we're on the develop branch */
         String currentBranch = getGitflowInit().gitCurrentBranch();
         if (!currentBranch.equals(developBranch)) {
             throw new MojoFailureException("Current branch should be " + developBranch + " but was " + currentBranch);
-        }        
+        }
 
         /* install or deploy */
         if (skipDeploy == false) {
