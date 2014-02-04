@@ -17,6 +17,8 @@ package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowRelease;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
+import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -42,11 +44,17 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
 
-        String releaseVersion = getReleaseVersion(project.getVersion());
-        String nextDevelopmentVersion = getNextDevelopmentVersion(project.getVersion());
-        String prefix = getReleaseBranchPrefix();
+        /* Switch to develop branch and get its current version */
+        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
+        Model model = MavenUtil.readPom(reactorProjects);
+        String developVersion = model.getVersion();
+        
+        /* Get suggested release version */
+        String releaseVersion = getReleaseVersion(developVersion);
+//        String nextDevelopmentVersion = getNextDevelopmentVersion(project.getVersion());        
 
         // 1. first we should create release branch
+        String prefix = getReleaseBranchPrefix();
         if (StringUtils.isBlank(releaseName)) {
             System.out.println("prefix = " + prefix);
             System.out.println("prompter = " + prompter);

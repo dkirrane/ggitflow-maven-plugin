@@ -18,11 +18,15 @@ package com.dkirrane.maven.plugins.ggitflow;
 import com.dkirrane.gitflow.groovy.GitflowRelease;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
+import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 import java.util.List;
+import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.codehaus.plexus.components.interactivity.PrompterException;
+import org.codehaus.plexus.util.StringUtils;
+import org.jfrog.hudson.util.GenericArtifactVersion;
 
 /**
  *
@@ -35,34 +39,30 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         super.execute();
         getLog().info("Finishing release '" + releaseName + "'");
 
-        // checkout develop branch to get it's version
-//        String developBranch = (String) getGitflowInit().getDevelopBrnName();
-//        getGitflowInit().executeLocal("git checkout " + developBranch);
-//        String developVersion = project.getVersion();
+        /* Get release branch name */
         List<String> releaseBranches = getGitflowInit().gitLocalReleaseBranches();
-
         if (releaseBranches.isEmpty()) {
             throw new MojoFailureException("Could not find release branch!");
-        }
-
-        if (releaseBranches.size() == 1) {
+        } else if (releaseBranches.size() == 1) {
             releaseName = releaseBranches.get(0);
         } else {
             releaseName = promptForExistingReleaseName(releaseBranches, releaseName);
         }
 
-        // 1. make sure we're on the release branch
-        if (!getGitflowInit().gitCurrentBranch().equals(releaseName)) {
-            getGitflowInit().executeLocal("git checkout " + releaseName);
-        }
+        /* Switch to develop branch and get current develop version */
+        String developBranch = getGitflowInit().getDevelopBranch();
+        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
+        Model devModel = MavenUtil.readPom(reactorProjects);
+        String developVersion = devModel.getVersion();
 
-        String releaseVersion = getReleaseVersion(project.getVersion());
-
-        // @todo we should run clean install first
-        // 2. update poms to release version
+        /* Switch to release branch and set poms to release version */
+        getGitflowInit().executeLocal("git checkout " + releaseName);
+        Model relModel = MavenUtil.readPom(reactorProjects);
+        String relVersion = relModel.getVersion();
+        String releaseVersion = getReleaseVersion(relVersion);
         setVersion(releaseVersion);
 
-        // 4. finish feature
+        /* finish feature */
         GitflowRelease gitflowRelease = new GitflowRelease();
         gitflowRelease.setInit(getGitflowInit());
         gitflowRelease.setMsgPrefix(getMsgPrefix());
@@ -84,27 +84,40 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
 //            }
         }
 
-        //make sure we're on the develop branch
+        /* make sure we're on the develop branch */
         String currentBranch = getGitflowInit().gitCurrentBranch();
-        String developBrnName = (String) getGitflowInit().getDevelopBrnName();
-        if (!currentBranch.equals(developBrnName)) {
-            throw new MojoFailureException("Current branch should be " + developBrnName + " but was " + currentBranch);
+        if (!currentBranch.equals(developBranch)) {
+            throw new MojoFailureException("Current branch should be " + developBranch + " but was " + currentBranch);
         }
+        /* set poms to next develop version */
+        String nextDevelopVersion = getNextDevelopVersion(developVersion);
+        setVersion(nextDevelopVersion);
 
+        /* install or deploy */
         if (skipDeploy == false) {
-            // checkout and deploy the release tag
+            /* checkout and deploy the release tag */
             getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);
+            String currBranch = getGitflowInit().gitCurrentBranch();
+            System.out.println("currBranch = " + currBranch);
+            Model tagModel = MavenUtil.readPom(reactorProjects);
+            String tagVersion = tagModel.getVersion();
+            System.out.println("tagVersion = " + tagVersion);
             clean();
             deploy();
         } else if (skipBuild == false) {
-            // checkout and install the release tag
+            /* checkout and install the release tag */
             getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);
+            String currBranch = getGitflowInit().gitCurrentBranch();
+            System.out.println("currBranch = " + currBranch);
+            Model tagModel = MavenUtil.readPom(reactorProjects);
+            String tagVersion = tagModel.getVersion();
+            System.out.println("tagVersion = " + tagVersion);
             clean();
             install();
         } else {
             getLog().debug("Skipping both install and deploy");
         }
-        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
+        getGitflowInit().executeLocal("git checkout " + developBranch);
     }
 
     private String promptForExistingReleaseName(List<String> releaseBranches, String defaultReleaseName) throws MojoFailureException {
@@ -118,6 +131,15 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         }
 
         return name;
+    }
+
+    private String getNextDevelopVersion(String developVersion) {
+        getLog().info("Current Develop version '" + developVersion + "'");
+
+        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(developVersion);
+        artifactVersion.upgradeLeastSignificantPrimaryNumber();
+
+        return artifactVersion.toString();
     }
 
 }

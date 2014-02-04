@@ -17,6 +17,7 @@ package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowInit;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 import java.util.List;
 import java.util.Map;
 import org.apache.maven.execution.MavenSession;
@@ -171,6 +172,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
     public void setVersion(String version) throws MojoExecutionException, MojoFailureException {
         getLog().info("START org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
+        MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         executeMojo(
                 plugin(
                         groupId("org.codehaus.mojo"),
@@ -183,7 +185,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                         element(name("newVersion"), version)
                 ),
                 executionEnvironment(
-                        project,
+                        rootProject,
                         session,
                         pluginManager
                 )
@@ -204,6 +206,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
     public void clean() throws MojoExecutionException, MojoFailureException {
         getLog().info("START org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
+        MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         executeMojo(
                 plugin(
                         groupId("org.apache.maven.plugins"),
@@ -215,7 +218,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                         element(name("skip"), "false")
                 ),
                 executionEnvironment(
-                        project,
+                        rootProject,
                         session,
                         pluginManager
                 )
@@ -225,6 +228,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
     public void install() throws MojoExecutionException, MojoFailureException {
         getLog().info("START org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
+        MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         executeMojo(
                 plugin(
                         groupId("org.apache.maven.plugins"),
@@ -236,7 +240,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                         element(name("skip"), "false")
                 ),
                 executionEnvironment(
-                        project,
+                        rootProject,
                         session,
                         pluginManager
                 )
@@ -246,6 +250,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
     public void deploy() throws MojoExecutionException, MojoFailureException {
         getLog().info("START org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
+        MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         executeMojo(
                 plugin(
                         groupId("org.apache.maven.plugins"),
@@ -258,7 +263,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                         element(name("retryFailedDeploymentCount"), "1")
                 ),
                 executionEnvironment(
-                        project,
+                        rootProject,
                         session,
                         pluginManager
                 )
@@ -267,7 +272,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
     }
 
     public String getReleaseVersion(String version) throws MojoFailureException {
-        getLog().info("Project version '" + version + "'");
+        getLog().info("Current Develop version '" + version + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(version);
 
