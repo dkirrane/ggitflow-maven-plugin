@@ -16,6 +16,8 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowInit;
+import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import java.util.List;
 import java.util.Map;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -74,7 +76,6 @@ public class AbstractGitflowMojo extends AbstractMojo {
 //    protected MavenProjectBuilder projectBuilder;
 //    @Component
 //    protected DefaultProjectBuilder projectBuilder;
-
 //    /**
 //     * @parameter property="plugin"
 //     * @required
@@ -82,6 +83,12 @@ public class AbstractGitflowMojo extends AbstractMojo {
 //    @Component
 //    protected PluginDescriptor pluginDescriptor;
 //
+    /**
+     * The projects in the reactor.
+     */
+    @Parameter(defaultValue = "${reactorProjects}", readonly = true, required = true)
+    protected List<MavenProject> reactorProjects;
+    
     /**
      * The project currently being build.
      *
@@ -123,6 +130,20 @@ public class AbstractGitflowMojo extends AbstractMojo {
         } else {
             getLog().info("Gitflow pom  '" + project.getBasedir() + "'");
         }
+
+        GitflowInit gitflowInit = getGitflowInit();
+
+        gitflowInit.requireGitRepo();
+
+        if (!gitflowInit.gitflowIsInitialized()) {
+            try {
+                gitflowInit.cmdDefault();
+            } catch (GitflowException ex) {
+                throw new MojoExecutionException("Failed to inintialise Gitflow " + ex.getMessage(), ex);
+            }
+        }
+
+        gitflowInit.requireCleanWorkingTree();
     }
 
     public String getMsgPrefix() {

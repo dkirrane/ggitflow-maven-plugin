@@ -17,6 +17,10 @@ package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowFeature;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -39,7 +43,7 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
         super.execute();
 
         String prefix = getFeatureBranchPrefix();
-        if (StringUtils.isBlank(featureName)) {            
+        if (StringUtils.isBlank(featureName)) {
             System.out.println("prefix = " + prefix);
             System.out.println("prompter = " + prompter);
             String message = "What is the feature branch name? " + prefix;
@@ -71,7 +75,10 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
         }
 
         if (enableFeatureVersions) {
-            String currentVersion = project.getVersion();
+            /* Already on feature branch so just get its current version */
+            Model model = MavenUtil.readPom(reactorProjects);
+            String currentVersion = model.getVersion();
+
             String featureVersion = getFeatureVersion(currentVersion, featureName);
             setVersion(featureVersion);
 
