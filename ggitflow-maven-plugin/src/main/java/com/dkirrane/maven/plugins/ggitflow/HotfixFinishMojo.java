@@ -96,12 +96,12 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         /* install or deploy */
         if (skipDeploy == false) {
             // checkout and deploy the hotfix tag
-            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixName);
+            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixReleaseVersion);
             clean();
             deploy();
         } else if (skipBuild == false) {
             // checkout and install the hotfix tag
-            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixName);
+            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixReleaseVersion);
             clean();
             install();
         } else {

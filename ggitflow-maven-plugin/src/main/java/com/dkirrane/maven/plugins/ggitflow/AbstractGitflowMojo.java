@@ -18,6 +18,7 @@ package com.dkirrane.maven.plugins.ggitflow;
 import com.dkirrane.gitflow.groovy.GitflowInit;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import org.apache.maven.execution.MavenSession;
@@ -157,8 +158,8 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
     public GitflowInit getGitflowInit() {
         if (null == init) {
-            init = new GitflowInit();
-            init.setRepoDir(getProject().getBasedir());
+            init = new GitflowInit();            
+            init.setRepoDir(getProject().getBasedir());            
             init.setMasterBrnName(prefixes.getMasterBranch());
             init.setDevelopBrnName(prefixes.getDevelopBranch());
             init.setFeatureBrnPref(prefixes.getFeatureBranchPrefix());
@@ -166,6 +167,12 @@ public class AbstractGitflowMojo extends AbstractMojo {
             init.setHotfixBrnPref(prefixes.getHotfixBranchPrefix());
             init.setSupportBrnPref(prefixes.getSupportBranchPrefix());
             init.setVersionTagPref(prefixes.getVersionTagPrefix());
+            
+            /* root Git directory may not be the pom directory */
+            String dotGitDir =init.executeLocal("git rev-parse --git-dir");
+            File dotGitFolder = new File(dotGitDir);
+            assert dotGitFolder.exists();
+            init.setRepoDir(dotGitFolder.getParentFile());
         }
         return init;
     }
