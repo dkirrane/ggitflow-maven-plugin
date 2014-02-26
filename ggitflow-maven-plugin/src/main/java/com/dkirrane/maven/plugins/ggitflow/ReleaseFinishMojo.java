@@ -61,7 +61,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         String releaseVersion = getReleaseVersion(project.getVersion());
         getLog().info("release version = " + releaseVersion);
 
-        setVersion(releaseName);
+        setVersion(releaseVersion);
 
         /* finish release */
         GitflowRelease gitflowRelease = new GitflowRelease();
