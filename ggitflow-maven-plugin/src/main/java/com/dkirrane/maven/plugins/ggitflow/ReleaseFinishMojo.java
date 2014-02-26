@@ -58,10 +58,10 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         /* Switch to release branch and set poms to release version */
         getGitflowInit().executeLocal("git checkout " + releaseName);
         reloadReactorProjects();
-        String releaseVersion = project.getVersion();
-        getLog().info("release version = " + developVersion);
+        String releaseVersion = getReleaseVersion(project.getVersion());
+        getLog().info("release version = " + releaseVersion);
 
-        setVersion(releaseVersion);
+        setVersion(releaseName);
 
         /* finish release */
         GitflowRelease gitflowRelease = new GitflowRelease();
