@@ -39,8 +39,9 @@ public class HotfixStartMojo extends HotfixAbstractMojo {
 
         /* Switch to master branch and get current version i.e. lastest tag */
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getMasterBrnName());
-        Model masterModel = MavenUtil.readPom(reactorProjects);
-        String masterVersion = masterModel.getVersion();        
+        reloadReactorProjects();
+        String masterVersion = project.getVersion();
+        getLog().info("master version = " + masterVersion);      
 
         String hotfixVersion = getHotfixVersion(masterVersion);
         String hotfixSnapshotVersion = getHotfixSnapshotVersion(masterVersion);

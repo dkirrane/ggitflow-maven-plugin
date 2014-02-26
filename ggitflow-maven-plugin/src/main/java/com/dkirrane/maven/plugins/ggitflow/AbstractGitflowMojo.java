@@ -252,6 +252,8 @@ public class AbstractGitflowMojo extends AbstractMojo {
     public void clean() throws MojoExecutionException, MojoFailureException {
         getLog().info("START org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
+        session.setCurrentProject(rootProject);
+        session.setProjects(reactorProjects);        
         executeMojo(
                 plugin(
                         groupId("org.apache.maven.plugins"),
@@ -274,6 +276,8 @@ public class AbstractGitflowMojo extends AbstractMojo {
     public void install() throws MojoExecutionException, MojoFailureException {
         getLog().info("START org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
+        session.setCurrentProject(rootProject);
+        session.setProjects(reactorProjects);
         executeMojo(
                 plugin(
                         groupId("org.apache.maven.plugins"),
@@ -296,6 +300,8 @@ public class AbstractGitflowMojo extends AbstractMojo {
     public void deploy() throws MojoExecutionException, MojoFailureException {
         getLog().info("START org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
+        session.setCurrentProject(rootProject);
+        session.setProjects(reactorProjects);        
         executeMojo(
                 plugin(
                         groupId("org.apache.maven.plugins"),

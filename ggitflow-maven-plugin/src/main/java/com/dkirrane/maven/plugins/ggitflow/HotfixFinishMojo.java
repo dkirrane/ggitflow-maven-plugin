@@ -54,14 +54,17 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         /* Switch to develop branch and get current develop version */
         String developBranch = getGitflowInit().getDevelopBranch();
         getGitflowInit().executeLocal("git checkout " + developBranch);
-        Model devModel = MavenUtil.readPom(reactorProjects);
-        String developVersion = devModel.getVersion();
+        reloadReactorProjects();
+        String developVersion = project.getVersion();
+        getLog().info("develop version = " + developVersion);
 
         /* Switch to hotfix branch and set poms to hotfix version */
         getGitflowInit().executeLocal("git checkout " + hotfixName);
-        Model hotModel = MavenUtil.readPom(reactorProjects);
-        String hotVersion = hotModel.getVersion();
-        String hotfixReleaseVersion = getReleaseVersion(hotVersion);
+        reloadReactorProjects();
+        String hotfixVersion = project.getVersion();
+        getLog().info("hotfix version = " + hotfixVersion);
+        String hotfixReleaseVersion = getReleaseVersion(hotfixVersion);
+        getLog().info("hotfix release version = " + hotfixReleaseVersion);
         setVersion(hotfixReleaseVersion);
 
         /* finish hotfix */
@@ -92,16 +95,16 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         if (!currentBranch.equals(developBranch)) {
             throw new MojoFailureException("Current branch should be " + developBranch + " but was " + currentBranch);
         }
+        
+        /* Switch to hotfix tag and deploy it */
+        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixReleaseVersion);
+        reloadReactorProjects();        
 
         /* install or deploy */
         if (skipDeploy == false) {
-            // checkout and deploy the hotfix tag
-            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixReleaseVersion);
             clean();
             deploy();
         } else if (skipBuild == false) {
-            // checkout and install the hotfix tag
-            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixReleaseVersion);
             clean();
             install();
         } else {
