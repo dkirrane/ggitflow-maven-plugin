@@ -18,9 +18,7 @@ package com.dkirrane.maven.plugins.ggitflow;
 import com.dkirrane.gitflow.groovy.GitflowFeature;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
-import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 import java.util.List;
-import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -55,13 +53,20 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
         featureName = promptForExistingFeatureName(featureBranches, featureName);
 
         if (enableFeatureVersions) {
+            /* Switch to develop branch and get its current version */
+            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
+            reloadReactorProjects();
+            String developVersion = project.getVersion(); 
+            getLog().info("develop version = " + developVersion);                        
+            
             /* Switch to feature branch and get its current version */
             getGitflowInit().executeLocal("git checkout " + featureName);
-            Model model = MavenUtil.readPom(reactorProjects);
-            String featureVersion = model.getVersion();            
+            reloadReactorProjects();
+            String featureVersion = project.getVersion();  
+            getLog().info("feature version = " + featureVersion);                        
 
             String nonFeatureVersion = getNonFeatureVersion(featureVersion, featureName.replace(featureBranchPrefix, ""));
-            setVersion(nonFeatureVersion);
+            setVersion(developVersion);
         }
 
         if (!skipBuild) {

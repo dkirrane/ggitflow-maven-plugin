@@ -19,20 +19,32 @@ import com.dkirrane.gitflow.groovy.GitflowInit;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.building.ModelBuildingRequest;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.DefaultProjectBuilder;
+import org.apache.maven.project.DefaultProjectBuildingRequest;
+import org.apache.maven.project.DuplicateProjectException;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.ProjectBuilder;
+import org.apache.maven.project.ProjectBuildingException;
+import org.apache.maven.project.ProjectBuildingRequest;
+import org.apache.maven.project.ProjectSorter;
 import org.apache.maven.shared.release.exec.MavenExecutor;
 import org.codehaus.plexus.components.interactivity.Prompter;
 import org.codehaus.plexus.util.StringUtils;
+import org.codehaus.plexus.util.dag.CycleDetectedException;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
@@ -74,6 +86,26 @@ public class AbstractGitflowMojo extends AbstractMojo {
     @Component
     protected Map<String, MavenExecutor> mavenExecutors;
 
+    @Component
+    protected ArtifactResolver artifactResolver;
+
+    /**
+     * @parameter default-value="${project.artifacts}"
+     * @required
+     * @readonly
+     */
+    protected Collection artifacts;
+
+    /**
+     * @parameter expression="${localRepository}"
+     */
+    protected ArtifactRepository localRepository;
+
+    /**
+     * @parameter expression="${project.remoteArtifactRepositories}"
+     */
+    protected List remoteArtifactRepositories;
+
 //    @Component
 //    protected MavenProjectBuilder projectBuilder;
 //    @Component
@@ -90,7 +122,13 @@ public class AbstractGitflowMojo extends AbstractMojo {
      */
     @Parameter(defaultValue = "${reactorProjects}", readonly = true, required = true)
     protected List<MavenProject> reactorProjects;
-    
+
+    /**
+     * The project builder
+     */
+    @Component
+    private ProjectBuilder projectBuilder;
+
     /**
      * The project currently being build.
      *
@@ -158,8 +196,8 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
     public GitflowInit getGitflowInit() {
         if (null == init) {
-            init = new GitflowInit();            
-            init.setRepoDir(getProject().getBasedir());            
+            init = new GitflowInit();
+            init.setRepoDir(getProject().getBasedir());
             init.setMasterBrnName(prefixes.getMasterBranch());
             init.setDevelopBrnName(prefixes.getDevelopBranch());
             init.setFeatureBrnPref(prefixes.getFeatureBranchPrefix());
@@ -167,9 +205,9 @@ public class AbstractGitflowMojo extends AbstractMojo {
             init.setHotfixBrnPref(prefixes.getHotfixBranchPrefix());
             init.setSupportBrnPref(prefixes.getSupportBranchPrefix());
             init.setVersionTagPref(prefixes.getVersionTagPrefix());
-            
+
             /* root Git directory may not be the pom directory */
-            String dotGitDir =init.executeLocal("git rev-parse --git-dir");
+            String dotGitDir = init.executeLocal("git rev-parse --git-dir");
             File dotGitFolder = new File(dotGitDir);
             assert dotGitFolder.exists();
             init.setRepoDir(dotGitFolder.getParentFile());
@@ -295,6 +333,94 @@ public class AbstractGitflowMojo extends AbstractMojo {
         }
 
         return result.toString();
+    }
+
+    public void reloadReactorProjects() throws MojoExecutionException {
+        getLog().info("Reloading poms...");
+
+        List<MavenProject> newReactorProjects;
+        try {
+            newReactorProjects = buildReactorProjects();
+        } catch (ProjectBuildingException e) {
+            getLog().info("Re-parse aborted due to malformed pom.xml file(s)", e);
+            throw new MojoExecutionException("Re-parse aborted due to malformed pom.xml file(s)", e);
+        } catch (CycleDetectedException e) {
+            getLog().info("Re-parse aborted due to dependency cycle in project model", e);
+            throw new MojoExecutionException("Re-parse aborted due to dependency cycle in project model", e);
+        } catch (DuplicateProjectException e) {
+            getLog().info("Re-parse aborted due to duplicate projects in project model", e);
+            throw new MojoExecutionException("Re-parse aborted due to duplicate projects in project model", e);
+        } catch (Exception e) {
+            getLog().info("Re-parse aborted due a problem that prevented sorting the project model", e);
+            throw new MojoExecutionException("Re-parse aborted due a problem that prevented sorting the project model", e);
+        }
+        MavenProject newProject = findProject(newReactorProjects, this.project);
+        if (newProject == null) {
+            throw new MojoExecutionException("A pom.xml change appears to have removed " + this.project.getId() + " from the build plan.");
+        }
+
+        this.project = newProject;
+        this.reactorProjects = newReactorProjects;
+        
+        getLog().info("Reloading poms complete...");
+    }
+
+    private List<MavenProject> buildReactorProjects() throws Exception {
+
+        List<MavenProject> projects = new ArrayList<MavenProject>();
+        for (MavenProject p : reactorProjects) {
+            ProjectBuildingRequest request = new DefaultProjectBuildingRequest();
+
+            request.setProcessPlugins(true);
+            request.setProfiles(request.getProfiles());
+            request.setActiveProfileIds(session.getRequest().getActiveProfiles());
+            request.setInactiveProfileIds(session.getRequest().getInactiveProfiles());
+            request.setRemoteRepositories(session.getRequest().getRemoteRepositories());
+            request.setSystemProperties(session.getSystemProperties());
+            request.setUserProperties(session.getUserProperties());
+            request.setRemoteRepositories(session.getRequest().getRemoteRepositories());
+            request.setPluginArtifactRepositories(session.getRequest().getPluginArtifactRepositories());
+            request.setRepositorySession(session.getRepositorySession());
+            request.setLocalRepository(localRepository);
+            request.setBuildStartTime(session.getRequest().getStartTime());
+            request.setResolveDependencies(true);
+            request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_STRICT);
+            projects.add(projectBuilder.build(p.getFile(), request).getProject());
+        }
+        return new ProjectSorter(projects).getSortedProjects();
+    }
+
+    private MavenProject findProject(List<MavenProject> newReactorProjects, MavenProject oldProject) {
+        for (MavenProject newProject : newReactorProjects) {
+            if (oldProject.getGroupId().equals(newProject.getGroupId())
+                    && oldProject.getArtifactId().equals(newProject.getArtifactId())) {
+                return newProject;
+            }
+        }
+        return null;
+    }
+
+    private boolean buildPlanEqual(List<MavenProject> newPlan, List<MavenProject> oldPlan) {
+        if (newPlan.size() != oldPlan.size()) {
+            return false;
+        }
+        int seq = 0;
+        for (Iterator<MavenProject> i = newPlan.iterator(), j = oldPlan.iterator(); i.hasNext() && j.hasNext();) {
+            MavenProject left = i.next();
+            MavenProject right = j.next();
+            getLog().debug(
+                    "[" + (seq++) + "] = " + left.equals(right) + (left == right ? " same" : " diff") + " : "
+                    + left.getName() + "[" + left.getDependencies().size() + "], " + right.getName()
+                    + "["
+                    + right.getDependencies().size() + "]");
+            if (!left.equals(right)) {
+                return false;
+            }
+            if (left.getDependencies().size() != right.getDependencies().size()) {
+                getLog().info("Dependency tree of " + left.getId() + " has been modified");
+            }
+        }
+        return true;
     }
 
 }

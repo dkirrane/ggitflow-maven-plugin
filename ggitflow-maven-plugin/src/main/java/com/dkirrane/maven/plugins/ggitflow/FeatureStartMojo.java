@@ -18,8 +18,6 @@ package com.dkirrane.maven.plugins.ggitflow;
 import com.dkirrane.gitflow.groovy.GitflowFeature;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -85,10 +83,15 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
             if (getGitflowInit().gitRemoteBranchExists(prefix + featureName)) {
                 getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + prefix + featureName);
             }
+
+            /* print feature version */
+            reloadReactorProjects();
+            System.out.println("project = " + project.getVersion());
         }
     }
 
     public String getFeatureName() {
         return featureName;
     }
+
 }

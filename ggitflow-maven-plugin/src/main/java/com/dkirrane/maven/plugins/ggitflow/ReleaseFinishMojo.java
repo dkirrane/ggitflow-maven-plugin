@@ -25,7 +25,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.codehaus.plexus.components.interactivity.PrompterException;
-import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 
 /**
@@ -49,17 +48,19 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
             releaseName = promptForExistingReleaseName(releaseBranches, releaseName);
         }
 
-        /* Switch to develop branch and get current develop version */
+        /* Switch to develop branch and get its current version */
         String developBranch = getGitflowInit().getDevelopBranch();
         getGitflowInit().executeLocal("git checkout " + developBranch);
-        Model devModel = MavenUtil.readPom(reactorProjects);
-        String developVersion = devModel.getVersion();
+        reloadReactorProjects();
+        String developVersion = project.getVersion();
+        getLog().info("develop version = " + developVersion);
 
         /* Switch to release branch and set poms to release version */
         getGitflowInit().executeLocal("git checkout " + releaseName);
-        Model relModel = MavenUtil.readPom(reactorProjects);
-        String relVersion = relModel.getVersion();
-        String releaseVersion = getReleaseVersion(relVersion);
+        reloadReactorProjects();
+        String releaseVersion = project.getVersion();
+        getLog().info("release version = " + developVersion);
+
         setVersion(releaseVersion);
 
         /* finish release */
@@ -91,31 +92,24 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         }
         /* set poms to next develop version */
         String nextDevelopVersion = getNextDevelopVersion(developVersion);
+        reloadReactorProjects();
         setVersion(nextDevelopVersion);
+
+        /* Switch to release tag and deploy it */
+        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);
+        reloadReactorProjects();
+        String tagVersion = project.getVersion();
+        getLog().info("tag version = " + tagVersion);
 
         /* install or deploy */
         if (skipDeploy == false) {
-            /* checkout and deploy the release tag */
-            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);
-            String currBranch = getGitflowInit().gitCurrentBranch();
-            System.out.println("currBranch = " + currBranch);
-            Model tagModel = MavenUtil.readPom(reactorProjects);
-            String tagVersion = tagModel.getVersion();
-            System.out.println("tagVersion = " + tagVersion);
             clean();
             deploy();
         } else if (skipBuild == false) {
-            /* checkout and install the release tag */
-            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);
-            String currBranch = getGitflowInit().gitCurrentBranch();
-            System.out.println("currBranch = " + currBranch);
-            Model tagModel = MavenUtil.readPom(reactorProjects);
-            String tagVersion = tagModel.getVersion();
-            System.out.println("tagVersion = " + tagVersion);
             clean();
             install();
         } else {
-            getLog().debug("Skipping both install and deploy");
+            getLog().debug("Skipping both install and deploy for tag " + tagVersion);
         }
         getGitflowInit().executeLocal("git checkout " + developBranch);
     }

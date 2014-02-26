@@ -46,20 +46,19 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
 
         /* Switch to develop branch and get its current version */
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
-        Model model = MavenUtil.readPom(reactorProjects);
-        String developVersion = model.getVersion();
-        
+        reloadReactorProjects();
+        String developVersion = project.getVersion();
+        getLog().info("develop version = " + developVersion);
+
         /* Get suggested release version */
         String releaseVersion = getReleaseVersion(developVersion);
-//        String nextDevelopmentVersion = getNextDevelopmentVersion(project.getVersion());        
+        getLog().info("release version = " + releaseVersion);
+//        String nextDevelopmentVersion = getNextDevelopmentVersion(project.getVersion());
 
         /* create release branch */
         String prefix = getReleaseBranchPrefix();
         if (StringUtils.isBlank(releaseName)) {
-            System.out.println("prefix = " + prefix);
-            System.out.println("prompter = " + prompter);
             String message = "What is the release branch name? " + prefix;
-            System.out.println("message = " + message);
             try {
                 releaseName = prompter.prompt(message, releaseVersion);
                 if (StringUtils.isBlank(releaseName)) {
