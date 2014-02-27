@@ -50,14 +50,7 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         } else {
             hotfixName = promptForExistingHotfixName(hotfixBranches, hotfixName);
         }
-
-        /* Switch to develop branch and get current develop version */
-        String developBranch = getGitflowInit().getDevelopBranch();
-        getGitflowInit().executeLocal("git checkout " + developBranch);
-        reloadReactorProjects();
-        String developVersion = project.getVersion();
-        getLog().info("develop version = " + developVersion);
-
+        
         /* Switch to hotfix branch and set poms to hotfix version */
         getGitflowInit().executeLocal("git checkout " + hotfixName);
         reloadReactorProjects();
@@ -65,6 +58,16 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         getLog().info("hotfix version = " + hotfixVersion);
         String hotfixReleaseVersion = getReleaseVersion(hotfixVersion);
         getLog().info("hotfix release version = " + hotfixReleaseVersion);
+        setVersion(hotfixReleaseVersion); 
+
+        /* Switch to develop branch and get current develop version */
+        String developBranch = getGitflowInit().getDevelopBranch();
+        getGitflowInit().executeLocal("git checkout " + developBranch);
+        reloadReactorProjects();
+        String developVersion = project.getVersion();
+        getLog().info("develop version = " + developVersion);
+        
+        /* Set develop branch to hotfix version to prevent merge conflicts */
         setVersion(hotfixReleaseVersion);
 
         /* finish hotfix */
@@ -78,16 +81,19 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         } catch (GitflowException ge) {
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {
-            getLog().info("Attempting to auto-resolve any pom version conflicts.", gmce);
-            FixPomMergeConflicts fixPomMergeConflicts = new FixPomMergeConflicts();
-            fixPomMergeConflicts.setInit(getGitflowInit());
-            try {
-                fixPomMergeConflicts.resolveConflicts2();
-            } catch (GitflowException ge) {
-                throw new MojoFailureException(ge.getMessage());
-            } catch (GitflowMergeConflictException gmce2) {
-                throw new MojoFailureException(gmce2.getMessage());
-            }
+            getLog().error("Merge conflicts exist.", gmce);
+            throw new MojoFailureException(gmce.getMessage());
+            
+//            getLog().info("Attempting to auto-resolve any pom version conflicts.", gmce);
+//            FixPomMergeConflicts fixPomMergeConflicts = new FixPomMergeConflicts();
+//            fixPomMergeConflicts.setInit(getGitflowInit());
+//            try {
+//                fixPomMergeConflicts.resolveConflicts2();
+//            } catch (GitflowException ge) {
+//                throw new MojoFailureException(ge.getMessage());
+//            } catch (GitflowMergeConflictException gmce2) {
+//                throw new MojoFailureException(gmce2.getMessage());
+//            }
         }
 
         /* make sure we're on the develop branch */
@@ -95,6 +101,12 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         if (!currentBranch.equals(developBranch)) {
             throw new MojoFailureException("Current branch should be " + developBranch + " but was " + currentBranch);
         }
+        
+        /* Set develop branch back to original develop version */
+        setVersion(developVersion); 
+        if (getGitflowInit().gitRemoteBranchExists(developBranch)) {
+            getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + developBranch);
+        }        
         
         /* Switch to hotfix tag and deploy it */
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixReleaseVersion);

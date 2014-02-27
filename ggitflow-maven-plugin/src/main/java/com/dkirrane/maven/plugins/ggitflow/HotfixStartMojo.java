@@ -73,18 +73,9 @@ public class HotfixStartMojo extends HotfixAbstractMojo {
         getLog().info("getHotfixVersion from '" + currentVersion + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
+        artifactVersion.upgradeLeastSignificantNumber();
 
-        final StringBuilder result = new StringBuilder(30);
-        if (artifactVersion.getPrimaryNumberCount() < 3) {
-            String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
-            String annotationAsString = artifactVersion.getAnnotationAsString();
-            result.append(primaryNumbersAsString).append('.').append('0');
-            result.append(annotationAsString);
-        } else {
-            artifactVersion.upgradeAnnotationRevision();
-            result.append(artifactVersion.toString());
-        }
-        return result.toString();
+        return artifactVersion.toString();
     }
 
     private String getHotfixSnapshotVersion(String currentVersion) throws MojoFailureException {
