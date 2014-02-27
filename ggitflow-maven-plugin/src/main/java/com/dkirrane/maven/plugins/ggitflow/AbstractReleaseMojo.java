@@ -41,12 +41,12 @@ public class AbstractReleaseMojo extends AbstractGitflowMojo {
     }
 
     public String getNextDevelopmentVersion(String version) throws MojoFailureException {
-        getLog().info("Project version '" + version + "'");
+        getLog().debug("Project version '" + version + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(version);
         GenericArtifactVersion nextDevelopVersion = artifactVersion.upgradeLeastSignificantNumber();
 
-        getLog().info("Project version '" + nextDevelopVersion + "'");
+        getLog().debug("Project version '" + nextDevelopVersion + "'");
         return nextDevelopVersion.toString();
     }
 }

@@ -86,7 +86,7 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
 
             /* print feature version */
             reloadReactorProjects();
-            System.out.println("project = " + project.getVersion());
+            getLog().debug("project = " + project.getVersion());
         }
     }
 

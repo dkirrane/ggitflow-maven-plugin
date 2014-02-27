@@ -53,13 +53,13 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         getGitflowInit().executeLocal("git checkout " + developBranch);
         reloadReactorProjects();
         String developVersion = project.getVersion();
-        getLog().info("develop version = " + developVersion);
+        getLog().debug("develop version = " + developVersion);
 
         /* Switch to release branch and set poms to release version */
         getGitflowInit().executeLocal("git checkout " + releaseName);
         reloadReactorProjects();
         String releaseVersion = getReleaseVersion(project.getVersion());
-        getLog().info("release version = " + releaseVersion);
+        getLog().debug("release version = " + releaseVersion);
 
         setVersion(releaseVersion);
 
@@ -99,7 +99,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);
         reloadReactorProjects();
         String tagVersion = project.getVersion();
-        getLog().info("tag version = " + tagVersion);
+        getLog().debug("tag version = " + tagVersion);
 
         /* install or deploy */
         if (skipDeploy == false) {
@@ -128,7 +128,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
     }
 
     private String getNextDevelopVersion(String developVersion) {
-        getLog().info("Current Develop version '" + developVersion + "'");
+        getLog().debug("Current Develop version '" + developVersion + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(developVersion);
         artifactVersion.upgradeLeastSignificantPrimaryNumber();

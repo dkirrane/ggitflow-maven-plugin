@@ -41,7 +41,7 @@ public class HotfixStartMojo extends HotfixAbstractMojo {
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getMasterBrnName());
         reloadReactorProjects();
         String masterVersion = project.getVersion();
-        getLog().info("master version = " + masterVersion);      
+        getLog().debug("master version = " + masterVersion);      
 
         String hotfixVersion = getHotfixVersion(masterVersion);
         String hotfixSnapshotVersion = getHotfixSnapshotVersion(masterVersion);
@@ -70,7 +70,7 @@ public class HotfixStartMojo extends HotfixAbstractMojo {
     }
 
     private String getHotfixVersion(String currentVersion) throws MojoFailureException {
-        getLog().info("getHotfixVersion from '" + currentVersion + "'");
+        getLog().debug("getHotfixVersion from '" + currentVersion + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
         artifactVersion.upgradeLeastSignificantNumber();
@@ -79,7 +79,7 @@ public class HotfixStartMojo extends HotfixAbstractMojo {
     }
 
     private String getHotfixSnapshotVersion(String currentVersion) throws MojoFailureException {
-        getLog().info("getHotfixSnapshotVersion from '" + currentVersion + "'");
+        getLog().debug("getHotfixSnapshotVersion from '" + currentVersion + "'");
 
         final StringBuilder result = new StringBuilder(30);
 

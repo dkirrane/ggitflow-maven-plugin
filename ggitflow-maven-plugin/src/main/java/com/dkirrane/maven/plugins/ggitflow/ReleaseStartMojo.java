@@ -48,11 +48,11 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
         reloadReactorProjects();
         String developVersion = project.getVersion();
-        getLog().info("develop version = " + developVersion);
+        getLog().debug("develop version = " + developVersion);
 
         /* Get suggested release version */
         String releaseVersion = getReleaseVersion(developVersion);
-        getLog().info("release version = " + releaseVersion);
+        getLog().debug("release version = " + releaseVersion);
 //        String nextDevelopmentVersion = getNextDevelopmentVersion(project.getVersion());
 
         /* create release branch */
@@ -76,8 +76,8 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         }
 
         getLog().info("Starting release '" + releaseName + "'");
-        getLog().info("msgPrefix '" + getMsgPrefix() + "'");
-        getLog().info("msgSuffix '" + getMsgSuffix() + "'");
+        getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
+        getLog().debug("msgSuffix '" + getMsgSuffix() + "'");
 
         GitflowRelease gitflowRelease = new GitflowRelease();
         gitflowRelease.setInit(getGitflowInit());

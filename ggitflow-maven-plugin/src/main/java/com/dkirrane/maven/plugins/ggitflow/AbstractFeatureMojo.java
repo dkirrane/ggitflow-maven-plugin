@@ -54,9 +54,9 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
     }
 
     public String getFeatureVersion(String currentVersion, String featureLabel) throws MojoFailureException {
-        getLog().info("getFeatureVersion from '" + currentVersion + "'");
+        getLog().debug("getFeatureVersion from '" + currentVersion + "'");
         featureLabel = getValidFeatureVersionAnnotation(featureLabel);
-        getLog().info("Feature version annotation '" + featureLabel + "'");
+        getLog().debug("Feature version annotation '" + featureLabel + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
         String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
@@ -65,7 +65,7 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
         String buildSpecifier = artifactVersion.getBuildSpecifier();
         Character buildSpecifierSeparator = artifactVersion.getBuildSpecifierSeparator();
 
-        getLog().info("Parsed version = " + artifactVersion.toString());
+        getLog().debug("Parsed version = " + artifactVersion.toString());
         if (!StringUtils.isBlank(annotationAsString)) {
             throw new MojoFailureException("Cannot add feature name to version. An annotation " + annotationAsString + " already exists");
         }
@@ -85,9 +85,9 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
     }
 
     public String getNonFeatureVersion(String version, String featureLabel) {
-        getLog().info("getNonFeatureVersion from '" + version + "'");
+        getLog().debug("getNonFeatureVersion from '" + version + "'");
         featureLabel = getValidFeatureVersionAnnotation(featureLabel);
-        getLog().info("Feature version annotation '" + featureLabel + "'");
+        getLog().debug("Feature version annotation '" + featureLabel + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(version);
         String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
@@ -95,7 +95,7 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
         String buildSpecifier = artifactVersion.getBuildSpecifier();
         Character buildSpecifierSeparator = artifactVersion.getBuildSpecifierSeparator();
 
-        getLog().info("Parsed version = " + artifactVersion.toString());
+        getLog().debug("Parsed version = " + artifactVersion.toString());
         if (StringUtils.isBlank(annotationAsString)) {
             getLog().warn("Cannot remove feature name from pom version. The version annotation does not exists");
             return version;

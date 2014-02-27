@@ -168,7 +168,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         if (null == project) {
             throw new NullPointerException("MavenProject is null");
         } else {
-            getLog().info("Gitflow pom  '" + project.getBasedir() + "'");
+            getLog().debug("Gitflow pom  '" + project.getBasedir() + "'");
         }
 
         GitflowInit gitflowInit = getGitflowInit();
@@ -216,7 +216,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
     }
 
     public void setVersion(String version) throws MojoExecutionException, MojoFailureException {
-        getLog().info("START org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
+        getLog().debug("START org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         executeMojo(
                 plugin(
@@ -235,7 +235,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                         pluginManager
                 )
         );
-        getLog().info("DONE org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
+        getLog().debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
 
         if (!getGitflowInit().gitIsCleanWorkingTree()) {
             String msg = getMsgPrefix() + "Updating poms to version " + version + "" + getMsgSuffix();
@@ -250,7 +250,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
     }
 
     public void clean() throws MojoExecutionException, MojoFailureException {
-        getLog().info("START org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
+        getLog().debug("START org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
         session.setProjects(reactorProjects);        
@@ -270,11 +270,11 @@ public class AbstractGitflowMojo extends AbstractMojo {
                         pluginManager
                 )
         );
-        getLog().info("DONE org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
+        getLog().debug("DONE org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
     }
 
     public void install() throws MojoExecutionException, MojoFailureException {
-        getLog().info("START org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
+        getLog().debug("START org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
         session.setProjects(reactorProjects);
@@ -294,11 +294,11 @@ public class AbstractGitflowMojo extends AbstractMojo {
                         pluginManager
                 )
         );
-        getLog().info("DONE org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
+        getLog().debug("DONE org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
     }
 
     public void deploy() throws MojoExecutionException, MojoFailureException {
-        getLog().info("START org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
+        getLog().debug("START org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
         session.setProjects(reactorProjects);        
@@ -319,11 +319,11 @@ public class AbstractGitflowMojo extends AbstractMojo {
                         pluginManager
                 )
         );
-        getLog().info("DONE org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
+        getLog().debug("DONE org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
     }
 
     public String getReleaseVersion(String version) throws MojoFailureException {
-        getLog().info("Current Develop version '" + version + "'");
+        getLog().debug("Current Develop version '" + version + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(version);
 
@@ -342,22 +342,22 @@ public class AbstractGitflowMojo extends AbstractMojo {
     }
 
     public void reloadReactorProjects() throws MojoExecutionException {
-        getLog().info("Reloading poms...");
+        getLog().debug("Reloading poms...");
 
         List<MavenProject> newReactorProjects;
         try {
             newReactorProjects = buildReactorProjects();
         } catch (ProjectBuildingException e) {
-            getLog().info("Re-parse aborted due to malformed pom.xml file(s)", e);
+            getLog().error("Re-parse aborted due to malformed pom.xml file(s)", e);
             throw new MojoExecutionException("Re-parse aborted due to malformed pom.xml file(s)", e);
         } catch (CycleDetectedException e) {
-            getLog().info("Re-parse aborted due to dependency cycle in project model", e);
+            getLog().error("Re-parse aborted due to dependency cycle in project model", e);
             throw new MojoExecutionException("Re-parse aborted due to dependency cycle in project model", e);
         } catch (DuplicateProjectException e) {
-            getLog().info("Re-parse aborted due to duplicate projects in project model", e);
+            getLog().error("Re-parse aborted due to duplicate projects in project model", e);
             throw new MojoExecutionException("Re-parse aborted due to duplicate projects in project model", e);
         } catch (Exception e) {
-            getLog().info("Re-parse aborted due a problem that prevented sorting the project model", e);
+            getLog().error("Re-parse aborted due a problem that prevented sorting the project model", e);
             throw new MojoExecutionException("Re-parse aborted due a problem that prevented sorting the project model", e);
         }
         MavenProject newProject = findProject(newReactorProjects, this.project);
@@ -368,7 +368,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         this.project = newProject;
         this.reactorProjects = newReactorProjects;
         
-        getLog().info("Reloading poms complete...");
+        getLog().debug("Reloading poms complete...");
     }
 
     private List<MavenProject> buildReactorProjects() throws Exception {
@@ -404,29 +404,6 @@ public class AbstractGitflowMojo extends AbstractMojo {
             }
         }
         return null;
-    }
-
-    private boolean buildPlanEqual(List<MavenProject> newPlan, List<MavenProject> oldPlan) {
-        if (newPlan.size() != oldPlan.size()) {
-            return false;
-        }
-        int seq = 0;
-        for (Iterator<MavenProject> i = newPlan.iterator(), j = oldPlan.iterator(); i.hasNext() && j.hasNext();) {
-            MavenProject left = i.next();
-            MavenProject right = j.next();
-            getLog().debug(
-                    "[" + (seq++) + "] = " + left.equals(right) + (left == right ? " same" : " diff") + " : "
-                    + left.getName() + "[" + left.getDependencies().size() + "], " + right.getName()
-                    + "["
-                    + right.getDependencies().size() + "]");
-            if (!left.equals(right)) {
-                return false;
-            }
-            if (left.getDependencies().size() != right.getDependencies().size()) {
-                getLog().info("Dependency tree of " + left.getId() + " has been modified");
-            }
-        }
-        return true;
     }
 
 }

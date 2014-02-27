@@ -57,15 +57,14 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
             reloadReactorProjects();
             String developVersion = project.getVersion(); 
-            getLog().info("develop version = " + developVersion);                        
+            getLog().debug("develop version = " + developVersion);                        
             
             /* Switch to feature branch and get its current version */
             getGitflowInit().executeLocal("git checkout " + featureName);
             reloadReactorProjects();
             String featureVersion = project.getVersion();  
-            getLog().info("feature version = " + featureVersion);                        
+            getLog().debug("feature version = " + featureVersion);                        
 
-            String nonFeatureVersion = getNonFeatureVersion(featureVersion, featureName.replace(featureBranchPrefix, ""));
             setVersion(developVersion);
         }
 

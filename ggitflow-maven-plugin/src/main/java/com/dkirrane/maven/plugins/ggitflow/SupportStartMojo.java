@@ -96,7 +96,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
     }
 
     private String getSupportVersion(String currentVersion) throws MojoFailureException {
-        getLog().info("getSupportVersion from '" + currentVersion + "'");
+        getLog().debug("getSupportVersion from '" + currentVersion + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
 
@@ -117,7 +117,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
     }
 
     private String getSupportSnapshotVersion(String currentVersion) throws MojoFailureException {
-        getLog().info("getSupportSnapshotVersion from '" + currentVersion + "'");
+        getLog().debug("getSupportSnapshotVersion from '" + currentVersion + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
 

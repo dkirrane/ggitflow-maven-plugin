@@ -55,9 +55,9 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         getGitflowInit().executeLocal("git checkout " + hotfixName);
         reloadReactorProjects();
         String hotfixVersion = project.getVersion();
-        getLog().info("hotfix version = " + hotfixVersion);
+        getLog().debug("hotfix snapshot version = " + hotfixVersion);
         String hotfixReleaseVersion = getReleaseVersion(hotfixVersion);
-        getLog().info("hotfix release version = " + hotfixReleaseVersion);
+        getLog().debug("hotfix release version = " + hotfixReleaseVersion);
         setVersion(hotfixReleaseVersion); 
 
         /* Switch to develop branch and get current develop version */
@@ -65,7 +65,7 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         getGitflowInit().executeLocal("git checkout " + developBranch);
         reloadReactorProjects();
         String developVersion = project.getVersion();
-        getLog().info("develop version = " + developVersion);
+        getLog().debug("develop version = " + developVersion);
         
         /* Set develop branch to hotfix version to prevent merge conflicts */
         setVersion(hotfixReleaseVersion);
