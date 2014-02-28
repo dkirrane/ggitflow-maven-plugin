@@ -24,4 +24,14 @@
             <skipTests>true</skipTests>
         </properties>
     </action>
+    <action>
+        <actionName>CUSTOM-versions:set</actionName>
+        <displayName>versions:set</displayName>
+        <goals>
+            <goal>versions:set</goal>
+        </goals>
+        <properties>
+            <generateBackupPoms>false</generateBackupPoms>
+        </properties>
+    </action>
 </actions>

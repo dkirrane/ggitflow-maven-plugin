@@ -242,6 +242,16 @@ public class AbstractGitflowMojo extends AbstractMojo {
             getGitflowInit().executeLocal("git add -A .");
             String[] cmtPom = {"git", "commit", "-m", "\"" + msg + "\""};
             getGitflowInit().executeLocal(cmtPom);
+
+            String currentBranch = getGitflowInit().gitCurrentBranch();
+            if (getGitflowInit().gitRemoteBranchExists(currentBranch)) {
+                String origin = getGitflowInit().getOrigin();
+                String[] cmtPush = {"git", "push", origin, currentBranch};
+                Integer exitCode = getGitflowInit().executeRemote(cmtPush);
+                if (exitCode != 0) {
+                    throw new MojoExecutionException("Failed to push version change " + version + " to origin. ExitCode:" + exitCode);
+                }
+            }
         }
         /* We don't want to fail maybe the version was manually set correctly */
 //        else {
@@ -253,7 +263,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         getLog().debug("START org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
-        session.setProjects(reactorProjects);        
+        session.setProjects(reactorProjects);
         executeMojo(
                 plugin(
                         groupId("org.apache.maven.plugins"),
@@ -301,7 +311,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         getLog().debug("START org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
-        session.setProjects(reactorProjects);        
+        session.setProjects(reactorProjects);
         executeMojo(
                 plugin(
                         groupId("org.apache.maven.plugins"),
@@ -367,7 +377,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
         this.project = newProject;
         this.reactorProjects = newReactorProjects;
-        
+
         getLog().debug("Reloading poms complete...");
     }
 
