@@ -4,7 +4,7 @@
 
     <groupId>com.dkirrane.maven.plugins</groupId>
     <artifactId>ggitflow-maven-plugin</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1</version>
     <packaging>maven-plugin</packaging>
     <name>ggitflow-maven-plugin</name>
 
