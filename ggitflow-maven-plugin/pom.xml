@@ -11,6 +11,12 @@
 
     <url>https://github.com/dkirrane/ggitflow-maven-plugin</url>
 
+    <scm>
+        <url>https://github.com/dkirrane/ggitflow-maven-plugin</url>
+        <connection>scm:git:https://github.com/dkirrane/ggitflow-maven-plugin.git</connection>
+        <developerConnection>scm:git:https://github.com/dkirrane/ggitflow-maven-plugin.git</developerConnection>
+    </scm>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netbeans.hint.license>apache20</netbeans.hint.license>
@@ -136,7 +142,7 @@
         <profile>
             <id>run-its</id>
             <build>
-                <plugins>                                                      
+                <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-invoker-plugin</artifactId>
