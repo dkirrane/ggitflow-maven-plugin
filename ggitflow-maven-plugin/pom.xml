@@ -8,7 +8,7 @@
     <packaging>maven-plugin</packaging>
     <name>ggitflow-maven-plugin</name>
 
-    <url>https://github.com/dkirrane/ggitflow-maven-plugin</url>
+    <url>http://dkirrane.github.io/ggitflow-maven-plugin/</url>
 
     <scm>
         <url>https://github.com/dkirrane/ggitflow-maven-plugin</url>
