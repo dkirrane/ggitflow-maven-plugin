@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Ggitflow-maven-plugin : Gitflow Maven Plugin that uses Groovy Gitflow" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Ggitflow-maven-plugin</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/dkirrane/ggitflow-maven-plugin">View on GitHub</a>
+
+          <h1 id="project_title">Ggitflow-maven-plugin</h1>
+          <h2 id="project_tagline">Gitflow Maven Plugin that uses Groovy Gitflow</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/dkirrane/ggitflow-maven-plugin/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/dkirrane/ggitflow-maven-plugin/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h3>
+<a name="gitflow-maven-plugin" class="anchor" href="#gitflow-maven-plugin"><span class="octicon octicon-link"></span></a>Gitflow Maven Plugin</h3>
+
+<p><code>Ggitflow-maven-plugin</code> provides Maven support for Vincent Driessen's branching model <a href="http://nvie.com/posts/a-successful-git-branching-model/">http://nvie.com/posts/a-successful-git-branching-model/</a>.</p>
+
+<p>Think of <code>Ggitflow-maven-plugin</code> as the <code>maven-release-plugin</code> for the Gitflow branching model.</p>
+
+<p>The plugin uses <a href="http://dkirrane.github.io/ggitflow/">GGitflow</a>, therefore it uses the git console directly under the hood rather than JGit.</p>
+
+<h3>
+<a name="maven-settings" class="anchor" href="#maven-settings"><span class="octicon octicon-link"></span></a>Maven settings</h3>
+
+<p>Add the following to your Maven <code>settings.xml</code></p>
+
+<pre><code>&lt;pluginGroups&gt;
+   &lt;pluginGroup&gt;com.dkirrane.maven.plugins&lt;/pluginGroup&gt;
+&lt;/pluginGroups&gt;
+</code></pre>
+
+<h3>
+<a name="pom-configuration" class="anchor" href="#pom-configuration"><span class="octicon octicon-link"></span></a>POM configuration</h3>
+
+<p>Add the following to your top-level parent aggregator POM.
+The configuration is almost identical to the <code>maven-jgitflow-plugin</code>. However, under the hood the <code>Ggitflow-maven-plugin</code> invokes git commands directly. It does NOT use JGit. Why use JGit if a git command-line is provided for every Mac, Windows &amp; Linux OS?</p>
+
+<pre><code>&lt;plugin&gt;
+    &lt;groupId&gt;com.dkirrane.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;ggitflow-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;1.1&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;!-- Optional Config
+        &lt;prefixes&gt;
+            &lt;masterBranch&gt;master&lt;/masterBranch&gt;
+            &lt;developBranch&gt;development&lt;/developBranch&gt;
+            &lt;featureBranchPrefix&gt;feature/&lt;/featureBranchPrefix&gt;
+            &lt;releaseBranchPrefix&gt;release/&lt;/releaseBranchPrefix&gt;
+            &lt;hotfixBranchPrefix&gt;hotfix/&lt;/hotfixBranchPrefix&gt;
+            &lt;supportBranchPrefix&gt;support/&lt;/supportBranchPrefix&gt;
+            &lt;versionTagPrefix&gt;v-&lt;/versionTagPrefix&gt;
+        &lt;/prefixes&gt;                    
+        &lt;enableFeatureVersions&gt;true&lt;/enableFeatureVersions&gt;
+        &lt;msgPrefix&gt;[ggitflow-maven-plugin]&lt;/msgPrefix&gt;
+        &lt;msgSuffix&gt;+review @reviewer123&lt;/msgSuffix&gt;
+        &lt;pushFeatures&gt;true&lt;/pushFeatures&gt;
+        &lt;pushReleases&gt;true&lt;/pushReleases&gt;
+        &lt;pushHotfixes&gt;true&lt;/pushHotfixes&gt;
+        &lt;pushSupport&gt;true&lt;/pushSupport&gt;
+        &lt;skipBuild&gt;true&lt;/skipBuild&gt;
+        &lt;skipDeploy&gt;true&lt;/skipDeploy&gt;
+        --&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+</code></pre>
+
+<p>NOTE, if you're using Windows, since the <code>ggitflow-maven-plugin</code> commands uses the git console it must be run from a git console such as <code>git BASH</code> <a href="http://msysgit.github.io/">http://msysgit.github.io/</a></p>
+
+<h3>
+<a name="start--finish-a-feature-branch" class="anchor" href="#start--finish-a-feature-branch"><span class="octicon octicon-link"></span></a>Start &amp; Finish a Feature branch</h3>
+
+<pre><code>mvn ggitflow:feature-start
+mvn ggitflow:feature-finish
+</code></pre>
+
+<h3>
+<a name="start--finish-a-release-branch" class="anchor" href="#start--finish-a-release-branch"><span class="octicon octicon-link"></span></a>Start &amp; Finish a Release branch</h3>
+
+<pre><code>mvn ggitflow:release-start
+mvn ggitflow:release-finish
+</code></pre>
+
+<h3>
+<a name="start--finish-a-hotfix-branch" class="anchor" href="#start--finish-a-hotfix-branch"><span class="octicon octicon-link"></span></a>Start &amp; Finish a Hotfix branch</h3>
+
+<pre><code>mvn ggitflow:hotfix-start
+mvn ggitflow:hotfix-finish
+</code></pre>
+
+<h3>
+<a name="start-a-support-branch" class="anchor" href="#start-a-support-branch"><span class="octicon octicon-link"></span></a>Start a Support branch</h3>
+
+<pre><code>mvn ggitflow:support-start
+</code></pre>
+
+<h3>
+<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+
+<p>Desmond (Dessie) Kirrane (<a href="https://github.com/dkirrane" class="user-mention">@dkirrane</a>)</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Ggitflow-maven-plugin maintained by <a href="https://github.com/dkirrane">dkirrane</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
