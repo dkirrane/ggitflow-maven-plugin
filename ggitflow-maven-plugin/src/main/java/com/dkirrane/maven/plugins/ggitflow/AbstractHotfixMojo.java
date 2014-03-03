@@ -15,9 +15,13 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
+import org.apache.maven.plugins.annotations.Parameter;
+
 /**
  *
  */
-public class HotfixAbstractMojo extends AbstractGitflowMojo {
+public class AbstractHotfixMojo extends AbstractGitflowMojo {
 
+    @Parameter(defaultValue = "false", property = "pushHotfixes")
+    protected boolean pushHotfixes = false;
 }

@@ -35,9 +35,6 @@ import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
 @Mojo(name = "support-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class SupportStartMojo extends AbstractGitflowMojo {
 
-    @Parameter(property = "startCommit", defaultValue = "")
-    private String startCommit;
-
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
@@ -64,10 +61,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
         gitflowSupport.setInit(getGitflowInit());
         gitflowSupport.setMsgPrefix(getMsgPrefix());
         gitflowSupport.setMsgSuffix(getMsgSuffix());
-
-        if (!StringUtils.isEmpty(startCommit)) {
-            gitflowSupport.setStartCommit(startCommit);
-        }
+        gitflowSupport.setStartCommit(startCommit);
 
         try {
             gitflowSupport.start(supportVersion);

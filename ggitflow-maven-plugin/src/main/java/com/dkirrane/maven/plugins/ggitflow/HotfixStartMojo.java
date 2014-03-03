@@ -31,7 +31,7 @@ import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
  *
  */
 @Mojo(name = "hotfix-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
-public class HotfixStartMojo extends HotfixAbstractMojo {
+public class HotfixStartMojo extends AbstractHotfixMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -41,7 +41,7 @@ public class HotfixStartMojo extends HotfixAbstractMojo {
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getMasterBrnName());
         reloadReactorProjects();
         String masterVersion = project.getVersion();
-        getLog().debug("master version = " + masterVersion);      
+        getLog().debug("master version = " + masterVersion);
 
         String hotfixVersion = getHotfixVersion(masterVersion);
         String hotfixSnapshotVersion = getHotfixSnapshotVersion(masterVersion);
@@ -54,6 +54,7 @@ public class HotfixStartMojo extends HotfixAbstractMojo {
         gitflowHotfix.setInit(getGitflowInit());
         gitflowHotfix.setMsgPrefix(getMsgPrefix());
         gitflowHotfix.setMsgSuffix(getMsgSuffix());
+        gitflowHotfix.setPush(pushHotfixes);
 
         try {
             gitflowHotfix.start(hotfixVersion);

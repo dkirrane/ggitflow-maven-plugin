@@ -68,6 +68,10 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         gitflowRelease.setInit(getGitflowInit());
         gitflowRelease.setMsgPrefix(getMsgPrefix());
         gitflowRelease.setMsgSuffix(getMsgSuffix());
+        gitflowRelease.setSquash(squash);
+        gitflowRelease.setKeep(keep);
+        gitflowRelease.setSign(sign);
+        gitflowRelease.setSigningkey(signingkey);
 
         try {
             gitflowRelease.finish(releaseName);

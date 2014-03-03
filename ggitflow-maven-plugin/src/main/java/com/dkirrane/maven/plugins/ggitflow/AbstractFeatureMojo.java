@@ -117,7 +117,7 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
             getLog().warn("Cannot remove feature name from pom version. The version annotation [" + annotationAsString + "] does not match the feature label [" + featureLabel + "]");
             return version;
         }
-    }      
+    }
 
     private String getValidFeatureVersionAnnotation(String featureLabel) {
         featureLabel = featureLabel.trim().replaceAll("\\s+", "_");

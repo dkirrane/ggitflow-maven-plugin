@@ -30,7 +30,7 @@ public class AbstractReleaseMojo extends AbstractGitflowMojo {
     protected String releaseName;
 
     @Parameter(defaultValue = "false", property = "pushReleases")
-    private boolean pushReleases = false;
+    protected boolean pushReleases = false;
 
     public String getReleaseBranchPrefix() {
         String prefix = getGitflowInit().getReleaseBranchPrefix();

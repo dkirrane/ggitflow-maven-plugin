@@ -32,7 +32,7 @@ import org.codehaus.plexus.components.interactivity.PrompterException;
  *
  */
 @Mojo(name = "hotfix-finish", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
-public class HotfixFinishMojo extends HotfixAbstractMojo {
+public class HotfixFinishMojo extends AbstractHotfixMojo {
 
     protected String hotfixName;
 
@@ -50,7 +50,7 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         } else {
             hotfixName = promptForExistingHotfixName(hotfixBranches, hotfixName);
         }
-        
+
         /* Switch to hotfix branch and set poms to hotfix version */
         getGitflowInit().executeLocal("git checkout " + hotfixName);
         reloadReactorProjects();
@@ -58,7 +58,7 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         getLog().debug("hotfix snapshot version = " + hotfixVersion);
         String hotfixReleaseVersion = getReleaseVersion(hotfixVersion);
         getLog().debug("hotfix release version = " + hotfixReleaseVersion);
-        setVersion(hotfixReleaseVersion); 
+        setVersion(hotfixReleaseVersion);
 
         /* Switch to develop branch and get current develop version */
         String developBranch = getGitflowInit().getDevelopBranch();
@@ -66,7 +66,7 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         reloadReactorProjects();
         String developVersion = project.getVersion();
         getLog().debug("develop version = " + developVersion);
-        
+
         /* Set develop branch to hotfix version to prevent merge conflicts */
         setVersion(hotfixReleaseVersion);
 
@@ -75,6 +75,10 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         gitflowHotfix.setInit(getGitflowInit());
         gitflowHotfix.setMsgPrefix(getMsgPrefix());
         gitflowHotfix.setMsgSuffix(getMsgSuffix());
+        gitflowHotfix.setSquash(squash);
+        gitflowHotfix.setKeep(keep);
+        gitflowHotfix.setSign(sign);
+        gitflowHotfix.setSigningkey(signingkey);
 
         try {
             gitflowHotfix.finish(hotfixName);
@@ -83,7 +87,7 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         } catch (GitflowMergeConflictException gmce) {
             getLog().error("Merge conflicts exist.", gmce);
             throw new MojoFailureException(gmce.getMessage());
-            
+
 //            getLog().info("Attempting to auto-resolve any pom version conflicts.", gmce);
 //            FixPomMergeConflicts fixPomMergeConflicts = new FixPomMergeConflicts();
 //            fixPomMergeConflicts.setInit(getGitflowInit());
@@ -101,16 +105,16 @@ public class HotfixFinishMojo extends HotfixAbstractMojo {
         if (!currentBranch.equals(developBranch)) {
             throw new MojoFailureException("Current branch should be " + developBranch + " but was " + currentBranch);
         }
-        
+
         /* Set develop branch back to original develop version */
-        setVersion(developVersion); 
+        setVersion(developVersion);
         if (getGitflowInit().gitRemoteBranchExists(developBranch)) {
             getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + developBranch);
-        }        
-        
+        }
+
         /* Switch to hotfix tag and deploy it */
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixReleaseVersion);
-        reloadReactorProjects();        
+        reloadReactorProjects();
 
         /* install or deploy */
         if (skipDeploy == false) {

@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -30,6 +31,12 @@ import org.codehaus.plexus.util.StringUtils;
  */
 @Mojo(name = "feature-finish", aggregator = true)
 public class FeatureFinishMojo extends AbstractFeatureMojo {
+
+    @Parameter(defaultValue = "false", property = "isRebase")
+    private boolean isRebase = false;
+
+    @Parameter(defaultValue = "false", property = "isInteractive")
+    private boolean isInteractive = false;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -56,14 +63,14 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             /* Switch to develop branch and get its current version */
             getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
             reloadReactorProjects();
-            String developVersion = project.getVersion(); 
-            getLog().debug("develop version = " + developVersion);                        
-            
+            String developVersion = project.getVersion();
+            getLog().debug("develop version = " + developVersion);
+
             /* Switch to feature branch and get its current version */
             getGitflowInit().executeLocal("git checkout " + featureName);
             reloadReactorProjects();
-            String featureVersion = project.getVersion();  
-            getLog().debug("feature version = " + featureVersion);                        
+            String featureVersion = project.getVersion();
+            getLog().debug("feature version = " + featureVersion);
 
             setVersion(developVersion);
         }
@@ -79,6 +86,10 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
         gitflowFeature.setInit(getGitflowInit());
         gitflowFeature.setMsgPrefix(getMsgPrefix());
         gitflowFeature.setMsgSuffix(getMsgSuffix());
+        gitflowFeature.setSquash(squash);
+        gitflowFeature.setKeep(keep);
+        gitflowFeature.setIsRebase(isRebase);
+        gitflowFeature.setIsInteractive(isInteractive);
 
         try {
             gitflowFeature.finish(featureName);

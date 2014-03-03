@@ -33,9 +33,6 @@ import org.codehaus.plexus.util.StringUtils;
 @Mojo(name = "feature-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class FeatureStartMojo extends AbstractFeatureMojo {
 
-    @Parameter(property = "startCommit", defaultValue = "")
-    private String startCommit;
-
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
@@ -65,6 +62,8 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
         gitflowFeature.setInit(getGitflowInit());
         gitflowFeature.setMsgPrefix(getMsgPrefix());
         gitflowFeature.setMsgSuffix(getMsgSuffix());
+        gitflowFeature.setPush(pushFeatures);
+        gitflowFeature.setStartCommit(startCommit);
 
         try {
             gitflowFeature.start(featureName);

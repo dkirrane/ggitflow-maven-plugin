@@ -77,6 +77,21 @@ public class AbstractGitflowMojo extends AbstractMojo {
     @Parameter(property = "skipDeploy", defaultValue = "false")
     protected Boolean skipDeploy;
 
+    @Parameter(property = "startCommit", defaultValue = "")
+    protected String startCommit;
+
+    @Parameter(property = "squash", defaultValue = "false")
+    protected Boolean squash;
+
+    @Parameter(property = "keep", defaultValue = "false")
+    protected Boolean keep;
+
+    @Parameter(property = "sign", defaultValue = "false")
+    protected Boolean sign;
+
+    @Parameter(property = "signingkey", defaultValue = "")
+    protected String signingkey;
+
     /**
      * Component used to prompt for input.
      */

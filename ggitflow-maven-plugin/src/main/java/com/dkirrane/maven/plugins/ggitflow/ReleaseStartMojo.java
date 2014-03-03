@@ -34,9 +34,6 @@ import org.jfrog.hudson.util.GenericArtifactVersion;
 @Mojo(name = "release-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class ReleaseStartMojo extends AbstractReleaseMojo {
 
-    @Parameter(property = "startCommit", defaultValue = "")
-    private String startCommit;
-
     @Parameter(defaultValue = "false", property = "allowSnapshots")
     private boolean allowSnapshots = false;
 
@@ -83,6 +80,8 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         gitflowRelease.setInit(getGitflowInit());
         gitflowRelease.setMsgPrefix(getMsgPrefix());
         gitflowRelease.setMsgSuffix(getMsgSuffix());
+        gitflowRelease.setPush(pushReleases);
+        gitflowRelease.setStartCommit(startCommit);
 
         try {
             gitflowRelease.start(releaseName);
