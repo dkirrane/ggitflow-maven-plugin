@@ -17,8 +17,6 @@ package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowHotfix;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
-import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
-import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -28,7 +26,7 @@ import static org.jfrog.hudson.util.GenericArtifactVersion.DEFAULT_VERSION_COMPO
 import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
 
 /**
- *
+ * Creates a new hotfix branch off of the master branch.
  */
 @Mojo(name = "hotfix-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class HotfixStartMojo extends AbstractHotfixMojo {

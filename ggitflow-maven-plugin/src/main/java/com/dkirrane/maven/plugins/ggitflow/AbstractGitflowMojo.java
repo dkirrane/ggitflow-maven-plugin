@@ -21,7 +21,6 @@ import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.apache.maven.artifact.repository.ArtifactRepository;
@@ -62,34 +61,85 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
  */
 public class AbstractGitflowMojo extends AbstractMojo {
 
+    /**
+     * Gitflow branches and prefixes to use.
+     *
+     * @since 1.2
+     */
     @Parameter(defaultValue = "${prefixes}")
     protected Prefixes prefixes;
 
-    @Parameter(property = "msgPrefix", defaultValue = "")
+    /**
+     * Message prefix used for any commits made by this plugin.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "msgPrefix", defaultValue = "", required = false)
     protected String msgPrefix;
 
-    @Parameter(property = "msgSuffix", defaultValue = "")
+    /**
+     * Message suffix used for any commits made by this plugin.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "msgSuffix", defaultValue = "", required = false)
     protected String msgSuffix;
 
-    @Parameter(property = "skipBuild", defaultValue = "false")
+    /**
+     * Skips any calls to mvn install
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "skipBuild", defaultValue = "false", required = false)
     protected Boolean skipBuild;
 
-    @Parameter(property = "skipDeploy", defaultValue = "false")
+    /**
+     * Skips any calls to mvn deploy
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "skipDeploy", defaultValue = "false", required = false)
     protected Boolean skipDeploy;
 
-    @Parameter(property = "startCommit", defaultValue = "")
+    /**
+     * The commit to start the branch from.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "startCommit", defaultValue = "", required = false)
     protected String startCommit;
 
-    @Parameter(property = "squash", defaultValue = "false")
+    /**
+     * If true, all branch commits will be squashed into a single commit before
+     * the merge.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "squash", defaultValue = "false", required = false)
     protected Boolean squash;
 
-    @Parameter(property = "keep", defaultValue = "false")
+    /**
+     * If true, the branch will not be deleted after the merge.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "keep", defaultValue = "false", required = false)
     protected Boolean keep;
 
-    @Parameter(property = "sign", defaultValue = "false")
+    /**
+     * If true, any Git tags created will be signed.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "sign", defaultValue = "false", required = false)
     protected Boolean sign;
 
-    @Parameter(property = "signingkey", defaultValue = "")
+    /**
+     * If GPG key used to sign the tag.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "signingkey", defaultValue = "", required = false)
     protected String signingkey;
 
     /**
@@ -272,6 +322,45 @@ public class AbstractGitflowMojo extends AbstractMojo {
 //        else {
 //            throw new MojoFailureException("Failed to update poms to version " + version);
 //        }
+    }
+
+    public void setReleaseVersions() throws MojoExecutionException, MojoFailureException {
+        getLog().debug("START org.codehaus.mojo:versions-maven-plugin:2.1:use-releases");
+        MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
+        executeMojo(
+                plugin(
+                        groupId("org.codehaus.mojo"),
+                        artifactId("versions-maven-plugin"),
+                        version("2.1")
+                ),
+                goal("use-releases"),
+                configuration(
+                        element(name("generateBackupPoms"), "false")
+                ),
+                executionEnvironment(
+                        rootProject,
+                        session,
+                        pluginManager
+                )
+        );
+        getLog().debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:use-releases");
+
+        if (!getGitflowInit().gitIsCleanWorkingTree()) {
+            String msg = getMsgPrefix() + "Replacing -SNAPSHOT versions with their corresponding releases" + getMsgSuffix();
+            getGitflowInit().executeLocal("git add -A .");
+            String[] cmtPom = {"git", "commit", "-m", "\"" + msg + "\""};
+            getGitflowInit().executeLocal(cmtPom);
+
+            String currentBranch = getGitflowInit().gitCurrentBranch();
+            if (getGitflowInit().gitRemoteBranchExists(currentBranch)) {
+                String origin = getGitflowInit().getOrigin();
+                String[] cmtPush = {"git", "push", origin, currentBranch};
+                Integer exitCode = getGitflowInit().executeRemote(cmtPush);
+                if (exitCode != 0) {
+                    throw new MojoExecutionException("Failed to push release version change to origin. ExitCode:" + exitCode);
+                }
+            }
+        }
     }
 
     public void clean() throws MojoExecutionException, MojoFailureException {

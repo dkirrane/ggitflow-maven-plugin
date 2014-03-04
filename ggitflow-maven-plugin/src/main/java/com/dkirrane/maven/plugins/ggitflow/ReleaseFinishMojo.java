@@ -18,9 +18,7 @@ package com.dkirrane.maven.plugins.ggitflow;
 import com.dkirrane.gitflow.groovy.GitflowRelease;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
-import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 import java.util.List;
-import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -28,7 +26,8 @@ import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 
 /**
- *
+ * Merges a release branch back into the develop and master branch and then
+ * creates a tag for the release on master.
  */
 @Mojo(name = "release-finish", aggregator = true)
 public class ReleaseFinishMojo extends AbstractReleaseMojo {

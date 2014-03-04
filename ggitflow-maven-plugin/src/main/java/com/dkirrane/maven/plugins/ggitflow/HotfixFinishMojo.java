@@ -16,12 +16,9 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowHotfix;
-import com.dkirrane.gitflow.groovy.conflicts.FixPomMergeConflicts;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
-import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 import java.util.List;
-import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -29,7 +26,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 
 /**
- *
+ * Merges a hotfix branch back into the develop and master branch and then
+ * creates a tag for the hotfix on master.
  */
 @Mojo(name = "hotfix-finish", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class HotfixFinishMojo extends AbstractHotfixMojo {

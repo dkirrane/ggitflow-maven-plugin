@@ -26,13 +26,28 @@ import org.jfrog.hudson.util.GenericArtifactVersion;
  */
 public class AbstractFeatureMojo extends AbstractGitflowMojo {
 
-    @Parameter(property = "featureName")
+    /**
+     * The name for the feature branch
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "featureName", required = true)
     protected String featureName;
 
-    @Parameter(defaultValue = "false", property = "enableFeatureVersions")
+    /**
+     * If true, the feature branch name is added to the pom versions
+     *
+     * @since 1.2
+     */
+    @Parameter(defaultValue = "false", property = "enableFeatureVersions", required = false)
     protected boolean enableFeatureVersions = false;
 
-    @Parameter(defaultValue = "false", property = "pushFeatures")
+    /**
+     * If true, the feature branch is pushed to the remote repository
+     *
+     * @since 1.2
+     */
+    @Parameter(defaultValue = "false", property = "pushFeatures", required = false)
     protected boolean pushFeatures = false;
 
     public String getFeatureBranchPrefix() {

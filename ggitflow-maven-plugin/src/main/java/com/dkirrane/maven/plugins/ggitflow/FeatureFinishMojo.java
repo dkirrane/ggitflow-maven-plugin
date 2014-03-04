@@ -27,14 +27,26 @@ import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
- *
+ * Merges a feature branch back into the develop.
  */
 @Mojo(name = "feature-finish", aggregator = true)
 public class FeatureFinishMojo extends AbstractFeatureMojo {
 
+    /**
+     * If true, the feature branch rebases onto develop, then finish can
+     * fast-forward merge the feature branch back into develop.
+     *
+     * @since 1.2
+     */
     @Parameter(defaultValue = "false", property = "isRebase")
     private boolean isRebase = false;
 
+    /**
+     * If true, and isRebase parameter is also true, then an interactive rebase
+     * is performed for the feature branch.
+     *
+     * @since 1.2
+     */
     @Parameter(defaultValue = "false", property = "isInteractive")
     private boolean isInteractive = false;
 

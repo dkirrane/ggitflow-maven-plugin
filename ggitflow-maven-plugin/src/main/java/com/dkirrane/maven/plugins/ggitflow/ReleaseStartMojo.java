@@ -17,8 +17,6 @@ package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowRelease;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
-import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
-import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -29,11 +27,25 @@ import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 
 /**
- *
+ * Creates a new release branch off of the develop branch.
  */
 @Mojo(name = "release-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class ReleaseStartMojo extends AbstractReleaseMojo {
 
+    /**
+     * Replaces any -SNAPSHOT versions with their corresponding releases.
+     *
+     * @since 1.2
+     */
+    @Parameter(defaultValue = "true", property = "useReleases")
+    private boolean useReleases = true;
+
+    /**
+     * If true, the release can still start even when SNAPSHOT dependencies
+     * exists in the pom.
+     *
+     * @since 1.2
+     */
     @Parameter(defaultValue = "false", property = "allowSnapshots")
     private boolean allowSnapshots = false;
 
@@ -93,6 +105,10 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         String releaseBranch = getGitflowInit().gitCurrentBranch();
         if (!releaseBranch.startsWith(prefix)) {
             throw new MojoFailureException("Failed to create release version.");
+        }
+
+        if (useReleases) {
+            setReleaseVersions();
         }
 
 //        // checkout develop branch and update it's version

@@ -26,9 +26,19 @@ import org.jfrog.hudson.util.GenericArtifactVersion;
  */
 public class AbstractReleaseMojo extends AbstractGitflowMojo {
 
+    /**
+     * The name for the release branch.
+     *
+     * @since 1.2
+     */
     @Parameter(property = "releaseName")
     protected String releaseName;
 
+    /**
+     * If true, the release branch is pushed to the remote repository.
+     *
+     * @since 1.2
+     */
     @Parameter(defaultValue = "false", property = "pushReleases")
     protected boolean pushReleases = false;
 
