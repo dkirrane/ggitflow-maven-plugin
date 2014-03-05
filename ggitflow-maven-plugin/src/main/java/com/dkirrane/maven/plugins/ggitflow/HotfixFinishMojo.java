@@ -23,6 +23,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 
 /**
@@ -33,6 +34,16 @@ import org.codehaus.plexus.components.interactivity.PrompterException;
 public class HotfixFinishMojo extends AbstractHotfixMojo {
 
     protected String hotfixName;
+    
+    /**
+     * If true, the hotfix can still finish even when SNAPSHOT dependencies
+     * exists in the pom.
+     *
+     * @since 1.2
+     */
+    @Parameter(defaultValue = "false", property = "allowSnapshots")
+    private boolean allowSnapshots = false;  
+    
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -67,6 +78,10 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
 
         /* Set develop branch to hotfix version to prevent merge conflicts */
         setVersion(hotfixReleaseVersion);
+        
+        if (!allowSnapshots) {
+            checkForSnapshotDependencies();
+        }            
 
         /* finish hotfix */
         GitflowHotfix gitflowHotfix = new GitflowHotfix();

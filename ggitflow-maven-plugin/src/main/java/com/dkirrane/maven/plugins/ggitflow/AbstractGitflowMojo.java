@@ -23,9 +23,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.building.ModelBuildingRequest;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
@@ -60,6 +64,8 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
  *
  */
 public class AbstractGitflowMojo extends AbstractMojo {
+
+    public final Pattern matchSnapshotRegex = Pattern.compile("-SNAPSHOT");
 
     /**
      * Gitflow branches and prefixes to use.
@@ -259,7 +265,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         return (StringUtils.isBlank(msgSuffix)) ? "" : " " + msgSuffix;
     }
 
-    public GitflowInit getGitflowInit() {
+    protected final GitflowInit getGitflowInit() {
         if (null == init) {
             init = new GitflowInit();
             init.setRepoDir(getProject().getBasedir());
@@ -280,7 +286,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         return init;
     }
 
-    public void setVersion(String version) throws MojoExecutionException, MojoFailureException {
+    protected final void setVersion(String version) throws MojoExecutionException, MojoFailureException {
         getLog().debug("START org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         executeMojo(
@@ -324,7 +330,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
 //        }
     }
 
-    public void setReleaseVersions() throws MojoExecutionException, MojoFailureException {
+    protected final void setReleaseVersions() throws MojoExecutionException, MojoFailureException {
         getLog().debug("START org.codehaus.mojo:versions-maven-plugin:2.1:use-releases");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         executeMojo(
@@ -363,7 +369,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         }
     }
 
-    public void clean() throws MojoExecutionException, MojoFailureException {
+    protected final void clean() throws MojoExecutionException, MojoFailureException {
         getLog().debug("START org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
@@ -387,7 +393,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         getLog().debug("DONE org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
     }
 
-    public void install() throws MojoExecutionException, MojoFailureException {
+    protected final void install() throws MojoExecutionException, MojoFailureException {
         getLog().debug("START org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
@@ -411,7 +417,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         getLog().debug("DONE org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
     }
 
-    public void deploy() throws MojoExecutionException, MojoFailureException {
+    protected final void deploy() throws MojoExecutionException, MojoFailureException {
         getLog().debug("START org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
@@ -436,7 +442,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         getLog().debug("DONE org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
     }
 
-    public String getReleaseVersion(String version) throws MojoFailureException {
+    protected final String getReleaseVersion(String version) throws MojoFailureException {
         getLog().debug("Current Develop version '" + version + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(version);
@@ -455,7 +461,30 @@ public class AbstractGitflowMojo extends AbstractMojo {
         return result.toString();
     }
 
-    public void reloadReactorProjects() throws MojoExecutionException {
+    protected final void checkForSnapshotDependencies() throws MojoExecutionException {
+        getLog().info("Checking for SNAPSHOT dependencies");
+        DependencyManagement dependencyManagement = getProject().getDependencyManagement();
+        if (null != dependencyManagement) {
+            checkForSnapshot(dependencyManagement.getDependencies());
+        }
+        checkForSnapshot(getProject().getDependencies());
+    }
+
+    private void checkForSnapshot(List<Dependency> dependencies) throws MojoExecutionException {
+        Boolean hasSnapshotDependency = false;
+        for (Dependency dependency : dependencies) {
+            String version = dependency.getVersion();
+            Matcher versionMatcher = matchSnapshotRegex.matcher(version);
+            if (versionMatcher.find() && versionMatcher.end() == version.length()) {
+                getLog().error("Found SNAPSHOT depednency " + dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + version);
+            }
+        }
+        if (hasSnapshotDependency) {
+            throw new MojoExecutionException("Cannot start release because SNAPSHOT dependencies exist");
+        }
+    }
+
+    protected final void reloadReactorProjects() throws MojoExecutionException {
         getLog().debug("Reloading poms...");
 
         List<MavenProject> newReactorProjects;

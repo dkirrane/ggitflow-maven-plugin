@@ -40,15 +40,6 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
     @Parameter(defaultValue = "true", property = "useReleases")
     private boolean useReleases = true;
 
-    /**
-     * If true, the release can still start even when SNAPSHOT dependencies
-     * exists in the pom.
-     *
-     * @since 1.2
-     */
-    @Parameter(defaultValue = "false", property = "allowSnapshots")
-    private boolean allowSnapshots = false;
-
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
