@@ -12,7 +12,12 @@
         <module>ggitflow-maven-archetype</module>
     </modules>
 
-    <url>http://dkirrane.github.io/ggitflow-maven-plugin/</url>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <netbeans.hint.license>apache20</netbeans.hint.license>
+    </properties>
+
+    <url>https://github.com/dkirrane/ggitflow-maven-plugin</url>
 
     <scm>
         <url>https://github.com/dkirrane/ggitflow-maven-plugin</url>
@@ -35,6 +40,20 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <profiles>
         <!-- Deploy to https://oss.sonatype.org/index.html -->

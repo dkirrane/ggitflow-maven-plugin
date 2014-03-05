@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+    <action>
+        <actionName>CUSTOM-versions:set</actionName>
+        <displayName>versions:set</displayName>
+        <goals>
+            <goal>versions:set</goal>
+        </goals>
+        <properties>
+            <generateBackupPoms>false</generateBackupPoms>
+        </properties>
+    </action>
+    <action>
+        <actionName>CUSTOM-site</actionName>
+        <displayName>site</displayName>
+        <goals>
+            <goal>site</goal>
+        </goals>
+    </action>
+</actions>

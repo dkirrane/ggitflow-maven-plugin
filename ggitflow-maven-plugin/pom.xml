@@ -2,25 +2,17 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>com.dkirrane.maven.plugins</groupId>
+        <artifactId>ggitflow-maven</artifactId>
+        <version>1.2-SNAPSHOT</version>
+    </parent>
+
     <groupId>com.dkirrane.maven.plugins</groupId>
     <artifactId>ggitflow-maven-plugin</artifactId>
     <version>1.2-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>ggitflow-maven-plugin</name>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <netbeans.hint.license>apache20</netbeans.hint.license>
-        <!--<github.global.server>github</github.global.server>-->
-    </properties>
-
-    <url>https://github.com/dkirrane/ggitflow-maven-plugin</url>
-
-    <scm>
-        <url>https://github.com/dkirrane/ggitflow-maven-plugin</url>
-        <connection>scm:git:https://github.com/dkirrane/ggitflow-maven-plugin.git</connection>
-        <developerConnection>scm:git:https://github.com/dkirrane/ggitflow-maven-plugin.git</developerConnection>
-    </scm>
 
     <dependencies>
         <dependency>
@@ -142,16 +134,14 @@
                     </execution>                    -->
                 </executions>
             </plugin>
-<!--            <plugin>
+            <plugin>
                 <groupId>com.github.github</groupId>
                 <artifactId>site-maven-plugin</artifactId>
-                <version>0.7</version>
+                <version>0.9</version>
                 <configuration>
                     <message>Creating site for ${project.version}</message>
                     <server>github</server>
-                    <includes>
-                        <include>plugin-info.html</include>
-                    </includes>
+                    <merge>true</merge>
                 </configuration>
                 <executions>
                     <execution>
@@ -161,7 +151,7 @@
                         <phase>site</phase>
                     </execution>
                 </executions>
-            </plugin>-->
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
