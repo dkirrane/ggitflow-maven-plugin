@@ -25,12 +25,16 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Creates a new release branch off of the develop branch.
  */
 @Mojo(name = "release-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class ReleaseStartMojo extends AbstractReleaseMojo {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ReleaseStartMojo.class.getName());
 
     /**
      * Replaces any -SNAPSHOT versions with their corresponding releases.
@@ -48,11 +52,11 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
         reloadReactorProjects();
         String developVersion = project.getVersion();
-        getLog().debug("develop version = " + developVersion);
+        LOG.debug("develop version = " + developVersion);
 
         /* Get suggested release version */
         String releaseVersion = getReleaseVersion(developVersion);
-        getLog().debug("release version = " + releaseVersion);
+        LOG.debug("release version = " + releaseVersion);
 //        String nextDevelopmentVersion = getNextDevelopmentVersion(project.getVersion());
 
         /* create release branch */
@@ -75,9 +79,9 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
             throw new MojoExecutionException("Provided releaseName " + releaseName + " is not a valid Maven version.");
         }
 
-        getLog().info("Starting release '" + releaseName + "'");
-        getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
-        getLog().debug("msgSuffix '" + getMsgSuffix() + "'");
+        LOG.info("Starting release '" + releaseName + "'");
+        LOG.debug("msgPrefix '" + getMsgPrefix() + "'");
+        LOG.debug("msgSuffix '" + getMsgSuffix() + "'");
 
         GitflowRelease gitflowRelease = new GitflowRelease();
         gitflowRelease.setInit(getGitflowInit());

@@ -24,12 +24,16 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 import static org.jfrog.hudson.util.GenericArtifactVersion.DEFAULT_VERSION_COMPONENT_SEPARATOR;
 import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Creates a new hotfix branch off of the master branch.
  */
 @Mojo(name = "hotfix-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class HotfixStartMojo extends AbstractHotfixMojo {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(HotfixStartMojo.class.getName());
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -39,14 +43,14 @@ public class HotfixStartMojo extends AbstractHotfixMojo {
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getMasterBrnName());
         reloadReactorProjects();
         String masterVersion = project.getVersion();
-        getLog().debug("master version = " + masterVersion);
+        LOG.debug("master version = " + masterVersion);
 
         String hotfixVersion = getHotfixVersion(masterVersion);
         String hotfixSnapshotVersion = getHotfixSnapshotVersion(masterVersion);
 
-        getLog().info("Starting hotfix '" + hotfixVersion + "'");
-        getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
-        getLog().debug("msgSuffix '" + getMsgSuffix() + "'");
+        LOG.info("Starting hotfix '" + hotfixVersion + "'");
+        LOG.debug("msgPrefix '" + getMsgPrefix() + "'");
+        LOG.debug("msgSuffix '" + getMsgSuffix() + "'");
 
         GitflowHotfix gitflowHotfix = new GitflowHotfix();
         gitflowHotfix.setInit(getGitflowInit());
@@ -69,7 +73,7 @@ public class HotfixStartMojo extends AbstractHotfixMojo {
     }
 
     private String getHotfixVersion(String currentVersion) throws MojoFailureException {
-        getLog().debug("getHotfixVersion from '" + currentVersion + "'");
+        LOG.debug("getHotfixVersion from '" + currentVersion + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
         artifactVersion.upgradeLeastSignificantNumber();
@@ -78,7 +82,7 @@ public class HotfixStartMojo extends AbstractHotfixMojo {
     }
 
     private String getHotfixSnapshotVersion(String currentVersion) throws MojoFailureException {
-        getLog().debug("getHotfixSnapshotVersion from '" + currentVersion + "'");
+        LOG.debug("getHotfixSnapshotVersion from '" + currentVersion + "'");
 
         final StringBuilder result = new StringBuilder(30);
 

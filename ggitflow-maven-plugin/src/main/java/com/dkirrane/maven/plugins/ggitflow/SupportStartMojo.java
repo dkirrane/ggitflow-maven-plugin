@@ -26,12 +26,16 @@ import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 import static org.jfrog.hudson.util.GenericArtifactVersion.DEFAULT_VERSION_COMPONENT_SEPARATOR;
 import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Creates a new support branch from a specific commit on the master branch.
  */
 @Mojo(name = "support-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class SupportStartMojo extends AbstractGitflowMojo {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(SupportStartMojo.class.getName());
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -51,9 +55,9 @@ public class SupportStartMojo extends AbstractGitflowMojo {
         String supportVersion = getSupportVersion(project.getVersion());
         String supportSnapshotVersion = getSupportSnapshotVersion(project.getVersion());
 
-        getLog().info("Starting support branch '" + supportVersion + "'");
-        getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
-        getLog().debug("msgSuffix '" + getMsgSuffix() + "'");
+        LOG.info("Starting support branch '" + supportVersion + "'");
+        LOG.debug("msgPrefix '" + getMsgPrefix() + "'");
+        LOG.debug("msgSuffix '" + getMsgSuffix() + "'");
 
         GitflowSupport gitflowSupport = new GitflowSupport();
         gitflowSupport.setInit(getGitflowInit());
@@ -88,7 +92,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
     }
 
     private String getSupportVersion(String currentVersion) throws MojoFailureException {
-        getLog().debug("getSupportVersion from '" + currentVersion + "'");
+        LOG.debug("getSupportVersion from '" + currentVersion + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
 
@@ -109,7 +113,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
     }
 
     private String getSupportSnapshotVersion(String currentVersion) throws MojoFailureException {
-        getLog().debug("getSupportSnapshotVersion from '" + currentVersion + "'");
+        LOG.debug("getSupportSnapshotVersion from '" + currentVersion + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
 
