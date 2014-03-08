@@ -93,15 +93,15 @@
             <td><b><a href="#isInteractive">isInteractive</a></b></td>
             <td><tt>boolean</tt></td>
             <td><tt>1.2</tt></td>
-            <td>If true, and isRebase parameter is also true, then an interactive
-rebase is performed for the feature branch.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>isInteractive</tt>.</td>
+            <td><br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>isInteractive</tt>.</td>
           </tr>
           <tr class="a">
             <td><b><a href="#isRebase">isRebase</a></b></td>
             <td><tt>boolean</tt></td>
             <td><tt>1.2</tt></td>
-            <td>If true, the feature branch rebases onto develop, then finish can
-fast-forward merge the feature branch back into develop.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>isRebase</tt>.</td>
+            <td>If true, the feature branch will be rebased onto develop, then
+finish will fast-forward merge the feature branch back onto
+develop.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>isRebase</tt>.</td>
           </tr>
           <tr class="b">
             <td><b><a href="#keep">keep</a></b></td>
@@ -165,8 +165,7 @@ commit before the merge.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>U
           <li><b>Required</b>: <tt>No</tt></li>
           <li><b>User Property</b>: <tt>featureName</tt></li>
         </ul><hr /><p><b><a name="isInteractive">isInteractive</a>:</b></p>
-        <div>If true, and isRebase parameter is also true, then an interactive
-rebase is performed for the feature branch.</div>
+        <div></div>
         <ul>
           <li><b>Type</b>: <tt>boolean</tt></li>
           <li><b>Since</b>: <tt>1.2</tt></li>
@@ -174,8 +173,9 @@ rebase is performed for the feature branch.</div>
           <li><b>User Property</b>: <tt>isInteractive</tt></li>
           <li><b>Default</b>: <tt>false</tt></li>
         </ul><hr /><p><b><a name="isRebase">isRebase</a>:</b></p>
-        <div>If true, the feature branch rebases onto develop, then finish can
-fast-forward merge the feature branch back into develop.</div>
+        <div>If true, the feature branch will be rebased onto develop, then
+finish will fast-forward merge the feature branch back onto
+develop.</div>
         <ul>
           <li><b>Type</b>: <tt>boolean</tt></li>
           <li><b>Since</b>: <tt>1.2</tt></li>
