@@ -90,13 +90,6 @@
             <td>The name for the feature branch<br /><b>User property is</b>: <tt>featureName</tt>.</td>
           </tr>
           <tr class="b">
-            <td><b><a href="#isInteractive">isInteractive</a></b></td>
-            <td><tt>boolean</tt></td>
-            <td><tt>1.2</tt></td>
-            <td>If true, and <tt>isRebase</tt> is true, then an interactive
-rebase is performed for the feature branch.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>isInteractive</tt>.</td>
-          </tr>
-          <tr class="a">
             <td><b><a href="#isRebase">isRebase</a></b></td>
             <td><tt>boolean</tt></td>
             <td><tt>1.2</tt></td>
@@ -104,43 +97,43 @@ rebase is performed for the feature branch.<br /><b>Default value is</b>: <tt>fa
 finish will fast-forward merge the feature branch back onto
 develop.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>isRebase</tt>.</td>
           </tr>
-          <tr class="b">
+          <tr class="a">
             <td><b><a href="#keep">keep</a></b></td>
             <td><tt>Boolean</tt></td>
             <td><tt>1.2</tt></td>
             <td>If true, the branch will not be deleted after the merge.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>keep</tt>.</td>
           </tr>
-          <tr class="a">
+          <tr class="b">
             <td><b><a href="#msgPrefix">msgPrefix</a></b></td>
             <td><tt>String</tt></td>
             <td><tt>1.2</tt></td>
             <td>Message prefix used for any commits made by this plugin.<br /><b>User property is</b>: <tt>msgPrefix</tt>.</td>
           </tr>
-          <tr class="b">
+          <tr class="a">
             <td><b><a href="#msgSuffix">msgSuffix</a></b></td>
             <td><tt>String</tt></td>
             <td><tt>1.2</tt></td>
             <td>Message suffix used for any commits made by this plugin.<br /><b>User property is</b>: <tt>msgSuffix</tt>.</td>
           </tr>
-          <tr class="a">
+          <tr class="b">
             <td><b><a href="#prefixes">prefixes</a></b></td>
             <td><tt>Prefixes</tt></td>
             <td><tt>1.2</tt></td>
             <td>Gitflow branches and prefixes to use.<br /><b>Default value is</b>: <tt>${prefixes}</tt>.<br /></td>
           </tr>
-          <tr class="b">
+          <tr class="a">
             <td><b><a href="#pushFeatures">pushFeatures</a></b></td>
             <td><tt>boolean</tt></td>
             <td><tt>1.2</tt></td>
             <td>If true, the feature branch is pushed to the remote repository<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>pushFeatures</tt>.</td>
           </tr>
-          <tr class="a">
+          <tr class="b">
             <td><b><a href="#skipBuild">skipBuild</a></b></td>
             <td><tt>Boolean</tt></td>
             <td><tt>1.2</tt></td>
             <td>Skips any calls to mvn install<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>skipBuild</tt>.</td>
           </tr>
-          <tr class="b">
+          <tr class="a">
             <td><b><a href="#squash">squash</a></b></td>
             <td><tt>Boolean</tt></td>
             <td><tt>1.2</tt></td>
@@ -165,15 +158,6 @@ commit before the merge.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>U
           <li><b>Since</b>: <tt>1.2</tt></li>
           <li><b>Required</b>: <tt>No</tt></li>
           <li><b>User Property</b>: <tt>featureName</tt></li>
-        </ul><hr /><p><b><a name="isInteractive">isInteractive</a>:</b></p>
-        <div>If true, and <tt>isRebase</tt> is true, then an interactive
-rebase is performed for the feature branch.</div>
-        <ul>
-          <li><b>Type</b>: <tt>boolean</tt></li>
-          <li><b>Since</b>: <tt>1.2</tt></li>
-          <li><b>Required</b>: <tt>No</tt></li>
-          <li><b>User Property</b>: <tt>isInteractive</tt></li>
-          <li><b>Default</b>: <tt>false</tt></li>
         </ul><hr /><p><b><a name="isRebase">isRebase</a>:</b></p>
         <div>If true, the feature branch will be rebased onto develop, then
 finish will fast-forward merge the feature branch back onto
