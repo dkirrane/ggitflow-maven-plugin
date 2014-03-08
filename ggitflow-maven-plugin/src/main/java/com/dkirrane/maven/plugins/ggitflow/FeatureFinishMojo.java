@@ -57,7 +57,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
-        LOG.info("Finishing feature '" + featureName + "'");
+        LOG.info("Finishing feature");
 
         String featureBranchPrefix = getFeatureBranchPrefix();
         if (StringUtils.isBlank(featureName)) {
@@ -72,6 +72,10 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
         }
 
         List<String> featureBranches = getGitflowInit().gitLocalFeatureBranches();
+
+        if (null == featureBranches || featureBranches.isEmpty()) {
+            throw new MojoFailureException("No feature branches exit");            
+        }
 
         featureName = promptForExistingFeatureName(featureBranches, featureName);
 
@@ -126,7 +130,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             throw new MojoFailureException("Error reading feature name from command line " + e.getMessage());
         }
 
-        return name;
+        return name.trim();
     }
 
 }
