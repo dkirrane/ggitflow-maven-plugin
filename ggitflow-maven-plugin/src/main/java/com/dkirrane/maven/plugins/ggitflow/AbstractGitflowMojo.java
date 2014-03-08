@@ -462,7 +462,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         result.append(primaryNumbersAsString).append(annotationAsString);
 
         if (!StringUtils.isBlank(buildSpecifierAsString)) {
-            LOG.warn("Removing build specifier " + buildSpecifierAsString + " from version " + version);
+            LOG.debug("Removing build specifier " + buildSpecifierAsString + " from version " + version);
         }
 
         return result.toString();
