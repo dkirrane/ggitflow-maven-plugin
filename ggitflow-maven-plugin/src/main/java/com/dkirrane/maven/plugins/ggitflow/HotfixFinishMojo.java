@@ -40,8 +40,8 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
     protected String hotfixName;
 
     /**
-     * If true, the hotfix can still finish even when SNAPSHOT dependencies
-     * exists in the pom.
+     * If <code>true</code>, the hotfix can still finish even if
+     * <code>-SNAPSHOT</code> dependencies exists in the pom.
      *
      * @since 1.2
      */
@@ -49,7 +49,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
     private boolean allowSnapshots;
 
     /**
-     * Skips any calls to mvn install
+     * Skips any calls to <code>mvn install</code>
      *
      * @since 1.2
      */
@@ -57,7 +57,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
     private Boolean skipBuild;
 
     /**
-     * Skips any calls to mvn deploy
+     * Skips any calls to <code>mvn deploy</code>
      *
      * @since 1.2
      */
@@ -65,8 +65,8 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
     private Boolean skipDeploy;
 
     /**
-     * If true, all commits to the branch will be squashed into a single commit
-     * before the merge.
+     * If <code>true</code>, all commits to the branch will be squashed into a
+     * single commit before the merge.
      *
      * @since 1.2
      */
@@ -74,7 +74,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
     private Boolean squash;
 
     /**
-     * If true, the branch will not be deleted after the merge.
+     * If <code>true</code>, the branch will not be deleted after the merge.
      *
      * @since 1.2
      */
@@ -82,7 +82,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
     private Boolean keep;
 
     /**
-     * If true, any Git tags created will be signed.
+     * If <code>true</code>, the hotfix tag will be signed.
      *
      * @since 1.2
      */
@@ -90,7 +90,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
     private Boolean sign;
 
     /**
-     * If GPG key used to sign the tag.
+     * The GNU Privacy Guard (GPG) private key used to sign the tag.
      *
      * @since 1.2
      */

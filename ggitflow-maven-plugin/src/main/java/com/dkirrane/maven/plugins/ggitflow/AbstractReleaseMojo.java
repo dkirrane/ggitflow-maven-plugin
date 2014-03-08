@@ -36,7 +36,8 @@ public class AbstractReleaseMojo extends AbstractGitflowMojo {
     protected String releaseName;
 
     /**
-     * If true, the release branch is pushed to the remote repository.
+     * If <code>true</code>, the release branch is pushed to the remote
+     * repository.
      *
      * @since 1.2
      */

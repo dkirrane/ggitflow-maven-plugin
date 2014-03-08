@@ -39,7 +39,8 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
     protected String featureName;
 
     /**
-     * If true, the feature branch name is added to the pom versions
+     * If <code>true</code>, the feature branch name is added to the pom
+     * versions
      *
      * @since 1.2
      */
@@ -47,7 +48,8 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
     protected boolean enableFeatureVersions;
 
     /**
-     * If true, the feature branch is pushed to the remote repository
+     * If <code>true</code>, the feature branch is pushed to the remote
+     * repository
      *
      * @since 1.2
      */

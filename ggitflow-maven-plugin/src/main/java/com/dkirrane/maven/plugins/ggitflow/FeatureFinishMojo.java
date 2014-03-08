@@ -37,8 +37,8 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
     private static final Logger LOG = LoggerFactory.getLogger(FeatureFinishMojo.class.getName());
 
     /**
-     * If true, the feature branch will be rebased onto develop, then finish
-     * will fast-forward merge the feature branch back onto develop.
+     * If <code>true</code>, the feature branch will be rebased onto develop,
+     * then finish will fast-forward merge the feature branch back onto develop.
      *
      * @since 1.2
      */
@@ -47,7 +47,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
 
 //    No good way to handle Interactive rebase from a Maven plugin
 //    /**
-//     * If true, and <code>isRebase</code> is true, then an interactive rebase is
+//     * If <code>true</code>, and <code>isRebase</code> is true, then an interactive rebase is
 //     * performed for the feature branch.
 //     *
 //     * @since 1.2
@@ -56,7 +56,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
     private final boolean isInteractive = false;
 
     /**
-     * Skips any calls to mvn install
+     * Skips any calls to <code>mvn install</code>
      *
      * @since 1.2
      */
@@ -64,8 +64,8 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
     private Boolean skipBuild;
 
     /**
-     * If true, all commits to the branch will be squashed into a single commit
-     * before the merge.
+     * If <code>true</code>, all commits to the branch will be squashed into a
+     * single commit before the merge.
      *
      * @since 1.2
      */
@@ -73,7 +73,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
     private Boolean squash;
 
     /**
-     * If true, the branch will not be deleted after the merge.
+     * If <code>true</code>, the branch will not be deleted after the merge.
      *
      * @since 1.2
      */

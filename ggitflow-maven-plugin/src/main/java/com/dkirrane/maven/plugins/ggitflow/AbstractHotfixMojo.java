@@ -20,7 +20,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 public class AbstractHotfixMojo extends AbstractGitflowMojo {
 
     /**
-     * If true, the hotfix branch is pushed to the remote repository
+     * If <code>true</code>, the hotfix branch is pushed to the remote
+     * repository
      *
      * @since 1.2
      */
