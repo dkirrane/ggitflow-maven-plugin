@@ -120,9 +120,9 @@ repository.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property 
             <td><b><a href="#useReleases">useReleases</a></b></td>
             <td><tt>boolean</tt></td>
             <td><tt>1.2</tt></td>
-            <td>Replaces any <tt>-SNAPSHOT</tt> versions with the corresponding
-release version (if it has been released). This action is performed
-on the release branch after it is created.<br /><b>Default value is</b>: <tt>true</tt>.<br /><b>User property is</b>: <tt>useReleases</tt>.</td>
+            <td>Any dependencies with a <tt>-SNAPSHOT</tt> version are replaced
+with the corresponding release version (if it has been released).
+This action is performed on the release branch after it is created.<br /><b>Default value is</b>: <tt>true</tt>.<br /><b>User property is</b>: <tt>useReleases</tt>.</td>
           </tr>
         </table>
       </div>
@@ -172,9 +172,9 @@ repository.</div>
           <li><b>Required</b>: <tt>No</tt></li>
           <li><b>User Property</b>: <tt>startCommit</tt></li>
         </ul><hr /><p><b><a name="useReleases">useReleases</a>:</b></p>
-        <div>Replaces any <tt>-SNAPSHOT</tt> versions with the corresponding
-release version (if it has been released). This action is performed
-on the release branch after it is created.</div>
+        <div>Any dependencies with a <tt>-SNAPSHOT</tt> version are replaced
+with the corresponding release version (if it has been released).
+This action is performed on the release branch after it is created.</div>
         <ul>
           <li><b>Type</b>: <tt>boolean</tt></li>
           <li><b>Since</b>: <tt>1.2</tt></li>
