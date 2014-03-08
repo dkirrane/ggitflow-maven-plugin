@@ -47,8 +47,9 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
     private boolean allowSnapshots;
 
     /**
-     * Replaces any release versions with the next <code>-SNAPSHOT</code>
-     * version (if it has been deployed).
+     * Replaces any dependencies with a release version with the next
+     * <code>-SNAPSHOT</code> version (if it has been deployed). This action is
+     * performed on the develop branch after the merge.
      *
      * @since 1.2
      */

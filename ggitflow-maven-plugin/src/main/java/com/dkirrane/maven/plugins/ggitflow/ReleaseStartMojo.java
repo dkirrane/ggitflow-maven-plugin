@@ -39,7 +39,8 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
 
     /**
      * Replaces any <code>-SNAPSHOT</code> versions with the corresponding
-     * release version (if it has been released).
+     * release version (if it has been released). This action is performed on
+     * the release branch after it is created.
      *
      * @since 1.2
      */
