@@ -122,13 +122,13 @@ repository<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property i
             <td><b><a href="#sign">sign</a></b></td>
             <td><tt>Boolean</tt></td>
             <td><tt>1.2</tt></td>
-            <td>If <tt>true</tt>, any Git tags created will be signed.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>sign</tt>.</td>
+            <td>If <tt>true</tt>, the hotfix tag will be signed.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>sign</tt>.</td>
           </tr>
           <tr class="a">
             <td><b><a href="#signingkey">signingkey</a></b></td>
             <td><tt>String</tt></td>
             <td><tt>1.2</tt></td>
-            <td>If GPG key used to sign the tag.<br /><b>User property is</b>: <tt>signingkey</tt>.</td>
+            <td>The GNU Privacy Guard (GPG) private key used to sign the tag.<br /><b>User property is</b>: <tt>signingkey</tt>.</td>
           </tr>
           <tr class="b">
             <td><b><a href="#skipBuild">skipBuild</a></b></td>
@@ -201,7 +201,7 @@ repository</div>
           <li><b>User Property</b>: <tt>pushHotfixes</tt></li>
           <li><b>Default</b>: <tt>false</tt></li>
         </ul><hr /><p><b><a name="sign">sign</a>:</b></p>
-        <div>If <tt>true</tt>, any Git tags created will be signed.</div>
+        <div>If <tt>true</tt>, the hotfix tag will be signed.</div>
         <ul>
           <li><b>Type</b>: <tt>java.lang.Boolean</tt></li>
           <li><b>Since</b>: <tt>1.2</tt></li>
@@ -209,7 +209,7 @@ repository</div>
           <li><b>User Property</b>: <tt>sign</tt></li>
           <li><b>Default</b>: <tt>false</tt></li>
         </ul><hr /><p><b><a name="signingkey">signingkey</a>:</b></p>
-        <div>If GPG key used to sign the tag.</div>
+        <div>The GNU Privacy Guard (GPG) private key used to sign the tag.</div>
         <ul>
           <li><b>Type</b>: <tt>java.lang.String</tt></li>
           <li><b>Since</b>: <tt>1.2</tt></li>
