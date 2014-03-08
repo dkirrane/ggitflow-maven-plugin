@@ -68,6 +68,7 @@
       <ul>
         <li>Requires a Maven project to be executed.</li>
         <li>Executes as an aggregator plugin.</li>
+        <li>Requires dependency resolution of artifacts in scope: <tt>compile+runtime</tt>.</li>
         <li>Binds by default to the <a class="externalLink" href="http://maven.apache.org/ref/current/maven-core/lifecycles.html">lifecycle phase</a>: <tt>process-sources</tt>.</li>
       </ul>
       <div class="section"><h3>Optional Parameters<a name="Optional_Parameters"></a></h3>
@@ -118,7 +119,8 @@
             <td><b><a href="#useReleases">useReleases</a></b></td>
             <td><tt>boolean</tt></td>
             <td><tt>1.2</tt></td>
-            <td>Replaces any -SNAPSHOT versions with their corresponding releases.<br /><b>Default value is</b>: <tt>true</tt>.<br /><b>User property is</b>: <tt>useReleases</tt>.</td>
+            <td>Replaces any <tt>-SNAPSHOT</tt> versions with the corresponding
+release version (if it has been released).<br /><b>Default value is</b>: <tt>true</tt>.<br /><b>User property is</b>: <tt>useReleases</tt>.</td>
           </tr>
         </table>
       </div>
@@ -167,7 +169,8 @@
           <li><b>Required</b>: <tt>No</tt></li>
           <li><b>User Property</b>: <tt>startCommit</tt></li>
         </ul><hr /><p><b><a name="useReleases">useReleases</a>:</b></p>
-        <div>Replaces any -SNAPSHOT versions with their corresponding releases.</div>
+        <div>Replaces any <tt>-SNAPSHOT</tt> versions with the corresponding
+release version (if it has been released).</div>
         <ul>
           <li><b>Type</b>: <tt>boolean</tt></li>
           <li><b>Since</b>: <tt>1.2</tt></li>

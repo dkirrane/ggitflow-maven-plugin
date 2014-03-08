@@ -152,6 +152,13 @@ dependencies exists in the pom.<br /><b>Default value is</b>: <tt>false</tt>.<br
             <td>If true, all commits to the branch will be squashed into a single
 commit before the merge.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>squash</tt>.</td>
           </tr>
+          <tr class="b">
+            <td><b><a href="#useSnapshots">useSnapshots</a></b></td>
+            <td><tt>boolean</tt></td>
+            <td><tt>1.2</tt></td>
+            <td>Replaces any release versions with the next <tt>-SNAPSHOT</tt>
+version (if it has been deployed).<br /><b>Default value is</b>: <tt>true</tt>.<br /><b>User property is</b>: <tt>useSnapshots</tt>.</td>
+          </tr>
         </table>
       </div>
       <div class="section"><h3>Parameter Details<a name="Parameter_Details"></a></h3>
@@ -248,6 +255,15 @@ commit before the merge.</div>
           <li><b>Required</b>: <tt>No</tt></li>
           <li><b>User Property</b>: <tt>squash</tt></li>
           <li><b>Default</b>: <tt>false</tt></li>
+        </ul><hr /><p><b><a name="useSnapshots">useSnapshots</a>:</b></p>
+        <div>Replaces any release versions with the next <tt>-SNAPSHOT</tt>
+version (if it has been deployed).</div>
+        <ul>
+          <li><b>Type</b>: <tt>boolean</tt></li>
+          <li><b>Since</b>: <tt>1.2</tt></li>
+          <li><b>Required</b>: <tt>No</tt></li>
+          <li><b>User Property</b>: <tt>useSnapshots</tt></li>
+          <li><b>Default</b>: <tt>true</tt></li>
         </ul>
       </div>
     </div>
