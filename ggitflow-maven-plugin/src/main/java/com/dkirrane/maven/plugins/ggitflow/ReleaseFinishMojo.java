@@ -34,17 +34,75 @@ import org.slf4j.LoggerFactory;
  */
 @Mojo(name = "release-finish", aggregator = true)
 public class ReleaseFinishMojo extends AbstractReleaseMojo {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(ReleaseFinishMojo.class.getName());
-    
+
     /**
      * If true, the release can still finish even when SNAPSHOT dependencies
      * exists in the pom.
      *
      * @since 1.2
      */
-    @Parameter(defaultValue = "false", property = "allowSnapshots")
-    private boolean allowSnapshots = false;    
+    @Parameter(property = "allowSnapshots", defaultValue = "false", required = false)
+    private boolean allowSnapshots;
+
+    /**
+     * Replaces any release versions with the next <code>-SNAPSHOT</code>
+     * version (if it has been deployed).
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "useSnapshots", defaultValue = "true", required = false)
+    private boolean useSnapshots;
+
+    /**
+     * Skips any calls to mvn install
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "skipBuild", defaultValue = "false", required = false)
+    private Boolean skipBuild;
+
+    /**
+     * Skips any calls to mvn deploy
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "skipDeploy", defaultValue = "false", required = false)
+    private Boolean skipDeploy;
+
+    /**
+     * If true, all commits to the branch will be squashed into a single commit
+     * before the merge.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "squash", defaultValue = "false", required = false)
+    private Boolean squash;
+
+    /**
+     * If true, the branch will not be deleted after the merge.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "keep", defaultValue = "false", required = false)
+    private Boolean keep;
+
+    /**
+     * If true, any Git tags created will be signed.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "sign", defaultValue = "false", required = false)
+    private Boolean sign;
+
+    /**
+     * If GPG key used to sign the tag.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "signingkey", defaultValue = "", required = false)
+    private String signingkey;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -60,7 +118,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         } else {
             releaseName = promptForExistingReleaseName(releaseBranches, releaseName);
         }
-        
+
         LOG.info("Finishing release '{}'", releaseName);
 
         /* Switch to develop branch and get its current version */
@@ -77,10 +135,10 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         LOG.debug("release version = " + releaseVersion);
 
         setVersion(releaseVersion);
-                
+
         if (!allowSnapshots) {
             checkForSnapshotDependencies();
-        }        
+        }
 
         /* finish release */
         GitflowRelease gitflowRelease = new GitflowRelease();
@@ -117,6 +175,12 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         String nextDevelopVersion = getNextDevelopVersion(developVersion);
         reloadReactorProjects();
         setVersion(nextDevelopVersion);
+        
+        /* Update dependencies to next snapshot version if deployed */
+        if (useSnapshots) {
+            reloadReactorProjects();
+            setNextVersions(true);
+        }
 
         /* Switch to release tag and deploy it */
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);

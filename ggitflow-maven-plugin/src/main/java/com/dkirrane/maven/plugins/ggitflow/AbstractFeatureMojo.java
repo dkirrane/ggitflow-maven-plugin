@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class AbstractFeatureMojo extends AbstractGitflowMojo {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(AbstractFeatureMojo.class.getName());
 
     /**
@@ -43,16 +43,16 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
      *
      * @since 1.2
      */
-    @Parameter(defaultValue = "false", property = "enableFeatureVersions", required = false)
-    protected boolean enableFeatureVersions = false;
+    @Parameter(property = "enableFeatureVersions", defaultValue = "false", required = false)
+    protected boolean enableFeatureVersions;
 
     /**
      * If true, the feature branch is pushed to the remote repository
      *
      * @since 1.2
      */
-    @Parameter(defaultValue = "false", property = "pushFeatures", required = false)
-    protected boolean pushFeatures = false;
+    @Parameter(property = "pushFeatures", defaultValue = "false", required = false)
+    protected boolean pushFeatures;
 
     public String getFeatureBranchPrefix() {
         String prefix = getGitflowInit().getFeatureBranchPrefix();

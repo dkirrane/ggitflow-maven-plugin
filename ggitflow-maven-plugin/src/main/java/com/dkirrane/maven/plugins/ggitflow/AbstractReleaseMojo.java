@@ -23,11 +23,8 @@ import org.jfrog.hudson.util.GenericArtifactVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- *
- */
 public class AbstractReleaseMojo extends AbstractGitflowMojo {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(AbstractReleaseMojo.class.getName());
 
     /**
@@ -35,7 +32,7 @@ public class AbstractReleaseMojo extends AbstractGitflowMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "releaseName")
+    @Parameter(property = "releaseName", required = false)
     protected String releaseName;
 
     /**
@@ -43,8 +40,8 @@ public class AbstractReleaseMojo extends AbstractGitflowMojo {
      *
      * @since 1.2
      */
-    @Parameter(defaultValue = "false", property = "pushReleases")
-    protected boolean pushReleases = false;
+    @Parameter(property = "pushReleases", defaultValue = "false", required = false)
+    protected boolean pushReleases;
 
     public String getReleaseBranchPrefix() {
         String prefix = getGitflowInit().getReleaseBranchPrefix();

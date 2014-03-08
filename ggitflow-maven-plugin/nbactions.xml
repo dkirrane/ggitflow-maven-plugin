@@ -13,32 +13,7 @@
             <skipTests>true</skipTests>
         </properties>
     </action>
-    <action>
-        <actionName>CUSTOM-clean deploy</actionName>
-        <displayName>clean deploy</displayName>
-        <goals>
-            <goal>clean</goal>
-            <goal>deploy</goal>
-        </goals>
-        <properties>
-            <skipTests>true</skipTests>
-        </properties>
-    </action>
-    <action>
-        <actionName>CUSTOM-versions:set</actionName>
-        <displayName>versions:set</displayName>
-        <goals>
-            <goal>versions:set</goal>
-        </goals>
-        <properties>
-            <generateBackupPoms>false</generateBackupPoms>
-        </properties>
-    </action>
-    <action>
-        <actionName>CUSTOM-site</actionName>
-        <displayName>site</displayName>
-        <goals>
-            <goal>site:site</goal>
-        </goals>
-    </action>
+    
+    
+    
 </actions>

@@ -37,33 +37,59 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
     private static final Logger LOG = LoggerFactory.getLogger(FeatureFinishMojo.class.getName());
 
     /**
-     * If true, the feature branch rebases onto develop, then finish can
-     * fast-forward merge the feature branch back into develop.
+     * If true, the feature branch will be rebased onto develop, then finish
+     * will fast-forward merge the feature branch back onto develop.
      *
      * @since 1.2
      */
-    @Parameter(defaultValue = "false", property = "isRebase")
-    private boolean isRebase = false;
+    @Parameter(property = "isRebase", defaultValue = "false", required = false)
+    private boolean isRebase;
+
+//    No good way to handle Interactive rebase from a Maven plugin
+//    /**
+//     * If true, and <code>isRebase</code> is true, then an interactive rebase is
+//     * performed for the feature branch.
+//     *
+//     * @since 1.2
+//     */
+//    @Parameter(property = "isInteractive", defaultValue = "false", required = false)
+    private final boolean isInteractive = false;
 
     /**
-     * If true, and isRebase parameter is also true, then an interactive rebase
-     * is performed for the feature branch.
+     * Skips any calls to mvn install
      *
      * @since 1.2
      */
-    @Parameter(defaultValue = "false", property = "isInteractive")
-    private boolean isInteractive = false;
+    @Parameter(property = "skipBuild", defaultValue = "false", required = false)
+    private Boolean skipBuild;
+
+    /**
+     * If true, all commits to the branch will be squashed into a single commit
+     * before the merge.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "squash", defaultValue = "false", required = false)
+    private Boolean squash;
+
+    /**
+     * If true, the branch will not be deleted after the merge.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "keep", defaultValue = "false", required = false)
+    private Boolean keep;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
         LOG.debug("Finishing feature");
-        
+
         List<String> featureBranches = getGitflowInit().gitLocalFeatureBranches();
 
         if (null == featureBranches || featureBranches.isEmpty()) {
-            throw new MojoFailureException("No local feature branches exit!");            
-        }        
+            throw new MojoFailureException("No local feature branches exit!");
+        }
 
         String featureBranchPrefix = getFeatureBranchPrefix();
         if (StringUtils.isBlank(featureName)) {
@@ -78,7 +104,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
         }
 
         featureName = promptForExistingFeatureName(featureBranches, featureName);
-        
+
         LOG.info("Finishing feature '{}'", featureName);
 
         if (enableFeatureVersions) {

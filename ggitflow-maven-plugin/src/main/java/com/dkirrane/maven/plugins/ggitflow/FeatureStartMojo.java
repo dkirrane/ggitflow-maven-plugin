@@ -23,6 +23,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
@@ -33,8 +34,16 @@ import org.slf4j.LoggerFactory;
  */
 @Mojo(name = "feature-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class FeatureStartMojo extends AbstractFeatureMojo {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(FeatureStartMojo.class.getName());
+
+    /**
+     * The commit to start the feature branch from.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "startCommit", defaultValue = "", required = false)
+    protected String startCommit;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {

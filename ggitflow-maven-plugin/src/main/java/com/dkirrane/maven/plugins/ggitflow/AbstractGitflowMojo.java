@@ -63,11 +63,8 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.name;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
-/**
- *
- */
 public class AbstractGitflowMojo extends AbstractMojo {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(AbstractGitflowMojo.class.getName());
 
     public final Pattern matchSnapshotRegex = Pattern.compile("-SNAPSHOT");
@@ -95,63 +92,6 @@ public class AbstractGitflowMojo extends AbstractMojo {
      */
     @Parameter(property = "msgSuffix", defaultValue = "", required = false)
     protected String msgSuffix;
-
-    /**
-     * Skips any calls to mvn install
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "skipBuild", defaultValue = "false", required = false)
-    protected Boolean skipBuild;
-
-    /**
-     * Skips any calls to mvn deploy
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "skipDeploy", defaultValue = "false", required = false)
-    protected Boolean skipDeploy;
-
-    /**
-     * The commit to start the branch from.
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "startCommit", defaultValue = "", required = false)
-    protected String startCommit;
-
-    /**
-     * If true, all branch commits will be squashed into a single commit before
-     * the merge.
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "squash", defaultValue = "false", required = false)
-    protected Boolean squash;
-
-    /**
-     * If true, the branch will not be deleted after the merge.
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "keep", defaultValue = "false", required = false)
-    protected Boolean keep;
-
-    /**
-     * If true, any Git tags created will be signed.
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "sign", defaultValue = "false", required = false)
-    protected Boolean sign;
-
-    /**
-     * If GPG key used to sign the tag.
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "signingkey", defaultValue = "", required = false)
-    protected String signingkey;
 
     /**
      * Component used to prompt for input.
@@ -337,18 +277,21 @@ public class AbstractGitflowMojo extends AbstractMojo {
 //        }
     }
 
-    protected final void setReleaseVersions() throws MojoExecutionException, MojoFailureException {
-        LOG.debug("START org.codehaus.mojo:versions-maven-plugin:2.1:use-releases");
+    protected final void setNextVersions(Boolean allowSnapshots) throws MojoExecutionException, MojoFailureException {
+        LOG.debug("START org.codehaus.mojo:versions-maven-plugin:2.1:use-next-versions -DallowSnapshots=" + allowSnapshots);
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
+        session.setCurrentProject(rootProject);
+        session.setProjects(reactorProjects);
         executeMojo(
                 plugin(
                         groupId("org.codehaus.mojo"),
                         artifactId("versions-maven-plugin"),
                         version("2.1")
                 ),
-                goal("use-releases"),
+                goal("use-next-versions"),
                 configuration(
-                        element(name("generateBackupPoms"), "false")
+                        element(name("generateBackupPoms"), "false"),
+                        element(name("allowSnapshots"), allowSnapshots.toString())
                 ),
                 executionEnvironment(
                         rootProject,
@@ -356,10 +299,16 @@ public class AbstractGitflowMojo extends AbstractMojo {
                         pluginManager
                 )
         );
-        LOG.debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:use-releases");
+        LOG.debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:use-next-versions");
 
         if (!getGitflowInit().gitIsCleanWorkingTree()) {
-            String msg = getMsgPrefix() + "Replacing -SNAPSHOT versions with their corresponding releases" + getMsgSuffix();
+            String msg;
+            if (allowSnapshots) {
+                msg = getMsgPrefix() + "Replaces any release versions with the next snapshot version (if it has been deployed)." + getMsgSuffix();
+            } else {
+                msg = getMsgPrefix() + "Replaces snapshot versions with the corresponding release version" + getMsgSuffix();
+            }
+
             getGitflowInit().executeLocal("git add -A .");
             String[] cmtPom = {"git", "commit", "-m", "\"" + msg + "\""};
             getGitflowInit().executeLocal(cmtPom);
@@ -370,7 +319,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                 String[] cmtPush = {"git", "push", origin, currentBranch};
                 Integer exitCode = getGitflowInit().executeRemote(cmtPush);
                 if (exitCode != 0) {
-                    throw new MojoExecutionException("Failed to push release version change to origin. ExitCode:" + exitCode);
+                    throw new MojoExecutionException("Failed to push version change to origin. ExitCode:" + exitCode);
                 }
             }
         }

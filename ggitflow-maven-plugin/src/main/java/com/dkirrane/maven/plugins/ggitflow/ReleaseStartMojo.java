@@ -22,6 +22,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
@@ -31,18 +32,27 @@ import org.slf4j.LoggerFactory;
 /**
  * Creates a new release branch off of the develop branch.
  */
-@Mojo(name = "release-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
+@Mojo(name = "release-start", aggregator = true, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class ReleaseStartMojo extends AbstractReleaseMojo {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(ReleaseStartMojo.class.getName());
 
     /**
-     * Replaces any -SNAPSHOT versions with their corresponding releases.
+     * Replaces any <code>-SNAPSHOT</code> versions with the corresponding
+     * release version (if it has been released).
      *
      * @since 1.2
      */
-    @Parameter(defaultValue = "true", property = "useReleases")
-    private boolean useReleases = true;
+    @Parameter(property = "useReleases", defaultValue = "true", required = false)
+    private boolean useReleases;
+
+    /**
+     * The commit to start the release branch from.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "startCommit", defaultValue = "", required = false)
+    private String startCommit;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -102,8 +112,10 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
             throw new MojoFailureException("Failed to create release version.");
         }
 
+        /* Update dependencies to release version */
         if (useReleases) {
-            setReleaseVersions();
+            reloadReactorProjects();
+            setNextVersions(false);
         }
 
 //        // checkout develop branch and update it's version

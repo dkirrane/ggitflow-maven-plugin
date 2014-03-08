@@ -34,20 +34,68 @@ import org.slf4j.LoggerFactory;
  */
 @Mojo(name = "hotfix-finish", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class HotfixFinishMojo extends AbstractHotfixMojo {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(HotfixFinishMojo.class.getName());
 
     protected String hotfixName;
-    
+
     /**
      * If true, the hotfix can still finish even when SNAPSHOT dependencies
      * exists in the pom.
      *
      * @since 1.2
      */
-    @Parameter(defaultValue = "false", property = "allowSnapshots")
-    private boolean allowSnapshots = false;  
-    
+    @Parameter(property = "allowSnapshots", defaultValue = "false", required = false)
+    private boolean allowSnapshots;
+
+    /**
+     * Skips any calls to mvn install
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "skipBuild", defaultValue = "false", required = false)
+    private Boolean skipBuild;
+
+    /**
+     * Skips any calls to mvn deploy
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "skipDeploy", defaultValue = "false", required = false)
+    private Boolean skipDeploy;
+
+    /**
+     * If true, all commits to the branch will be squashed into a single commit
+     * before the merge.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "squash", defaultValue = "false", required = false)
+    private Boolean squash;
+
+    /**
+     * If true, the branch will not be deleted after the merge.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "keep", defaultValue = "false", required = false)
+    private Boolean keep;
+
+    /**
+     * If true, any Git tags created will be signed.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "sign", defaultValue = "false", required = false)
+    private Boolean sign;
+
+    /**
+     * If GPG key used to sign the tag.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "signingkey", defaultValue = "", required = false)
+    private String signingkey;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -63,7 +111,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         } else {
             hotfixName = promptForExistingHotfixName(hotfixBranches, hotfixName);
         }
-        
+
         LOG.info("Finishing hotfix '{}'", hotfixName);
 
         /* Switch to hotfix branch and set poms to hotfix version */
@@ -84,10 +132,10 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
 
         /* Set develop branch to hotfix version to prevent merge conflicts */
         setVersion(hotfixReleaseVersion);
-        
+
         if (!allowSnapshots) {
             checkForSnapshotDependencies();
-        }            
+        }
 
         /* finish hotfix */
         GitflowHotfix gitflowHotfix = new GitflowHotfix();
