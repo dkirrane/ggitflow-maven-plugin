@@ -82,14 +82,15 @@ then creates a tag for the release on master.</div>
             <td><b><a href="#allowSnapshots">allowSnapshots</a></b></td>
             <td><tt>boolean</tt></td>
             <td><tt>1.2</tt></td>
-            <td>If true, the release can still finish even if
+            <td>If <tt>true</tt>, the release can still finish even if
 <tt>-SNAPSHOT</tt> dependencies exists in the pom.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>allowSnapshots</tt>.</td>
           </tr>
           <tr class="a">
             <td><b><a href="#keep">keep</a></b></td>
             <td><tt>Boolean</tt></td>
             <td><tt>1.2</tt></td>
-            <td>If true, the branch will not be deleted after the merge.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>keep</tt>.</td>
+            <td>If <tt>true</tt>, the branch will not be deleted after the
+merge.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>keep</tt>.</td>
           </tr>
           <tr class="b">
             <td><b><a href="#msgPrefix">msgPrefix</a></b></td>
@@ -113,7 +114,8 @@ then creates a tag for the release on master.</div>
             <td><b><a href="#pushReleases">pushReleases</a></b></td>
             <td><tt>boolean</tt></td>
             <td><tt>1.2</tt></td>
-            <td>If true, the release branch is pushed to the remote repository.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>pushReleases</tt>.</td>
+            <td>If <tt>true</tt>, the release branch is pushed to the remote
+repository.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>pushReleases</tt>.</td>
           </tr>
           <tr class="b">
             <td><b><a href="#releaseName">releaseName</a></b></td>
@@ -125,7 +127,7 @@ then creates a tag for the release on master.</div>
             <td><b><a href="#sign">sign</a></b></td>
             <td><tt>Boolean</tt></td>
             <td><tt>1.2</tt></td>
-            <td>If true, any Git tags created will be signed.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>sign</tt>.</td>
+            <td>If <tt>true</tt>, any Git tags created will be signed.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>sign</tt>.</td>
           </tr>
           <tr class="b">
             <td><b><a href="#signingkey">signingkey</a></b></td>
@@ -149,8 +151,8 @@ then creates a tag for the release on master.</div>
             <td><b><a href="#squash">squash</a></b></td>
             <td><tt>Boolean</tt></td>
             <td><tt>1.2</tt></td>
-            <td>If true, all commits to the branch will be squashed into a single
-commit before the merge.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>squash</tt>.</td>
+            <td>If <tt>true</tt>, all commits to the branch will be squashed
+into a single commit before the merge.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>squash</tt>.</td>
           </tr>
           <tr class="b">
             <td><b><a href="#useSnapshots">useSnapshots</a></b></td>
@@ -163,7 +165,7 @@ version (if it has been deployed).<br /><b>Default value is</b>: <tt>true</tt>.<
       </div>
       <div class="section"><h3>Parameter Details<a name="Parameter_Details"></a></h3>
         <p><b><a name="allowSnapshots">allowSnapshots</a>:</b></p>
-        <div>If true, the release can still finish even if
+        <div>If <tt>true</tt>, the release can still finish even if
 <tt>-SNAPSHOT</tt> dependencies exists in the pom.</div>
         <ul>
           <li><b>Type</b>: <tt>boolean</tt></li>
@@ -172,7 +174,8 @@ version (if it has been deployed).<br /><b>Default value is</b>: <tt>true</tt>.<
           <li><b>User Property</b>: <tt>allowSnapshots</tt></li>
           <li><b>Default</b>: <tt>false</tt></li>
         </ul><hr /><p><b><a name="keep">keep</a>:</b></p>
-        <div>If true, the branch will not be deleted after the merge.</div>
+        <div>If <tt>true</tt>, the branch will not be deleted after the
+merge.</div>
         <ul>
           <li><b>Type</b>: <tt>java.lang.Boolean</tt></li>
           <li><b>Since</b>: <tt>1.2</tt></li>
@@ -201,7 +204,8 @@ version (if it has been deployed).<br /><b>Default value is</b>: <tt>true</tt>.<
           <li><b>Required</b>: <tt>No</tt></li>
           <li><b>Default</b>: <tt>${prefixes}</tt></li>
         </ul><hr /><p><b><a name="pushReleases">pushReleases</a>:</b></p>
-        <div>If true, the release branch is pushed to the remote repository.</div>
+        <div>If <tt>true</tt>, the release branch is pushed to the remote
+repository.</div>
         <ul>
           <li><b>Type</b>: <tt>boolean</tt></li>
           <li><b>Since</b>: <tt>1.2</tt></li>
@@ -216,7 +220,7 @@ version (if it has been deployed).<br /><b>Default value is</b>: <tt>true</tt>.<
           <li><b>Required</b>: <tt>No</tt></li>
           <li><b>User Property</b>: <tt>releaseName</tt></li>
         </ul><hr /><p><b><a name="sign">sign</a>:</b></p>
-        <div>If true, any Git tags created will be signed.</div>
+        <div>If <tt>true</tt>, any Git tags created will be signed.</div>
         <ul>
           <li><b>Type</b>: <tt>java.lang.Boolean</tt></li>
           <li><b>Since</b>: <tt>1.2</tt></li>
@@ -247,8 +251,8 @@ version (if it has been deployed).<br /><b>Default value is</b>: <tt>true</tt>.<
           <li><b>User Property</b>: <tt>skipDeploy</tt></li>
           <li><b>Default</b>: <tt>false</tt></li>
         </ul><hr /><p><b><a name="squash">squash</a>:</b></p>
-        <div>If true, all commits to the branch will be squashed into a single
-commit before the merge.</div>
+        <div>If <tt>true</tt>, all commits to the branch will be squashed
+into a single commit before the merge.</div>
         <ul>
           <li><b>Type</b>: <tt>java.lang.Boolean</tt></li>
           <li><b>Since</b>: <tt>1.2</tt></li>
