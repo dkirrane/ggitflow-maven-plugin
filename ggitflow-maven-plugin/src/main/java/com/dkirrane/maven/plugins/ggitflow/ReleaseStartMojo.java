@@ -38,9 +38,9 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
     private static final Logger LOG = LoggerFactory.getLogger(ReleaseStartMojo.class.getName());
 
     /**
-     * Replaces any <code>-SNAPSHOT</code> versions with the corresponding
-     * release version (if it has been released). This action is performed on
-     * the release branch after it is created.
+     * Any dependencies with a <code>-SNAPSHOT</code> version are replaced with
+     * the corresponding release version (if it has been released). This action
+     * is performed on the release branch after it is created.
      *
      * @since 1.2
      */
