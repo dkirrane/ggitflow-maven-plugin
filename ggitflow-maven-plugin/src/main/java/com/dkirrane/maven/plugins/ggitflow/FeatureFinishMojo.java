@@ -25,12 +25,16 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Merges a feature branch back into the develop.
  */
 @Mojo(name = "feature-finish", aggregator = true)
 public class FeatureFinishMojo extends AbstractFeatureMojo {
+
+    private static final Logger LOG = LoggerFactory.getLogger(FeatureFinishMojo.class.getName());
 
     /**
      * If true, the feature branch rebases onto develop, then finish can
@@ -53,7 +57,13 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
-        getLog().info("Finishing feature '" + featureName + "'");
+        LOG.debug("Finishing feature");
+        
+        List<String> featureBranches = getGitflowInit().gitLocalFeatureBranches();
+
+        if (null == featureBranches || featureBranches.isEmpty()) {
+            throw new MojoFailureException("No local feature branches exit!");            
+        }        
 
         String featureBranchPrefix = getFeatureBranchPrefix();
         if (StringUtils.isBlank(featureName)) {
@@ -61,28 +71,28 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             if (currentBranch.startsWith(featureBranchPrefix)) {
                 featureName = currentBranch;
             } else {
-                featureName = "";
+                featureName = featureBranches.get(0);
             }
         } else {
             featureName = getFeatureName(featureName);
         }
 
-        List<String> featureBranches = getGitflowInit().gitLocalFeatureBranches();
-
         featureName = promptForExistingFeatureName(featureBranches, featureName);
+        
+        LOG.info("Finishing feature '{}'", featureName);
 
         if (enableFeatureVersions) {
             /* Switch to develop branch and get its current version */
             getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
             reloadReactorProjects();
             String developVersion = project.getVersion();
-            getLog().debug("develop version = " + developVersion);
+            LOG.debug("develop version = " + developVersion);
 
             /* Switch to feature branch and get its current version */
             getGitflowInit().executeLocal("git checkout " + featureName);
             reloadReactorProjects();
             String featureVersion = project.getVersion();
-            getLog().debug("feature version = " + featureVersion);
+            LOG.debug("feature version = " + featureVersion);
 
             setVersion(developVersion);
         }
@@ -91,7 +101,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             clean();
             install();
         } else {
-            getLog().debug("Skipping both install and deploy");
+            LOG.debug("Skipping both install and deploy");
         }
 
         GitflowFeature gitflowFeature = new GitflowFeature();
@@ -122,7 +132,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             throw new MojoFailureException("Error reading feature name from command line " + e.getMessage());
         }
 
-        return name;
+        return name.trim();
     }
 
 }

@@ -25,6 +25,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.jfrog.hudson.util.GenericArtifactVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Merges a release branch back into the develop and master branch and then
@@ -32,6 +34,8 @@ import org.jfrog.hudson.util.GenericArtifactVersion;
  */
 @Mojo(name = "release-finish", aggregator = true)
 public class ReleaseFinishMojo extends AbstractReleaseMojo {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ReleaseFinishMojo.class.getName());
     
     /**
      * If true, the release can still finish even when SNAPSHOT dependencies
@@ -45,7 +49,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
-        getLog().info("Finishing release '" + releaseName + "'");
+        LOG.debug("Finishing release");
 
         /* Get release branch name */
         List<String> releaseBranches = getGitflowInit().gitLocalReleaseBranches();
@@ -56,19 +60,21 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         } else {
             releaseName = promptForExistingReleaseName(releaseBranches, releaseName);
         }
+        
+        LOG.info("Finishing release '{}'", releaseName);
 
         /* Switch to develop branch and get its current version */
         String developBranch = getGitflowInit().getDevelopBranch();
         getGitflowInit().executeLocal("git checkout " + developBranch);
         reloadReactorProjects();
         String developVersion = project.getVersion();
-        getLog().debug("develop version = " + developVersion);
+        LOG.debug("develop version = " + developVersion);
 
         /* Switch to release branch and set poms to release version */
         getGitflowInit().executeLocal("git checkout " + releaseName);
         reloadReactorProjects();
         String releaseVersion = getReleaseVersion(project.getVersion());
-        getLog().debug("release version = " + releaseVersion);
+        LOG.debug("release version = " + releaseVersion);
 
         setVersion(releaseVersion);
                 
@@ -116,7 +122,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);
         reloadReactorProjects();
         String tagVersion = project.getVersion();
-        getLog().debug("tag version = " + tagVersion);
+        LOG.debug("tag version = " + tagVersion);
 
         /* install or deploy */
         if (skipDeploy == false) {
@@ -126,7 +132,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
             clean();
             install();
         } else {
-            getLog().debug("Skipping both install and deploy for tag " + tagVersion);
+            LOG.debug("Skipping both install and deploy for tag " + tagVersion);
         }
         getGitflowInit().executeLocal("git checkout " + developBranch);
     }
@@ -145,7 +151,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
     }
 
     private String getNextDevelopVersion(String developVersion) {
-        getLog().debug("Current Develop version '" + developVersion + "'");
+        LOG.debug("Current Develop version '" + developVersion + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(developVersion);
         artifactVersion.upgradeLeastSignificantPrimaryNumber();
