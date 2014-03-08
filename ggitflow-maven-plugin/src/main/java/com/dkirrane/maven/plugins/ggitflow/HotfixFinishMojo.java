@@ -52,7 +52,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
-        LOG.info("Finishing hotfix");
+        LOG.debug("Finishing hotfix");
 
         /* Get hotfix branch name */
         List<String> hotfixBranches = getGitflowInit().gitLocalHotfixBranches();
@@ -63,6 +63,8 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         } else {
             hotfixName = promptForExistingHotfixName(hotfixBranches, hotfixName);
         }
+        
+        LOG.info("Finishing hotfix '{}'", hotfixName);
 
         /* Switch to hotfix branch and set poms to hotfix version */
         getGitflowInit().executeLocal("git checkout " + hotfixName);

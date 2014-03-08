@@ -57,7 +57,13 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
-        LOG.info("Finishing feature");
+        LOG.debug("Finishing feature");
+        
+        List<String> featureBranches = getGitflowInit().gitLocalFeatureBranches();
+
+        if (null == featureBranches || featureBranches.isEmpty()) {
+            throw new MojoFailureException("No local feature branches exit!");            
+        }        
 
         String featureBranchPrefix = getFeatureBranchPrefix();
         if (StringUtils.isBlank(featureName)) {
@@ -65,19 +71,15 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             if (currentBranch.startsWith(featureBranchPrefix)) {
                 featureName = currentBranch;
             } else {
-                featureName = "";
+                featureName = featureBranches.get(0);
             }
         } else {
             featureName = getFeatureName(featureName);
         }
 
-        List<String> featureBranches = getGitflowInit().gitLocalFeatureBranches();
-
-        if (null == featureBranches || featureBranches.isEmpty()) {
-            throw new MojoFailureException("No feature branches exit");            
-        }
-
         featureName = promptForExistingFeatureName(featureBranches, featureName);
+        
+        LOG.info("Finishing feature '{}'", featureName);
 
         if (enableFeatureVersions) {
             /* Switch to develop branch and get its current version */

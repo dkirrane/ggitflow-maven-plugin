@@ -49,7 +49,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
-        LOG.info("Finishing release");
+        LOG.debug("Finishing release");
 
         /* Get release branch name */
         List<String> releaseBranches = getGitflowInit().gitLocalReleaseBranches();
@@ -60,6 +60,8 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         } else {
             releaseName = promptForExistingReleaseName(releaseBranches, releaseName);
         }
+        
+        LOG.info("Finishing release '{}'", releaseName);
 
         /* Switch to develop branch and get its current version */
         String developBranch = getGitflowInit().getDevelopBranch();
