@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 @Mojo(name = "hotfix-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class HotfixStartMojo extends AbstractHotfixMojo {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(HotfixStartMojo.class.getName());
 
     @Override
@@ -76,9 +76,18 @@ public class HotfixStartMojo extends AbstractHotfixMojo {
         LOG.debug("getHotfixVersion from '" + currentVersion + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
-        artifactVersion.upgradeLeastSignificantNumber();
 
-        return artifactVersion.toString();
+        final StringBuilder result = new StringBuilder(30);
+        if (artifactVersion.getPrimaryNumberCount() < 3) {
+            String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
+            String annotationAsString = artifactVersion.getAnnotationAsString();
+            result.append(primaryNumbersAsString).append('.').append('0');
+            result.append(annotationAsString);
+        } else {
+            artifactVersion.upgradeAnnotationRevision();
+            result.append(artifactVersion.toString());
+        }
+        return result.toString();
     }
 
     private String getHotfixSnapshotVersion(String currentVersion) throws MojoFailureException {
