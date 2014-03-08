@@ -79,78 +79,33 @@
             <th>Description</th>
           </tr>
           <tr class="b">
-            <td><b><a href="#keep">keep</a></b></td>
-            <td><tt>Boolean</tt></td>
-            <td><tt>1.2</tt></td>
-            <td>If true, the branch will not be deleted after the merge.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>keep</tt>.</td>
-          </tr>
-          <tr class="a">
             <td><b><a href="#msgPrefix">msgPrefix</a></b></td>
             <td><tt>String</tt></td>
             <td><tt>1.2</tt></td>
             <td>Message prefix used for any commits made by this plugin.<br /><b>User property is</b>: <tt>msgPrefix</tt>.</td>
           </tr>
-          <tr class="b">
+          <tr class="a">
             <td><b><a href="#msgSuffix">msgSuffix</a></b></td>
             <td><tt>String</tt></td>
             <td><tt>1.2</tt></td>
             <td>Message suffix used for any commits made by this plugin.<br /><b>User property is</b>: <tt>msgSuffix</tt>.</td>
           </tr>
-          <tr class="a">
+          <tr class="b">
             <td><b><a href="#prefixes">prefixes</a></b></td>
             <td><tt>Prefixes</tt></td>
             <td><tt>1.2</tt></td>
             <td>Gitflow branches and prefixes to use.<br /><b>Default value is</b>: <tt>${prefixes}</tt>.<br /></td>
           </tr>
-          <tr class="b">
+          <tr class="a">
             <td><b><a href="#pushHotfixes">pushHotfixes</a></b></td>
             <td><tt>boolean</tt></td>
             <td><tt>1.2</tt></td>
             <td>If true, the hotfix branch is pushed to the remote repository<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>pushHotfixes</tt>.</td>
           </tr>
-          <tr class="a">
-            <td><b><a href="#sign">sign</a></b></td>
-            <td><tt>Boolean</tt></td>
-            <td><tt>1.2</tt></td>
-            <td>If true, any Git tags created will be signed.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>sign</tt>.</td>
-          </tr>
-          <tr class="b">
-            <td><b><a href="#signingkey">signingkey</a></b></td>
-            <td><tt>String</tt></td>
-            <td><tt>1.2</tt></td>
-            <td>If GPG key used to sign the tag.<br /><b>User property is</b>: <tt>signingkey</tt>.</td>
-          </tr>
-          <tr class="a">
-            <td><b><a href="#skipBuild">skipBuild</a></b></td>
-            <td><tt>Boolean</tt></td>
-            <td><tt>1.2</tt></td>
-            <td>Skips any calls to mvn install<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>skipBuild</tt>.</td>
-          </tr>
-          <tr class="b">
-            <td><b><a href="#skipDeploy">skipDeploy</a></b></td>
-            <td><tt>Boolean</tt></td>
-            <td><tt>1.2</tt></td>
-            <td>Skips any calls to mvn deploy<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>skipDeploy</tt>.</td>
-          </tr>
-          <tr class="a">
-            <td><b><a href="#squash">squash</a></b></td>
-            <td><tt>Boolean</tt></td>
-            <td><tt>1.2</tt></td>
-            <td>If true, all commits to the branch will be squashed into a single
-commit before the merge.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>squash</tt>.</td>
-          </tr>
         </table>
       </div>
       <div class="section"><h3>Parameter Details<a name="Parameter_Details"></a></h3>
-        <p><b><a name="keep">keep</a>:</b></p>
-        <div>If true, the branch will not be deleted after the merge.</div>
-        <ul>
-          <li><b>Type</b>: <tt>java.lang.Boolean</tt></li>
-          <li><b>Since</b>: <tt>1.2</tt></li>
-          <li><b>Required</b>: <tt>No</tt></li>
-          <li><b>User Property</b>: <tt>keep</tt></li>
-          <li><b>Default</b>: <tt>false</tt></li>
-        </ul><hr /><p><b><a name="msgPrefix">msgPrefix</a>:</b></p>
+        <p><b><a name="msgPrefix">msgPrefix</a>:</b></p>
         <div>Message prefix used for any commits made by this plugin.</div>
         <ul>
           <li><b>Type</b>: <tt>java.lang.String</tt></li>
@@ -178,46 +133,6 @@ commit before the merge.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>U
           <li><b>Since</b>: <tt>1.2</tt></li>
           <li><b>Required</b>: <tt>No</tt></li>
           <li><b>User Property</b>: <tt>pushHotfixes</tt></li>
-          <li><b>Default</b>: <tt>false</tt></li>
-        </ul><hr /><p><b><a name="sign">sign</a>:</b></p>
-        <div>If true, any Git tags created will be signed.</div>
-        <ul>
-          <li><b>Type</b>: <tt>java.lang.Boolean</tt></li>
-          <li><b>Since</b>: <tt>1.2</tt></li>
-          <li><b>Required</b>: <tt>No</tt></li>
-          <li><b>User Property</b>: <tt>sign</tt></li>
-          <li><b>Default</b>: <tt>false</tt></li>
-        </ul><hr /><p><b><a name="signingkey">signingkey</a>:</b></p>
-        <div>If GPG key used to sign the tag.</div>
-        <ul>
-          <li><b>Type</b>: <tt>java.lang.String</tt></li>
-          <li><b>Since</b>: <tt>1.2</tt></li>
-          <li><b>Required</b>: <tt>No</tt></li>
-          <li><b>User Property</b>: <tt>signingkey</tt></li>
-        </ul><hr /><p><b><a name="skipBuild">skipBuild</a>:</b></p>
-        <div>Skips any calls to mvn install</div>
-        <ul>
-          <li><b>Type</b>: <tt>java.lang.Boolean</tt></li>
-          <li><b>Since</b>: <tt>1.2</tt></li>
-          <li><b>Required</b>: <tt>No</tt></li>
-          <li><b>User Property</b>: <tt>skipBuild</tt></li>
-          <li><b>Default</b>: <tt>false</tt></li>
-        </ul><hr /><p><b><a name="skipDeploy">skipDeploy</a>:</b></p>
-        <div>Skips any calls to mvn deploy</div>
-        <ul>
-          <li><b>Type</b>: <tt>java.lang.Boolean</tt></li>
-          <li><b>Since</b>: <tt>1.2</tt></li>
-          <li><b>Required</b>: <tt>No</tt></li>
-          <li><b>User Property</b>: <tt>skipDeploy</tt></li>
-          <li><b>Default</b>: <tt>false</tt></li>
-        </ul><hr /><p><b><a name="squash">squash</a>:</b></p>
-        <div>If true, all commits to the branch will be squashed into a single
-commit before the merge.</div>
-        <ul>
-          <li><b>Type</b>: <tt>java.lang.Boolean</tt></li>
-          <li><b>Since</b>: <tt>1.2</tt></li>
-          <li><b>Required</b>: <tt>No</tt></li>
-          <li><b>User Property</b>: <tt>squash</tt></li>
           <li><b>Default</b>: <tt>false</tt></li>
         </ul>
       </div>
