@@ -44,8 +44,8 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "useReleases", defaultValue = "true", required = false)
-    private boolean useReleases;
+    @Parameter(property = "updateDependencies", defaultValue = "true", required = false)
+    private boolean updateDependencies;
 
     /**
      * The commit to start the release branch from.
@@ -114,7 +114,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         }
 
         /* Update dependencies to release version */
-        if (useReleases) {
+        if (updateDependencies) {
             reloadReactorProjects();
             setNextVersions(false);
         }

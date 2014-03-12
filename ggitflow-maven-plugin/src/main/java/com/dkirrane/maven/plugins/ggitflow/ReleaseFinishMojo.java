@@ -53,8 +53,8 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "useSnapshots", defaultValue = "true", required = false)
-    private boolean useSnapshots;
+    @Parameter(property = "updateDependencies", defaultValue = "true", required = false)
+    private boolean updateDependencies;
 
     /**
      * Skips any calls to <code>mvn install</code>
@@ -178,7 +178,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         setVersion(nextDevelopVersion);
 
         /* Update dependencies to next snapshot version if deployed */
-        if (useSnapshots) {
+        if (updateDependencies) {
             reloadReactorProjects();
             setNextVersions(true);
         }
