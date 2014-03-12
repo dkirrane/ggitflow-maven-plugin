@@ -282,23 +282,28 @@ public class AbstractGitflowMojo extends AbstractMojo {
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
         session.setProjects(reactorProjects);
-        executeMojo(
-                plugin(
-                        groupId("org.codehaus.mojo"),
-                        artifactId("versions-maven-plugin"),
-                        version("2.1")
-                ),
-                goal("use-next-versions"),
-                configuration(
-                        element(name("generateBackupPoms"), "false"),
-                        element(name("allowSnapshots"), allowSnapshots.toString())
-                ),
-                executionEnvironment(
-                        rootProject,
-                        session,
-                        pluginManager
-                )
-        );
+        for (MavenProject mavenProject : reactorProjects) {
+            LOG.debug("Calling use-next-versions on " + mavenProject.getArtifactId());
+            executeMojo(
+                    plugin(
+                            groupId("org.codehaus.mojo"),
+                            artifactId("versions-maven-plugin"),
+                            version("2.1")
+                    ),
+                    goal("use-next-versions"),
+                    configuration(
+                            element(name("generateBackupPoms"), "false"),
+//                            element(name("processDependencies"), "true"),
+//                            element(name("processDependencyManagement"), "true"),
+                            element(name("allowSnapshots"), allowSnapshots.toString())
+                    ),
+                    executionEnvironment(
+                            mavenProject,
+                            session,
+                            pluginManager
+                    )
+            );
+        }
         LOG.debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:use-next-versions");
 
         if (!getGitflowInit().gitIsCleanWorkingTree()) {
@@ -418,12 +423,14 @@ public class AbstractGitflowMojo extends AbstractMojo {
     }
 
     protected final void checkForSnapshotDependencies() throws MojoExecutionException {
-        LOG.info("Checking for SNAPSHOT dependencies");
-        DependencyManagement dependencyManagement = getProject().getDependencyManagement();
-        if (null != dependencyManagement) {
-            checkForSnapshot(dependencyManagement.getDependencies());
+        LOG.info("Checking for SNAPSHOT dependencies");       
+        for (MavenProject mavenProject : reactorProjects) {
+            DependencyManagement dependencyManagement = mavenProject.getDependencyManagement();
+            if (null != dependencyManagement) {
+                checkForSnapshot(dependencyManagement.getDependencies());
+            }
+            checkForSnapshot(mavenProject.getDependencies());
         }
-        checkForSnapshot(getProject().getDependencies());
     }
 
     private void checkForSnapshot(List<Dependency> dependencies) throws MojoExecutionException {
@@ -432,7 +439,8 @@ public class AbstractGitflowMojo extends AbstractMojo {
             String version = dependency.getVersion();
             Matcher versionMatcher = matchSnapshotRegex.matcher(version);
             if (versionMatcher.find() && versionMatcher.end() == version.length()) {
-                LOG.error("Found SNAPSHOT depednency " + dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + version);
+                LOG.error("Found SNAPSHOT dependency " + dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + version);
+                hasSnapshotDependency = true;
             }
         }
         if (hasSnapshotDependency) {
