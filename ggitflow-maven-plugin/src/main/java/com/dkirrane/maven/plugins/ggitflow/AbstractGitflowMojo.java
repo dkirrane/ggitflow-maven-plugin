@@ -284,6 +284,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         session.setProjects(reactorProjects);
         for (MavenProject mavenProject : reactorProjects) {
             LOG.debug("Calling use-next-versions on " + mavenProject.getArtifactId());
+            session.setCurrentProject(mavenProject);
             executeMojo(
                     plugin(
                             groupId("org.codehaus.mojo"),
