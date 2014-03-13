@@ -57,9 +57,13 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
     private boolean updateParent;
 
     /**
-     * Any dependencies with a release version are replaced with the next
-     * <code>-SNAPSHOT</code> version (if it has been deployed). This action is
-     * performed on the develop branch after the merge.
+     * On the release branch before finish is called any dependencies with a
+     * <code>-SNAPSHOT</code> version are replaced with the corresponding
+     * release version (if it has been released).
+     *
+     * On the develop branch after the merge any dependencies with a release
+     * version are replaced with the next <code>-SNAPSHOT</code> version (if it
+     * has been deployed).
      *
      * @since 1.2
      */
@@ -147,7 +151,14 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
 
         setVersion(releaseVersion);
 
+        /* Update dependencies to release version */
+        if (updateDependencies) {
+            reloadReactorProjects();
+            setNextVersions(false, updateParent);
+        }
+
         if (!allowSnapshots) {
+            reloadReactorProjects();
             checkForSnapshotDependencies();
         }
 

@@ -64,7 +64,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "updateDependencies", defaultValue = "true", required = false)
+    @Parameter(property = "updateDependencies", defaultValue = "false", required = false)
     private boolean updateDependencies;
 
     /**
