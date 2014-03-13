@@ -38,6 +38,17 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
     private static final Logger LOG = LoggerFactory.getLogger(ReleaseStartMojo.class.getName());
 
     /**
+     * If the project has a parent with a <code>-SNAPSHOT</code> version it will
+     * be replaced with the corresponding release version (if it has been
+     * released). This action is performed on the release branch after it is
+     * created.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "updateParent", defaultValue = "true", required = false)
+    private boolean updateParent;
+
+    /**
      * Any dependencies with a <code>-SNAPSHOT</code> version are replaced with
      * the corresponding release version (if it has been released). This action
      * is performed on the release branch after it is created.
@@ -111,12 +122,12 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         String releaseBranch = getGitflowInit().gitCurrentBranch();
         if (!releaseBranch.startsWith(prefix)) {
             throw new MojoFailureException("Failed to create release version.");
-        }
+        }        
 
         /* Update dependencies to release version */
         if (updateDependencies) {
             reloadReactorProjects();
-            setNextVersions(false);
+            setNextVersions(false, updateParent);
         }
 
 //        // checkout develop branch and update it's version

@@ -277,11 +277,35 @@ public class AbstractGitflowMojo extends AbstractMojo {
 //        }
     }
 
-    protected final void setNextVersions(Boolean allowSnapshots) throws MojoExecutionException, MojoFailureException {
-        LOG.debug("START org.codehaus.mojo:versions-maven-plugin:2.1:use-next-versions -DallowSnapshots=" + allowSnapshots);
+    protected final void setNextVersions(Boolean allowSnapshots, Boolean updateParent) throws MojoExecutionException, MojoFailureException {
+        LOG.debug("setNextVersions");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
         session.setProjects(reactorProjects);
+
+        if (updateParent) {
+            LOG.debug("START org.codehaus.mojo:versions-maven-plugin:2.1:update-parent updateParent={}", updateParent);
+            executeMojo(
+                    plugin(
+                            groupId("org.codehaus.mojo"),
+                            artifactId("versions-maven-plugin"),
+                            version("2.1")
+                    ),
+                    goal("update-parent"),
+                    configuration(
+                            element(name("generateBackupPoms"), "false"),
+                            element(name("allowSnapshots"), allowSnapshots.toString())
+                    ),
+                    executionEnvironment(
+                            rootProject,
+                            session,
+                            pluginManager
+                    )
+            );
+            LOG.debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:update-parent");
+        }
+
+        LOG.debug("START org.codehaus.mojo:versions-maven-plugin:2.1:use-next-versions allowSnapshots={}", allowSnapshots);
         for (MavenProject mavenProject : reactorProjects) {
             LOG.debug("Calling use-next-versions on " + mavenProject.getArtifactId());
             session.setCurrentProject(mavenProject);
@@ -294,8 +318,6 @@ public class AbstractGitflowMojo extends AbstractMojo {
                     goal("use-next-versions"),
                     configuration(
                             element(name("generateBackupPoms"), "false"),
-//                            element(name("processDependencies"), "true"),
-//                            element(name("processDependencyManagement"), "true"),
                             element(name("allowSnapshots"), allowSnapshots.toString())
                     ),
                     executionEnvironment(
@@ -424,7 +446,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
     }
 
     protected final void checkForSnapshotDependencies() throws MojoExecutionException {
-        LOG.info("Checking for SNAPSHOT dependencies");       
+        LOG.info("Checking for SNAPSHOT dependencies");
         for (MavenProject mavenProject : reactorProjects) {
             DependencyManagement dependencyManagement = mavenProject.getDependencyManagement();
             if (null != dependencyManagement) {

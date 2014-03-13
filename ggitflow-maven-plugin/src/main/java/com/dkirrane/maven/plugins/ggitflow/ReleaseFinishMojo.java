@@ -47,6 +47,16 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
     private boolean allowSnapshots;
 
     /**
+     * If the project has a parent with a release version it will be replaced
+     * with the next <code>-SNAPSHOT</code> version (if it has been deployed).
+     * This action is performed on the develop branch after the merge.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "updateParent", defaultValue = "true", required = false)
+    private boolean updateParent;
+
+    /**
      * Any dependencies with a release version are replaced with the next
      * <code>-SNAPSHOT</code> version (if it has been deployed). This action is
      * performed on the develop branch after the merge.
@@ -180,7 +190,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         /* Update dependencies to next snapshot version if deployed */
         if (updateDependencies) {
             reloadReactorProjects();
-            setNextVersions(true);
+            setNextVersions(true, updateParent);
         }
 
         /* Switch to release tag and deploy it */
