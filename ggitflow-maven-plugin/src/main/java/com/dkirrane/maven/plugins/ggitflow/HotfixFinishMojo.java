@@ -105,7 +105,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         /* Get hotfix branch name */
         List<String> hotfixBranches = getGitflowInit().gitLocalHotfixBranches();
         if (hotfixBranches.isEmpty()) {
-            throw new MojoFailureException("Could not find release branch!");
+            throw new MojoFailureException("Could not find hotfix branch!");
         } else if (hotfixBranches.size() == 1) {
             hotfixName = hotfixBranches.get(0);
         } else {

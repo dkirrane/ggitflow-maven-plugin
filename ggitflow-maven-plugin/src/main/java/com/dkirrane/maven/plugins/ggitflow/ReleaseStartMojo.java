@@ -38,6 +38,15 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
     private static final Logger LOG = LoggerFactory.getLogger(ReleaseStartMojo.class.getName());
 
     /**
+     * Whether to run the plugin in interactive mode or not. The default is to
+     * run without interaction when possible.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "interactive", defaultValue = "false", required = false)
+    protected boolean interactive;
+
+    /**
      * If the project has a parent with a <code>-SNAPSHOT</code> version it will
      * be replaced with the corresponding release version (if it has been
      * released). This action is performed on the release branch after it is
@@ -83,16 +92,19 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
 
         /* create release branch */
         String prefix = getReleaseBranchPrefix();
-        if (StringUtils.isBlank(releaseName)) {
+        if (interactive && StringUtils.isBlank(releaseName)) {
             String message = "What is the release branch name? " + prefix;
             try {
                 releaseName = prompter.prompt(message, releaseVersion);
-                if (StringUtils.isBlank(releaseName)) {
-                    throw new MojoFailureException("Parameter <releaseName> cannot be null or empty.");
-                }
             } catch (PrompterException ex) {
                 throw new MojoExecutionException("Error reading release name from command line " + ex.getMessage(), ex);
             }
+        } else {
+            releaseName = releaseVersion;
+        }
+
+        if (StringUtils.isBlank(releaseName)) {
+            throw new MojoFailureException("Parameter <releaseName> cannot be null or empty.");
         }
 
         try {
@@ -122,7 +134,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         String releaseBranch = getGitflowInit().gitCurrentBranch();
         if (!releaseBranch.startsWith(prefix)) {
             throw new MojoFailureException("Failed to create release version.");
-        }        
+        }
 
         /* Update dependencies to release version */
         if (updateDependencies) {
