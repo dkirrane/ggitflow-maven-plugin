@@ -162,6 +162,15 @@ into a single commit before the merge.<br /><b>Default value is</b>: <tt>false</
 <tt>-SNAPSHOT</tt> version (if it has been deployed). This
 action is performed on the develop branch after the merge.<br /><b>Default value is</b>: <tt>true</tt>.<br /><b>User property is</b>: <tt>updateDependencies</tt>.</td>
           </tr>
+          <tr class="a">
+            <td><b><a href="#updateParent">updateParent</a></b></td>
+            <td><tt>boolean</tt></td>
+            <td><tt>1.2</tt></td>
+            <td>If the project has a parent with a release version it will be
+replaced with the next <tt>-SNAPSHOT</tt> version (if it has
+been deployed). This action is performed on the develop branch
+after the merge.<br /><b>Default value is</b>: <tt>true</tt>.<br /><b>User property is</b>: <tt>updateParent</tt>.</td>
+          </tr>
         </table>
       </div>
       <div class="section"><h3>Parameter Details<a name="Parameter_Details"></a></h3>
@@ -269,6 +278,17 @@ action is performed on the develop branch after the merge.</div>
           <li><b>Since</b>: <tt>1.2</tt></li>
           <li><b>Required</b>: <tt>No</tt></li>
           <li><b>User Property</b>: <tt>updateDependencies</tt></li>
+          <li><b>Default</b>: <tt>true</tt></li>
+        </ul><hr /><p><b><a name="updateParent">updateParent</a>:</b></p>
+        <div>If the project has a parent with a release version it will be
+replaced with the next <tt>-SNAPSHOT</tt> version (if it has
+been deployed). This action is performed on the develop branch
+after the merge.</div>
+        <ul>
+          <li><b>Type</b>: <tt>boolean</tt></li>
+          <li><b>Since</b>: <tt>1.2</tt></li>
+          <li><b>Required</b>: <tt>No</tt></li>
+          <li><b>User Property</b>: <tt>updateParent</tt></li>
           <li><b>Default</b>: <tt>true</tt></li>
         </ul>
       </div>
