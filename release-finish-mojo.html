@@ -158,9 +158,12 @@ into a single commit before the merge.<br /><b>Default value is</b>: <tt>false</
             <td><b><a href="#updateDependencies">updateDependencies</a></b></td>
             <td><tt>boolean</tt></td>
             <td><tt>1.2</tt></td>
-            <td>Any dependencies with a release version are replaced with the next
-<tt>-SNAPSHOT</tt> version (if it has been deployed). This
-action is performed on the develop branch after the merge.<br /><b>Default value is</b>: <tt>true</tt>.<br /><b>User property is</b>: <tt>updateDependencies</tt>.</td>
+            <td>On the release branch before finish is called any dependencies with
+a <tt>-SNAPSHOT</tt> version are replaced with the
+corresponding release version (if it has been released). On the
+develop branch after the merge any dependencies with a release
+version are replaced with the next <tt>-SNAPSHOT</tt> version
+(if it has been deployed).<br /><b>Default value is</b>: <tt>true</tt>.<br /><b>User property is</b>: <tt>updateDependencies</tt>.</td>
           </tr>
           <tr class="a">
             <td><b><a href="#updateParent">updateParent</a></b></td>
@@ -270,9 +273,12 @@ into a single commit before the merge.</div>
           <li><b>User Property</b>: <tt>squash</tt></li>
           <li><b>Default</b>: <tt>false</tt></li>
         </ul><hr /><p><b><a name="updateDependencies">updateDependencies</a>:</b></p>
-        <div>Any dependencies with a release version are replaced with the next
-<tt>-SNAPSHOT</tt> version (if it has been deployed). This
-action is performed on the develop branch after the merge.</div>
+        <div>On the release branch before finish is called any dependencies with
+a <tt>-SNAPSHOT</tt> version are replaced with the
+corresponding release version (if it has been released). On the
+develop branch after the merge any dependencies with a release
+version are replaced with the next <tt>-SNAPSHOT</tt> version
+(if it has been deployed).</div>
         <ul>
           <li><b>Type</b>: <tt>boolean</tt></li>
           <li><b>Since</b>: <tt>1.2</tt></li>

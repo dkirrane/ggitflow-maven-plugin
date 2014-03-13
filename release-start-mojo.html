@@ -80,51 +80,58 @@
             <th>Description</th>
           </tr>
           <tr class="b">
+            <td><b><a href="#interactive">interactive</a></b></td>
+            <td><tt>boolean</tt></td>
+            <td><tt>1.2</tt></td>
+            <td>Whether to run the plugin in interactive mode or not. The default
+is to run without interaction when possible.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>interactive</tt>.</td>
+          </tr>
+          <tr class="a">
             <td><b><a href="#msgPrefix">msgPrefix</a></b></td>
             <td><tt>String</tt></td>
             <td><tt>1.2</tt></td>
             <td>Message prefix used for any commits made by this plugin.<br /><b>User property is</b>: <tt>msgPrefix</tt>.</td>
           </tr>
-          <tr class="a">
+          <tr class="b">
             <td><b><a href="#msgSuffix">msgSuffix</a></b></td>
             <td><tt>String</tt></td>
             <td><tt>1.2</tt></td>
             <td>Message suffix used for any commits made by this plugin.<br /><b>User property is</b>: <tt>msgSuffix</tt>.</td>
           </tr>
-          <tr class="b">
+          <tr class="a">
             <td><b><a href="#prefixes">prefixes</a></b></td>
             <td><tt>Prefixes</tt></td>
             <td><tt>1.2</tt></td>
             <td>Gitflow branches and prefixes to use.<br /><b>Default value is</b>: <tt>${prefixes}</tt>.<br /></td>
           </tr>
-          <tr class="a">
+          <tr class="b">
             <td><b><a href="#pushReleases">pushReleases</a></b></td>
             <td><tt>boolean</tt></td>
             <td><tt>1.2</tt></td>
             <td>If <tt>true</tt>, the release branch is pushed to the remote
 repository.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>pushReleases</tt>.</td>
           </tr>
-          <tr class="b">
+          <tr class="a">
             <td><b><a href="#releaseName">releaseName</a></b></td>
             <td><tt>String</tt></td>
             <td><tt>1.2</tt></td>
             <td>The name for the release branch.<br /><b>User property is</b>: <tt>releaseName</tt>.</td>
           </tr>
-          <tr class="a">
+          <tr class="b">
             <td><b><a href="#startCommit">startCommit</a></b></td>
             <td><tt>String</tt></td>
             <td><tt>1.2</tt></td>
             <td>The commit to start the release branch from.<br /><b>User property is</b>: <tt>startCommit</tt>.</td>
           </tr>
-          <tr class="b">
+          <tr class="a">
             <td><b><a href="#updateDependencies">updateDependencies</a></b></td>
             <td><tt>boolean</tt></td>
             <td><tt>1.2</tt></td>
             <td>Any dependencies with a <tt>-SNAPSHOT</tt> version are replaced
 with the corresponding release version (if it has been released).
-This action is performed on the release branch after it is created.<br /><b>Default value is</b>: <tt>true</tt>.<br /><b>User property is</b>: <tt>updateDependencies</tt>.</td>
+This action is performed on the release branch after it is created.<br /><b>Default value is</b>: <tt>false</tt>.<br /><b>User property is</b>: <tt>updateDependencies</tt>.</td>
           </tr>
-          <tr class="a">
+          <tr class="b">
             <td><b><a href="#updateParent">updateParent</a></b></td>
             <td><tt>boolean</tt></td>
             <td><tt>1.2</tt></td>
@@ -136,7 +143,16 @@ after it is created.<br /><b>Default value is</b>: <tt>true</tt>.<br /><b>User p
         </table>
       </div>
       <div class="section"><h3>Parameter Details<a name="Parameter_Details"></a></h3>
-        <p><b><a name="msgPrefix">msgPrefix</a>:</b></p>
+        <p><b><a name="interactive">interactive</a>:</b></p>
+        <div>Whether to run the plugin in interactive mode or not. The default
+is to run without interaction when possible.</div>
+        <ul>
+          <li><b>Type</b>: <tt>boolean</tt></li>
+          <li><b>Since</b>: <tt>1.2</tt></li>
+          <li><b>Required</b>: <tt>No</tt></li>
+          <li><b>User Property</b>: <tt>interactive</tt></li>
+          <li><b>Default</b>: <tt>false</tt></li>
+        </ul><hr /><p><b><a name="msgPrefix">msgPrefix</a>:</b></p>
         <div>Message prefix used for any commits made by this plugin.</div>
         <ul>
           <li><b>Type</b>: <tt>java.lang.String</tt></li>
@@ -189,7 +205,7 @@ This action is performed on the release branch after it is created.</div>
           <li><b>Since</b>: <tt>1.2</tt></li>
           <li><b>Required</b>: <tt>No</tt></li>
           <li><b>User Property</b>: <tt>updateDependencies</tt></li>
-          <li><b>Default</b>: <tt>true</tt></li>
+          <li><b>Default</b>: <tt>false</tt></li>
         </ul><hr /><p><b><a name="updateParent">updateParent</a>:</b></p>
         <div>If the project has a parent with a <tt>-SNAPSHOT</tt> version
 it will be replaced with the corresponding release version (if it
