@@ -54,7 +54,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "updateParent", defaultValue = "true", required = false)
+    @Parameter(property = "updateParent", defaultValue = "false", required = false)
     private boolean updateParent;
 
     /**
