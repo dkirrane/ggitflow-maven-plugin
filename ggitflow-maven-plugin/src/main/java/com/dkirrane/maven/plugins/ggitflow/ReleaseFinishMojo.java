@@ -27,6 +27,7 @@ import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
 /**
  * Merges a release branch back into the develop and master branch and then
@@ -146,12 +147,18 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         /* Switch to release branch and set poms to release version */
         getGitflowInit().executeLocal("git checkout " + releaseName);
         reloadReactorProjects();
-        String releaseVersion = getReleaseVersion(project.getVersion());
+        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(project.getVersion());
+        String releaseVersion;
+        if("SNAPSHOT".equals(artifactVersion.getBuildSpecifier())){
+            releaseVersion = getReleaseVersion(project.getVersion());
+        } else {
+            releaseVersion = project.getVersion();
+        }
         LOG.debug("release version = " + releaseVersion);
 
         setVersion(releaseVersion);
 
-        /* Update dependencies to release version */
+        /* Update release branch dependencies to release version */
         if (updateDependencies) {
             reloadReactorProjects();
             setNextVersions(false, updateParent);
@@ -172,8 +179,23 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         gitflowRelease.setSign(sign);
         gitflowRelease.setSigningkey(signingkey);
 
+        /* 1. merge to master */
         try {
-            gitflowRelease.finish(releaseName);
+            gitflowRelease.finishToMaster(releaseName);
+        } catch (GitflowException ge) {
+            throw new MojoFailureException(ge.getMessage());
+        } catch (GitflowMergeConflictException gmce) {
+            throw new MojoFailureException(gmce.getMessage());
+        }
+
+        /* 2. make versions in release and develop branches match to avoid conflicts */
+        getGitflowInit().executeLocal("git checkout " + releaseName);
+        reloadReactorProjects();
+        setVersion(developVersion);
+
+        /* 3. merge to develop */
+        try {
+            gitflowRelease.finishToDevelop(releaseName);
         } catch (GitflowException ge) {
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {
@@ -193,12 +215,8 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         if (!currentBranch.equals(developBranch)) {
             throw new MojoFailureException("Current branch should be " + developBranch + " but was " + currentBranch);
         }
-        /* set poms to next develop version */
-        String nextDevelopVersion = getNextDevelopVersion(developVersion);
-        reloadReactorProjects();
-        setVersion(nextDevelopVersion);
 
-        /* Update dependencies to next snapshot version if deployed */
+        /* Update develop branch dependencies to next snapshot version (if deployed) */
         if (updateDependencies) {
             reloadReactorProjects();
             setNextVersions(true, updateParent);
@@ -235,14 +253,4 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
 
         return name;
     }
-
-    private String getNextDevelopVersion(String developVersion) {
-        LOG.debug("Current Develop version '" + developVersion + "'");
-
-        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(developVersion);
-        artifactVersion.upgradeLeastSignificantPrimaryNumber();
-
-        return artifactVersion.toString();
-    }
-
 }

@@ -82,13 +82,16 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         /* Switch to develop branch and get its current version */
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
         reloadReactorProjects();
+
         String developVersion = project.getVersion();
-        LOG.debug("develop version = " + developVersion);
+        LOG.debug("current develop version = " + developVersion);
+
+        String nextDevelopVersion = getNextDevelopVersion(developVersion);
+        LOG.debug("next develop version = " + developVersion);
 
         /* Get suggested release version */
         String releaseVersion = getReleaseVersion(developVersion);
         LOG.debug("release version = " + releaseVersion);
-//        String nextDevelopmentVersion = getNextDevelopmentVersion(project.getVersion());
 
         /* create release branch */
         String prefix = getReleaseBranchPrefix();
@@ -136,22 +139,29 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
             throw new MojoFailureException("Failed to create release version.");
         }
 
-        /* Update dependencies to release version */
+        /* Update release branch dependencies to release version */
         if (updateDependencies) {
             reloadReactorProjects();
             setNextVersions(false, updateParent);
         }
 
-//        // checkout develop branch and update it's version
-//        String developBranch = (String) getGitflowInit().getDevelopBrnName();
-//        getGitflowInit().executeLocal("git checkout " + developBranch);
-//        setVersion(nextDevelopmentVersion);
-//
-//        // checkout release branch again
-//        getGitflowInit().executeLocal("git checkout " + releaseBranch);
+        // checkout develop branch and update it's version
+        String developBranch = (String) getGitflowInit().getDevelopBrnName();
+        getGitflowInit().executeLocal("git checkout " + developBranch);
+        setVersion(nextDevelopVersion);
+
+        // checkout release branch again
+        getGitflowInit().executeLocal("git checkout " + releaseBranch);
     }
 
     public String getReleaseName() {
         return releaseName;
+    }
+
+    private String getNextDevelopVersion(String developVersion) {
+        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(developVersion);
+        artifactVersion.upgradeLeastSignificantPrimaryNumber();
+
+        return artifactVersion.toString();
     }
 }

@@ -236,23 +236,30 @@ public class AbstractGitflowMojo extends AbstractMojo {
     protected final void setVersion(String version) throws MojoExecutionException, MojoFailureException {
         LOG.debug("START org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
-        executeMojo(
-                plugin(
-                        groupId("org.codehaus.mojo"),
-                        artifactId("versions-maven-plugin"),
-                        version("2.1")
-                ),
-                goal("set"),
-                configuration(
-                        element(name("generateBackupPoms"), "false"),
-                        element(name("newVersion"), version)
-                ),
-                executionEnvironment(
-                        rootProject,
-                        session,
-                        pluginManager
-                )
-        );
+        session.setCurrentProject(rootProject);
+        session.setProjects(reactorProjects);
+
+        for (MavenProject mavenProject : reactorProjects) {
+            LOG.debug("Calling versions-maven-plugin:set on " + mavenProject.getArtifactId());
+            session.setCurrentProject(mavenProject);
+            executeMojo(
+                    plugin(
+                            groupId("org.codehaus.mojo"),
+                            artifactId("versions-maven-plugin"),
+                            version("2.1")
+                    ),
+                    goal("set"),
+                    configuration(
+                            element(name("generateBackupPoms"), "false"),
+                            element(name("newVersion"), version)
+                    ),
+                    executionEnvironment(
+                            mavenProject,
+                            session,
+                            pluginManager
+                    )
+            );
+        }
         LOG.debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
 
         if (!getGitflowInit().gitIsCleanWorkingTree()) {
@@ -358,22 +365,26 @@ public class AbstractGitflowMojo extends AbstractMojo {
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
         session.setProjects(reactorProjects);
-        executeMojo(
-                plugin(
-                        groupId("org.apache.maven.plugins"),
-                        artifactId("maven-clean-plugin"),
-                        version("2.5")
-                ),
-                goal("clean"),
-                configuration(
-                        element(name("skip"), "false")
-                ),
-                executionEnvironment(
-                        rootProject,
-                        session,
-                        pluginManager
-                )
-        );
+        for (MavenProject mavenProject : reactorProjects) {
+            LOG.debug("Calling maven-clean-plugin on " + mavenProject.getArtifactId());
+            session.setCurrentProject(mavenProject);
+            executeMojo(
+                    plugin(
+                            groupId("org.apache.maven.plugins"),
+                            artifactId("maven-clean-plugin"),
+                            version("2.5")
+                    ),
+                    goal("clean"),
+                    configuration(
+                            element(name("skip"), "false")
+                    ),
+                    executionEnvironment(
+                            mavenProject,
+                            session,
+                            pluginManager
+                    )
+            );
+        }
         LOG.debug("DONE org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
     }
 
@@ -382,22 +393,26 @@ public class AbstractGitflowMojo extends AbstractMojo {
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
         session.setProjects(reactorProjects);
-        executeMojo(
-                plugin(
-                        groupId("org.apache.maven.plugins"),
-                        artifactId("maven-install-plugin"),
-                        version("2.5.1")
-                ),
-                goal("install"),
-                configuration(
-                        element(name("skip"), "false")
-                ),
-                executionEnvironment(
-                        rootProject,
-                        session,
-                        pluginManager
-                )
-        );
+        for (MavenProject mavenProject : reactorProjects) {
+            LOG.debug("Calling maven-install-plugin on " + mavenProject.getArtifactId());
+            session.setCurrentProject(mavenProject);
+            executeMojo(
+                    plugin(
+                            groupId("org.apache.maven.plugins"),
+                            artifactId("maven-install-plugin"),
+                            version("2.5.1")
+                    ),
+                    goal("install"),
+                    configuration(
+                            element(name("skip"), "false")
+                    ),
+                    executionEnvironment(
+                            mavenProject,
+                            session,
+                            pluginManager
+                    )
+            );
+        }
         LOG.debug("DONE org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
     }
 
@@ -406,23 +421,27 @@ public class AbstractGitflowMojo extends AbstractMojo {
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
         session.setProjects(reactorProjects);
-        executeMojo(
-                plugin(
-                        groupId("org.apache.maven.plugins"),
-                        artifactId("maven-deploy-plugin"),
-                        version("2.8.1")
-                ),
-                goal("deploy"),
-                configuration(
-                        element(name("skip"), "false"),
-                        element(name("retryFailedDeploymentCount"), "1")
-                ),
-                executionEnvironment(
-                        rootProject,
-                        session,
-                        pluginManager
-                )
-        );
+        for (MavenProject mavenProject : reactorProjects) {
+            LOG.debug("Calling maven-deploy-plugin on " + mavenProject.getArtifactId());
+            session.setCurrentProject(mavenProject);
+            executeMojo(
+                    plugin(
+                            groupId("org.apache.maven.plugins"),
+                            artifactId("maven-deploy-plugin"),
+                            version("2.8.1")
+                    ),
+                    goal("deploy"),
+                    configuration(
+                            element(name("skip"), "false"),
+                            element(name("retryFailedDeploymentCount"), "1")
+                    ),
+                    executionEnvironment(
+                            mavenProject,
+                            session,
+                            pluginManager
+                    )
+            );
+        }
         LOG.debug("DONE org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
     }
 
