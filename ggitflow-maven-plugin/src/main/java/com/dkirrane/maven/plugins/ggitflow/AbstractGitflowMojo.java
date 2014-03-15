@@ -18,6 +18,9 @@ package com.dkirrane.maven.plugins.ggitflow;
 import com.dkirrane.gitflow.groovy.GitflowInit;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,7 +47,11 @@ import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.ProjectBuildingRequest;
 import org.apache.maven.project.ProjectSorter;
+import org.apache.maven.shared.release.ReleaseResult;
+import org.apache.maven.shared.release.env.DefaultReleaseEnvironment;
+import org.apache.maven.shared.release.env.ReleaseEnvironment;
 import org.apache.maven.shared.release.exec.MavenExecutor;
+import org.apache.maven.shared.release.exec.MavenExecutorException;
 import org.codehaus.plexus.components.interactivity.Prompter;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.dag.CycleDetectedException;
@@ -68,6 +75,16 @@ public class AbstractGitflowMojo extends AbstractMojo {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractGitflowMojo.class.getName());
 
     public final Pattern matchSnapshotRegex = Pattern.compile("-SNAPSHOT");
+    
+    public static final ImmutableList<String> DEFAULT_INSTALL_ARGS = ImmutableList.of(
+            "-DinstallAtEnd=true");    
+    
+    public static final ImmutableList<String> DEFAULT_DEPLOY_ARGS = ImmutableList.of(
+            "-DdeployAtEnd=true", 
+            "-DretryFailedDeploymentCount=2");
+    
+    public static final Splitter PROFILES_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
+    public static final Joiner PROFILES_JOINER = Joiner.on(',').skipNulls();
 
     /**
      * Gitflow branches and prefixes to use.
@@ -174,6 +191,10 @@ public class AbstractGitflowMojo extends AbstractMojo {
     @Component
     protected BuildPluginManager pluginManager;
 
+//    @Parameter(defaultValue = "${basedir}", readonly = true, required = true)
+//    protected File basedir;
+//    @Component
+//    protected Settings settings;
     private GitflowInit init;
 
     protected final MavenProject getProject() {
@@ -360,89 +381,27 @@ public class AbstractGitflowMojo extends AbstractMojo {
         }
     }
 
-    protected final void clean() throws MojoExecutionException, MojoFailureException {
-        LOG.debug("START org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
-        MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
-        session.setCurrentProject(rootProject);
-        session.setProjects(reactorProjects);
-        for (MavenProject mavenProject : reactorProjects) {
-            LOG.debug("Calling maven-clean-plugin on " + mavenProject.getArtifactId());
-            session.setCurrentProject(mavenProject);
-            executeMojo(
-                    plugin(
-                            groupId("org.apache.maven.plugins"),
-                            artifactId("maven-clean-plugin"),
-                            version("2.5")
-                    ),
-                    goal("clean"),
-                    configuration(
-                            element(name("skip"), "false")
-                    ),
-                    executionEnvironment(
-                            mavenProject,
-                            session,
-                            pluginManager
-                    )
-            );
-        }
-        LOG.debug("DONE org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
-    }
+    protected final void runGoals(String goals, List<String> additionalArgs) throws MojoExecutionException, MojoFailureException {
+        LOG.debug("START executing " + goals + " with args " + additionalArgs);
 
-    protected final void install() throws MojoExecutionException, MojoFailureException {
-        LOG.debug("START org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
-        session.setCurrentProject(rootProject);
-        session.setProjects(reactorProjects);
-        for (MavenProject mavenProject : reactorProjects) {
-            LOG.debug("Calling maven-install-plugin on " + mavenProject.getArtifactId());
-            session.setCurrentProject(mavenProject);
-            executeMojo(
-                    plugin(
-                            groupId("org.apache.maven.plugins"),
-                            artifactId("maven-install-plugin"),
-                            version("2.5.1")
-                    ),
-                    goal("install"),
-                    configuration(
-                            element(name("skip"), "false")
-                    ),
-                    executionEnvironment(
-                            mavenProject,
-                            session,
-                            pluginManager
-                    )
-            );
-        }
-        LOG.debug("DONE org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
-    }
+        File basedir = rootProject.getBasedir();
 
-    protected final void deploy() throws MojoExecutionException, MojoFailureException {
-        LOG.debug("START org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
-        MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
-        session.setCurrentProject(rootProject);
-        session.setProjects(reactorProjects);
-        for (MavenProject mavenProject : reactorProjects) {
-            LOG.debug("Calling maven-deploy-plugin on " + mavenProject.getArtifactId());
-            session.setCurrentProject(mavenProject);
-            executeMojo(
-                    plugin(
-                            groupId("org.apache.maven.plugins"),
-                            artifactId("maven-deploy-plugin"),
-                            version("2.8.1")
-                    ),
-                    goal("deploy"),
-                    configuration(
-                            element(name("skip"), "false"),
-                            element(name("retryFailedDeploymentCount"), "1")
-                    ),
-                    executionEnvironment(
-                            mavenProject,
-                            session,
-                            pluginManager
-                    )
-            );
+        ReleaseResult result = new ReleaseResult();
+        ReleaseEnvironment env = new DefaultReleaseEnvironment();
+        env.setSettings(session.getSettings());
+        MavenExecutor mavenExecutor = mavenExecutors.get(env.getMavenExecutorId());
+        
+        Joiner joiner = Joiner.on(" ").skipNulls();
+        String additionalArguments = joiner.join(additionalArgs);
+        LOG.debug("additionalArguments " + additionalArguments);
+        
+        try {
+            mavenExecutor.executeGoals(basedir, goals, env, false, additionalArguments, result);
+        } catch (MavenExecutorException ex) {
+            throw new MojoExecutionException(result.getOutput(), ex);
         }
-        LOG.debug("DONE org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
+        LOG.debug("DONE executing" + goals);
     }
 
     protected final String getReleaseVersion(String version) throws MojoFailureException {

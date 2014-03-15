@@ -18,16 +18,19 @@ package com.dkirrane.maven.plugins.ggitflow;
 import com.dkirrane.gitflow.groovy.GitflowRelease;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
+import static com.dkirrane.maven.plugins.ggitflow.AbstractGitflowMojo.DEFAULT_DEPLOY_ARGS;
+import static com.dkirrane.maven.plugins.ggitflow.AbstractGitflowMojo.PROFILES_SPLITTER;
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
+import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
 /**
  * Merges a release branch back into the develop and master branch and then
@@ -86,6 +89,35 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
      */
     @Parameter(property = "skipDeploy", defaultValue = "false", required = false)
     private Boolean skipDeploy;
+
+    /**
+     * Skips any tests during <code>mvn install</code> and
+     * <code>mvn deploy</code>
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "skipTests", defaultValue = "false", required = false)
+    private Boolean skipTests;
+
+    /**
+     * Whether to use the release profile that adds sources and javadoc to the
+     * released artifact, if appropriate. If set to true, the release-finish
+     * will set the property "performRelease" to true, which activates the
+     * profile "release-profile", which is inherited from the super pom.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "useReleaseProfile", defaultValue = "true", required = false)
+    private Boolean useReleaseProfile;
+
+    /**
+     * Comma separated profiles to enable on deployment, in addition to active
+     * profiles for project execution.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "releaseProfiles", defaultValue = "", required = false)
+    private String releaseProfiles;
 
     /**
      * If <code>true</code>, all commits to the branch will be squashed into a
@@ -149,7 +181,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         reloadReactorProjects();
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(project.getVersion());
         String releaseVersion;
-        if("SNAPSHOT".equals(artifactVersion.getBuildSpecifier())){
+        if ("SNAPSHOT".equals(artifactVersion.getBuildSpecifier())) {
             releaseVersion = getReleaseVersion(project.getVersion());
         } else {
             releaseVersion = project.getVersion();
@@ -230,14 +262,36 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
 
         /* install or deploy */
         if (skipDeploy == false) {
-            clean();
-            deploy();
+            String goals = "clean deploy";
+            if (project.getDistributionManagement() != null
+                    && project.getDistributionManagement().getSite() != null) {
+                goals += " site-deploy";
+            }
+
+            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<String>();
+            additionalArgs.addAll(DEFAULT_DEPLOY_ARGS);
+            if (skipTests) {
+                additionalArgs.add("-DskipTests=true");
+            }
+            if (useReleaseProfile) {
+                additionalArgs.add("-DperformRelease=true");
+            }
+            if (StringUtils.isNotBlank(releaseProfiles)) {
+                Iterable<String> profiles = PROFILES_SPLITTER.split(releaseProfiles);                
+                additionalArgs.add("-P " + PROFILES_JOINER.join(profiles));
+            }
+            runGoals(goals, additionalArgs.build());
         } else if (skipBuild == false) {
-            clean();
-            install();
+            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<String>();
+            additionalArgs.addAll(DEFAULT_DEPLOY_ARGS);
+            if (skipTests) {
+                additionalArgs.add("-DskipTests=true");
+            }
+            runGoals("clean install", additionalArgs.build());
         } else {
-            LOG.debug("Skipping both install and deploy for tag " + tagVersion);
+            LOG.debug("Skipping both install and deploy for release tag " + releaseName);
         }
+
         getGitflowInit().executeLocal("git checkout " + developBranch);
     }
 

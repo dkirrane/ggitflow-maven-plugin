@@ -18,6 +18,7 @@ package com.dkirrane.maven.plugins.ggitflow;
 import com.dkirrane.gitflow.groovy.GitflowFeature;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -62,6 +63,14 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
      */
     @Parameter(property = "skipBuild", defaultValue = "false", required = false)
     private Boolean skipBuild;
+    
+    /**
+     * Skips any tests during <code>mvn install</code>
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "skipTests", defaultValue = "false", required = false)
+    private Boolean skipTests;    
 
     /**
      * If <code>true</code>, all commits to the branch will be squashed into a
@@ -123,12 +132,16 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             setVersion(developVersion);
         }
 
-        if (!skipBuild) {
-            clean();
-            install();
+        if (skipBuild == false) {
+            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<String>();
+            additionalArgs.addAll(DEFAULT_INSTALL_ARGS);
+            if (skipTests) {
+                additionalArgs.add("-DskipTests=true");
+            }              
+            runGoals("clean install", additionalArgs.build());
         } else {
-            LOG.debug("Skipping both install and deploy");
-        }
+            LOG.debug("Skipping mvn install for feature " + featureName);
+        }        
 
         GitflowFeature gitflowFeature = new GitflowFeature();
         gitflowFeature.setInit(getGitflowInit());
