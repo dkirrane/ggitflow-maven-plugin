@@ -401,7 +401,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         } catch (MavenExecutorException ex) {
             throw new MojoExecutionException(result.getOutput(), ex);
         }
-        LOG.debug("DONE executing" + goals);
+        LOG.debug("DONE executing " + goals);
     }
 
     protected final String getReleaseVersion(String version) throws MojoFailureException {

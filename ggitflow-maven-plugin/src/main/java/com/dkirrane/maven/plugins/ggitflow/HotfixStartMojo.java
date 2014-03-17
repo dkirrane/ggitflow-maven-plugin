@@ -81,7 +81,7 @@ public class HotfixStartMojo extends AbstractHotfixMojo {
         if (artifactVersion.getPrimaryNumberCount() < 3) {
             String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
             String annotationAsString = artifactVersion.getAnnotationAsString();
-            result.append(primaryNumbersAsString).append('.').append('0');
+            result.append(primaryNumbersAsString).append('.').append('1');
             result.append(annotationAsString);
         } else {
             artifactVersion.upgradeAnnotationRevision();
