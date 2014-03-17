@@ -24,19 +24,27 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
-import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 import static org.jfrog.hudson.util.GenericArtifactVersion.DEFAULT_VERSION_COMPONENT_SEPARATOR;
 import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Creates a new support branch from a specific commit on the master branch.
  */
 @Mojo(name = "support-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class SupportStartMojo extends AbstractGitflowMojo {
 
-    @Parameter(property = "startCommit", defaultValue = "")
-    private String startCommit;
+    private static final Logger LOG = LoggerFactory.getLogger(SupportStartMojo.class.getName());
+
+    /**
+     * The commit to start the support branch from.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "startCommit", defaultValue = "", required = false)
+    protected String startCommit;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -52,22 +60,19 @@ public class SupportStartMojo extends AbstractGitflowMojo {
         String baseName = promptForExistingTagName(tags, tags.get(tags.size() - 1));
 
         getGitflowInit().executeLocal("git checkout " + baseName);
-
+        reloadReactorProjects();
         String supportVersion = getSupportVersion(project.getVersion());
         String supportSnapshotVersion = getSupportSnapshotVersion(project.getVersion());
 
-        getLog().info("Starting support branch '" + supportVersion + "'");
-        getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
-        getLog().debug("msgSuffix '" + getMsgSuffix() + "'");
+        LOG.info("Starting support branch '" + supportVersion + "'");
+        LOG.debug("msgPrefix '" + getMsgPrefix() + "'");
+        LOG.debug("msgSuffix '" + getMsgSuffix() + "'");
 
         GitflowSupport gitflowSupport = new GitflowSupport();
         gitflowSupport.setInit(getGitflowInit());
         gitflowSupport.setMsgPrefix(getMsgPrefix());
         gitflowSupport.setMsgSuffix(getMsgSuffix());
-
-        if (!StringUtils.isEmpty(startCommit)) {
-            gitflowSupport.setStartCommit(startCommit);
-        }
+        gitflowSupport.setStartCommit(startCommit);
 
         try {
             gitflowSupport.start(supportVersion);
@@ -83,7 +88,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
     }
 
     private String promptForExistingTagName(List<String> branches, String defaultBrnName) throws MojoFailureException {
-        String message = "Please select the Tag to create the support branch from?";
+        String message = "Create a support branch from tag:";
 
         String name = "";
         try {
@@ -96,42 +101,48 @@ public class SupportStartMojo extends AbstractGitflowMojo {
     }
 
     private String getSupportVersion(String currentVersion) throws MojoFailureException {
-        getLog().debug("getSupportVersion from '" + currentVersion + "'");
+        LOG.debug("getSupportVersion from '" + currentVersion + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
 
         StringBuilder sb = new StringBuilder(10);
-//        int pCount = artifactVersion.getPrimaryNumberCount();
-//        for (int i = 0; i < pCount; i++) {
-//            Integer primaryNumber = artifactVersion.getPrimaryNumber(i);
-//            if (i == (pCount - 1)) {
-//                sb.append('x');
-//            } else {
-//                sb.append(primaryNumber);
-//            }
-//        }
-        sb.append(artifactVersion.getPrimaryNumbersAsString()).append('.').append('x');
-        sb.append(artifactVersion.getAnnotationAsString()).append(artifactVersion.getBuildSpecifierAsString());
+        int pCount = artifactVersion.getPrimaryNumberCount();
+        if (pCount < 3) {
+            // Support versions should be like 1.0.x e.g. 1.0.1, 1.0.2 etc
+            sb.append(artifactVersion.getPrimaryNumbersAsString()).append('.').append('x');
+            sb.append(artifactVersion.getAnnotationAsString()).append(artifactVersion.getBuildSpecifierAsString());
+        } else {
+            // Support versions should be like 1.0.0-xx e.g. 1.0.0-01, 1.0.0-02 etc
+            if (null != artifactVersion.getAnnotation()) {
+                throw new MojoFailureException("Cannot start Support branch. Primary number " + artifactVersion.getPrimaryNumbersAsString() + " and annotations are already set " + artifactVersion.getAnnotation());
+            }
+            sb.append(artifactVersion.getPrimaryNumbersAsString()).append('-').append("xx");
+        }
 
         return sb.toString();
     }
 
     private String getSupportSnapshotVersion(String currentVersion) throws MojoFailureException {
-        getLog().debug("getSupportSnapshotVersion from '" + currentVersion + "'");
+        LOG.debug("getSupportSnapshotVersion from '" + currentVersion + "'");
 
-        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
+        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);        
 
-        final StringBuilder result = new StringBuilder(30);
-
-        String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
-        if (null == artifactVersion.getAnnotation()) {
-            result.append(primaryNumbersAsString).append('.').append('0');
+        StringBuilder sb = new StringBuilder(10);
+        int pCount = artifactVersion.getPrimaryNumberCount();
+        if (pCount < 3) {
+            // Support versions should be like 1.0.x e.g. 1.0.1, 1.0.2 etc
+            sb.append(artifactVersion.getPrimaryNumbersAsString()).append('.').append('1');
+            sb.append(artifactVersion.getAnnotationAsString());
         } else {
-            artifactVersion.upgradeAnnotationRevision();
-            result.append(artifactVersion.toString());
-        }
-        result.append(DEFAULT_VERSION_COMPONENT_SEPARATOR).append(SNAPSHOT_QUALIFIER);
+            // Support versions should be like 1.0.0-xx e.g. 1.0.0-01, 1.0.0-02 etc
+            if (null != artifactVersion.getAnnotation()) {
+                throw new MojoFailureException("Cannot start Support branch. Primary number " + artifactVersion.getPrimaryNumbersAsString() + " and annotations are already set " + artifactVersion.getAnnotation());
+            }
+            sb.append(artifactVersion.getPrimaryNumbersAsString()).append('-').append("01");
+        }        
 
-        return result.toString();
+        sb.append(DEFAULT_VERSION_COMPONENT_SEPARATOR).append(SNAPSHOT_QUALIFIER);
+
+        return sb.toString();
     }
 }

@@ -26,15 +26,24 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Creates a new feature branch off of the develop branch.
  */
 @Mojo(name = "feature-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class FeatureStartMojo extends AbstractFeatureMojo {
 
-    @Parameter(property = "startCommit", defaultValue = "")
-    private String startCommit;
+    private static final Logger LOG = LoggerFactory.getLogger(FeatureStartMojo.class.getName());
+
+    /**
+     * The commit to start the feature branch from.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "startCommit", defaultValue = "", required = false)
+    protected String startCommit;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -42,10 +51,7 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
 
         String prefix = getFeatureBranchPrefix();
         if (StringUtils.isBlank(featureName)) {
-            System.out.println("prefix = " + prefix);
-            System.out.println("prompter = " + prompter);
             String message = "What is the feature branch name? " + prefix;
-            System.out.println("message = " + message);
             try {
                 featureName = prompter.prompt(message);
                 if (StringUtils.isBlank(featureName)) {
@@ -57,14 +63,16 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
         }
         featureName = getFeatureName(featureName);
 
-        getLog().info("Starting feature '" + featureName + "'");
-        getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
-        getLog().debug("msgSuffix '" + getMsgSuffix() + "'");
+        LOG.info("Starting feature '" + featureName + "'");
+        LOG.debug("msgPrefix '" + getMsgPrefix() + "'");
+        LOG.debug("msgSuffix '" + getMsgSuffix() + "'");
 
         GitflowFeature gitflowFeature = new GitflowFeature();
         gitflowFeature.setInit(getGitflowInit());
         gitflowFeature.setMsgPrefix(getMsgPrefix());
         gitflowFeature.setMsgSuffix(getMsgSuffix());
+        gitflowFeature.setPush(pushFeatures);
+        gitflowFeature.setStartCommit(startCommit);
 
         try {
             gitflowFeature.start(featureName);
@@ -86,7 +94,7 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
 
             /* print feature version */
             reloadReactorProjects();
-            getLog().debug("project = " + project.getVersion());
+            LOG.debug("project = " + project.getVersion());
         }
     }
 

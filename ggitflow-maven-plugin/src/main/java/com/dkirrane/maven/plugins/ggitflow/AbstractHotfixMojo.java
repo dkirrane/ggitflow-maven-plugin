@@ -15,9 +15,16 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
-/**
- *
- */
-public class HotfixAbstractMojo extends AbstractGitflowMojo {
+import org.apache.maven.plugins.annotations.Parameter;
 
+public class AbstractHotfixMojo extends AbstractGitflowMojo {
+
+    /**
+     * If <code>true</code>, the hotfix branch is pushed to the remote
+     * repository
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "pushHotfixes", defaultValue = "false", required = false)
+    protected boolean pushHotfixes;
 }

@@ -20,17 +20,29 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- *
- */
 public class AbstractReleaseMojo extends AbstractGitflowMojo {
 
-    @Parameter(property = "releaseName")
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractReleaseMojo.class.getName());
+
+    /**
+     * The name for the release branch.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "releaseName", required = false)
     protected String releaseName;
 
-    @Parameter(defaultValue = "false", property = "pushReleases")
-    private boolean pushReleases = false;
+    /**
+     * If <code>true</code>, the release branch is pushed to the remote
+     * repository.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "pushReleases", defaultValue = "false", required = false)
+    protected boolean pushReleases;
 
     public String getReleaseBranchPrefix() {
         String prefix = getGitflowInit().getReleaseBranchPrefix();
@@ -41,12 +53,12 @@ public class AbstractReleaseMojo extends AbstractGitflowMojo {
     }
 
     public String getNextDevelopmentVersion(String version) throws MojoFailureException {
-        getLog().debug("Project version '" + version + "'");
+        LOG.debug("Project version '" + version + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(version);
         GenericArtifactVersion nextDevelopVersion = artifactVersion.upgradeLeastSignificantNumber();
 
-        getLog().debug("Project version '" + nextDevelopVersion + "'");
+        LOG.debug("Project version '" + nextDevelopVersion + "'");
         return nextDevelopVersion.toString();
     }
 }

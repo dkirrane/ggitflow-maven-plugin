@@ -18,15 +18,21 @@ package com.dkirrane.maven.plugins.ggitflow;
 import com.dkirrane.gitflow.groovy.GitflowInit;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.building.ModelBuildingRequest;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
@@ -41,11 +47,18 @@ import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.ProjectBuildingRequest;
 import org.apache.maven.project.ProjectSorter;
+import org.apache.maven.shared.release.ReleaseResult;
+import org.apache.maven.shared.release.env.DefaultReleaseEnvironment;
+import org.apache.maven.shared.release.env.ReleaseEnvironment;
 import org.apache.maven.shared.release.exec.MavenExecutor;
+import org.apache.maven.shared.release.exec.MavenExecutorException;
 import org.codehaus.plexus.components.interactivity.Prompter;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.dag.CycleDetectedException;
 import org.jfrog.hudson.util.GenericArtifactVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.impl.StaticLoggerBinder;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
@@ -57,25 +70,45 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.name;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
-/**
- *
- */
 public class AbstractGitflowMojo extends AbstractMojo {
 
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractGitflowMojo.class.getName());
+
+    public final Pattern matchSnapshotRegex = Pattern.compile("-SNAPSHOT");
+    
+    public static final ImmutableList<String> DEFAULT_INSTALL_ARGS = ImmutableList.of(
+            "-DinstallAtEnd=true");    
+    
+    public static final ImmutableList<String> DEFAULT_DEPLOY_ARGS = ImmutableList.of(
+            "-DdeployAtEnd=true", 
+            "-DretryFailedDeploymentCount=2");
+    
+    public static final Splitter PROFILES_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
+    public static final Joiner PROFILES_JOINER = Joiner.on(',').skipNulls();
+
+    /**
+     * Gitflow branches and prefixes to use.
+     *
+     * @since 1.2
+     */
     @Parameter(defaultValue = "${prefixes}")
     protected Prefixes prefixes;
 
-    @Parameter(property = "msgPrefix", defaultValue = "")
+    /**
+     * Message prefix used for any commits made by this plugin.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "msgPrefix", defaultValue = "", required = false)
     protected String msgPrefix;
 
-    @Parameter(property = "msgSuffix", defaultValue = "")
+    /**
+     * Message suffix used for any commits made by this plugin.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "msgSuffix", defaultValue = "", required = false)
     protected String msgSuffix;
-
-    @Parameter(property = "skipBuild", defaultValue = "false")
-    protected Boolean skipBuild;
-
-    @Parameter(property = "skipDeploy", defaultValue = "false")
-    protected Boolean skipDeploy;
 
     /**
      * Component used to prompt for input.
@@ -158,6 +191,10 @@ public class AbstractGitflowMojo extends AbstractMojo {
     @Component
     protected BuildPluginManager pluginManager;
 
+//    @Parameter(defaultValue = "${basedir}", readonly = true, required = true)
+//    protected File basedir;
+//    @Component
+//    protected Settings settings;
     private GitflowInit init;
 
     protected final MavenProject getProject() {
@@ -165,10 +202,11 @@ public class AbstractGitflowMojo extends AbstractMojo {
     }
 
     public void execute() throws MojoExecutionException, MojoFailureException {
+        StaticLoggerBinder.getSingleton().setMavenLog(this.getLog());
         if (null == project) {
             throw new NullPointerException("MavenProject is null");
         } else {
-            getLog().debug("Gitflow pom  '" + project.getBasedir() + "'");
+            LOG.debug("Gitflow pom  '" + project.getBasedir() + "'");
         }
 
         GitflowInit gitflowInit = getGitflowInit();
@@ -194,8 +232,9 @@ public class AbstractGitflowMojo extends AbstractMojo {
         return (StringUtils.isBlank(msgSuffix)) ? "" : " " + msgSuffix;
     }
 
-    public GitflowInit getGitflowInit() {
+    protected final GitflowInit getGitflowInit() {
         if (null == init) {
+            LOG.info("Initialising Gitflow");
             init = new GitflowInit();
             init.setRepoDir(getProject().getBasedir());
             init.setMasterBrnName(prefixes.getMasterBranch());
@@ -215,27 +254,34 @@ public class AbstractGitflowMojo extends AbstractMojo {
         return init;
     }
 
-    public void setVersion(String version) throws MojoExecutionException, MojoFailureException {
-        getLog().debug("START org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
+    protected final void setVersion(String version) throws MojoExecutionException, MojoFailureException {
+        LOG.debug("START org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
-        executeMojo(
-                plugin(
-                        groupId("org.codehaus.mojo"),
-                        artifactId("versions-maven-plugin"),
-                        version("2.1")
-                ),
-                goal("set"),
-                configuration(
-                        element(name("generateBackupPoms"), "false"),
-                        element(name("newVersion"), version)
-                ),
-                executionEnvironment(
-                        rootProject,
-                        session,
-                        pluginManager
-                )
-        );
-        getLog().debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
+        session.setCurrentProject(rootProject);
+        session.setProjects(reactorProjects);
+
+        for (MavenProject mavenProject : reactorProjects) {
+            LOG.debug("Calling versions-maven-plugin:set on " + mavenProject.getArtifactId());
+            session.setCurrentProject(mavenProject);
+            executeMojo(
+                    plugin(
+                            groupId("org.codehaus.mojo"),
+                            artifactId("versions-maven-plugin"),
+                            version("2.1")
+                    ),
+                    goal("set"),
+                    configuration(
+                            element(name("generateBackupPoms"), "false"),
+                            element(name("newVersion"), version)
+                    ),
+                    executionEnvironment(
+                            mavenProject,
+                            session,
+                            pluginManager
+                    )
+            );
+        }
+        LOG.debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
 
         if (!getGitflowInit().gitIsCleanWorkingTree()) {
             String msg = getMsgPrefix() + "Updating poms to version " + version + "" + getMsgSuffix();
@@ -259,81 +305,107 @@ public class AbstractGitflowMojo extends AbstractMojo {
 //        }
     }
 
-    public void clean() throws MojoExecutionException, MojoFailureException {
-        getLog().debug("START org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
+    protected final void setNextVersions(Boolean allowSnapshots, Boolean updateParent) throws MojoExecutionException, MojoFailureException {
+        LOG.debug("setNextVersions");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
         session.setProjects(reactorProjects);
-        executeMojo(
-                plugin(
-                        groupId("org.apache.maven.plugins"),
-                        artifactId("maven-clean-plugin"),
-                        version("2.5")
-                ),
-                goal("clean"),
-                configuration(
-                        element(name("skip"), "false")
-                ),
-                executionEnvironment(
-                        rootProject,
-                        session,
-                        pluginManager
-                )
-        );
-        getLog().debug("DONE org.apache.maven.plugins:maven-clean-plugin:2.5:clean");
+
+        if (updateParent) {
+            LOG.debug("START org.codehaus.mojo:versions-maven-plugin:2.1:update-parent updateParent={}", updateParent);
+            executeMojo(
+                    plugin(
+                            groupId("org.codehaus.mojo"),
+                            artifactId("versions-maven-plugin"),
+                            version("2.1")
+                    ),
+                    goal("update-parent"),
+                    configuration(
+                            element(name("generateBackupPoms"), "false"),
+                            element(name("allowSnapshots"), allowSnapshots.toString())
+                    ),
+                    executionEnvironment(
+                            rootProject,
+                            session,
+                            pluginManager
+                    )
+            );
+            LOG.debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:update-parent");
+        }
+
+        LOG.debug("START org.codehaus.mojo:versions-maven-plugin:2.1:use-next-versions allowSnapshots={}", allowSnapshots);
+        for (MavenProject mavenProject : reactorProjects) {
+            LOG.debug("Calling use-next-versions on " + mavenProject.getArtifactId());
+            session.setCurrentProject(mavenProject);
+            executeMojo(
+                    plugin(
+                            groupId("org.codehaus.mojo"),
+                            artifactId("versions-maven-plugin"),
+                            version("2.1")
+                    ),
+                    goal("use-next-versions"),
+                    configuration(
+                            element(name("generateBackupPoms"), "false"),
+                            element(name("allowSnapshots"), allowSnapshots.toString())
+                    ),
+                    executionEnvironment(
+                            mavenProject,
+                            session,
+                            pluginManager
+                    )
+            );
+        }
+        LOG.debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:use-next-versions");
+
+        if (!getGitflowInit().gitIsCleanWorkingTree()) {
+            String msg;
+            if (allowSnapshots) {
+                msg = getMsgPrefix() + "Replaces any release versions with the next snapshot version (if it has been deployed)." + getMsgSuffix();
+            } else {
+                msg = getMsgPrefix() + "Replaces snapshot versions with the corresponding release version" + getMsgSuffix();
+            }
+
+            getGitflowInit().executeLocal("git add -A .");
+            String[] cmtPom = {"git", "commit", "-m", "\"" + msg + "\""};
+            getGitflowInit().executeLocal(cmtPom);
+
+            String currentBranch = getGitflowInit().gitCurrentBranch();
+            if (getGitflowInit().gitRemoteBranchExists(currentBranch)) {
+                String origin = getGitflowInit().getOrigin();
+                String[] cmtPush = {"git", "push", origin, currentBranch};
+                Integer exitCode = getGitflowInit().executeRemote(cmtPush);
+                if (exitCode != 0) {
+                    throw new MojoExecutionException("Failed to push version change to origin. ExitCode:" + exitCode);
+                }
+            }
+        }
     }
 
-    public void install() throws MojoExecutionException, MojoFailureException {
-        getLog().debug("START org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
+    protected final void runGoals(String goals, List<String> additionalArgs) throws MojoExecutionException, MojoFailureException {
+        LOG.debug("START executing " + goals + " with args " + additionalArgs);
+
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
-        session.setCurrentProject(rootProject);
-        session.setProjects(reactorProjects);
-        executeMojo(
-                plugin(
-                        groupId("org.apache.maven.plugins"),
-                        artifactId("maven-install-plugin"),
-                        version("2.5.1")
-                ),
-                goal("install"),
-                configuration(
-                        element(name("skip"), "false")
-                ),
-                executionEnvironment(
-                        rootProject,
-                        session,
-                        pluginManager
-                )
-        );
-        getLog().debug("DONE org.apache.maven.plugins:maven-install-plugin:2.5.1:install");
+        File basedir = rootProject.getBasedir();
+
+        ReleaseResult result = new ReleaseResult();
+        ReleaseEnvironment env = new DefaultReleaseEnvironment();
+        env.setSettings(session.getSettings());
+        MavenExecutor mavenExecutor = mavenExecutors.get(env.getMavenExecutorId());
+        
+        Joiner joiner = Joiner.on(" ").skipNulls();
+        String additionalArguments = joiner.join(additionalArgs);
+        LOG.debug("additionalArguments " + additionalArguments);
+        
+        try {
+            mavenExecutor.executeGoals(basedir, goals, env, false, additionalArguments, result);
+        } catch (MavenExecutorException ex) {
+            throw new MojoExecutionException(result.getOutput(), ex);
+        }
+        LOG.debug("DONE executing " + goals);
     }
 
-    public void deploy() throws MojoExecutionException, MojoFailureException {
-        getLog().debug("START org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
-        MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
-        session.setCurrentProject(rootProject);
-        session.setProjects(reactorProjects);
-        executeMojo(
-                plugin(
-                        groupId("org.apache.maven.plugins"),
-                        artifactId("maven-deploy-plugin"),
-                        version("2.8.1")
-                ),
-                goal("deploy"),
-                configuration(
-                        element(name("skip"), "false"),
-                        element(name("retryFailedDeploymentCount"), "1")
-                ),
-                executionEnvironment(
-                        rootProject,
-                        session,
-                        pluginManager
-                )
-        );
-        getLog().debug("DONE org.apache.maven.plugins:maven-deploy-plugin:2.8.1:deploy");
-    }
-
-    public String getReleaseVersion(String version) throws MojoFailureException {
-        getLog().debug("Current Develop version '" + version + "'");
+    protected final String getReleaseVersion(String version) throws MojoFailureException {
+        LOG.debug("Current Develop version '" + version + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(version);
 
@@ -345,29 +417,55 @@ public class AbstractGitflowMojo extends AbstractMojo {
         result.append(primaryNumbersAsString).append(annotationAsString);
 
         if (!StringUtils.isBlank(buildSpecifierAsString)) {
-            getLog().warn("Removing build specifier " + buildSpecifierAsString + " from version " + version);
+            LOG.debug("Removing build specifier " + buildSpecifierAsString + " from version " + version);
         }
 
         return result.toString();
     }
 
-    public void reloadReactorProjects() throws MojoExecutionException {
-        getLog().debug("Reloading poms...");
+    protected final void checkForSnapshotDependencies() throws MojoExecutionException {
+        LOG.info("Checking for SNAPSHOT dependencies");
+        for (MavenProject mavenProject : reactorProjects) {
+            DependencyManagement dependencyManagement = mavenProject.getDependencyManagement();
+            if (null != dependencyManagement) {
+                checkForSnapshot(dependencyManagement.getDependencies());
+            }
+            checkForSnapshot(mavenProject.getDependencies());
+        }
+    }
+
+    private void checkForSnapshot(List<Dependency> dependencies) throws MojoExecutionException {
+        Boolean hasSnapshotDependency = false;
+        for (Dependency dependency : dependencies) {
+            String version = dependency.getVersion();
+            Matcher versionMatcher = matchSnapshotRegex.matcher(version);
+            if (versionMatcher.find() && versionMatcher.end() == version.length()) {
+                LOG.error("Found SNAPSHOT dependency " + dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + version);
+                hasSnapshotDependency = true;
+            }
+        }
+        if (hasSnapshotDependency) {
+            throw new MojoExecutionException("Cannot start release because SNAPSHOT dependencies exist");
+        }
+    }
+
+    protected final void reloadReactorProjects() throws MojoExecutionException {
+        LOG.debug("Reloading poms...");
 
         List<MavenProject> newReactorProjects;
         try {
             newReactorProjects = buildReactorProjects();
         } catch (ProjectBuildingException e) {
-            getLog().error("Re-parse aborted due to malformed pom.xml file(s)", e);
+            LOG.error("Re-parse aborted due to malformed pom.xml file(s)", e);
             throw new MojoExecutionException("Re-parse aborted due to malformed pom.xml file(s)", e);
         } catch (CycleDetectedException e) {
-            getLog().error("Re-parse aborted due to dependency cycle in project model", e);
+            LOG.error("Re-parse aborted due to dependency cycle in project model", e);
             throw new MojoExecutionException("Re-parse aborted due to dependency cycle in project model", e);
         } catch (DuplicateProjectException e) {
-            getLog().error("Re-parse aborted due to duplicate projects in project model", e);
+            LOG.error("Re-parse aborted due to duplicate projects in project model", e);
             throw new MojoExecutionException("Re-parse aborted due to duplicate projects in project model", e);
         } catch (Exception e) {
-            getLog().error("Re-parse aborted due a problem that prevented sorting the project model", e);
+            LOG.error("Re-parse aborted due a problem that prevented sorting the project model", e);
             throw new MojoExecutionException("Re-parse aborted due a problem that prevented sorting the project model", e);
         }
         MavenProject newProject = findProject(newReactorProjects, this.project);
@@ -378,7 +476,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         this.project = newProject;
         this.reactorProjects = newReactorProjects;
 
-        getLog().debug("Reloading poms complete...");
+        LOG.debug("Reloading poms complete...");
     }
 
     private List<MavenProject> buildReactorProjects() throws Exception {
