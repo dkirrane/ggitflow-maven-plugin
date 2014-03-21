@@ -83,7 +83,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         reloadReactorProjects();
 
         String developVersion = project.getVersion();
-        LOG.debug("current develop version = " + developVersion);
+        LOG.info("Current develop version = " + developVersion);
 
         /* Get next development version */
         String nextDevelopVersion = getNextDevelopVersion(developVersion);
