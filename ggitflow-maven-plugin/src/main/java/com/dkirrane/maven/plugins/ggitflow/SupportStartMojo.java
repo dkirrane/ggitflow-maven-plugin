@@ -15,25 +15,27 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
-import com.dkirrane.gitflow.groovy.GitflowSupport;
-import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import static org.jfrog.hudson.util.GenericArtifactVersion.DEFAULT_VERSION_COMPONENT_SEPARATOR;
+import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
+
 import java.util.List;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.jfrog.hudson.util.GenericArtifactVersion;
-import static org.jfrog.hudson.util.GenericArtifactVersion.DEFAULT_VERSION_COMPONENT_SEPARATOR;
-import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.dkirrane.gitflow.groovy.GitflowSupport;
+import com.dkirrane.gitflow.groovy.ex.GitflowException;
 
 /**
  * Creates a new support branch from a specific commit on the master branch.
  */
-@Mojo(name = "support-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
+@Mojo(name = "support-start", aggregator = true)
 public class SupportStartMojo extends AbstractGitflowMojo {
 
     private static final Logger LOG = LoggerFactory.getLogger(SupportStartMojo.class.getName());

@@ -15,24 +15,23 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
-import com.dkirrane.gitflow.groovy.GitflowRelease;
-import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.dkirrane.gitflow.groovy.GitflowRelease;
+import com.dkirrane.gitflow.groovy.ex.GitflowException;
+
 /**
  * Creates a new release branch off of the develop branch.
  */
-@Mojo(name = "release-start", aggregator = true, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
+@Mojo(name = "release-start", aggregator = true)
 public class ReleaseStartMojo extends AbstractReleaseMojo {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReleaseStartMojo.class.getName());

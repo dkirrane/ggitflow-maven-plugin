@@ -15,15 +15,12 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
-import com.dkirrane.gitflow.groovy.GitflowHotfix;
-import com.dkirrane.gitflow.groovy.ex.GitflowException;
-import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
 import static com.dkirrane.maven.plugins.ggitflow.AbstractGitflowMojo.DEFAULT_DEPLOY_ARGS;
-import com.google.common.collect.ImmutableList;
+
 import java.util.List;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
@@ -31,11 +28,16 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.dkirrane.gitflow.groovy.GitflowHotfix;
+import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
+import com.google.common.collect.ImmutableList;
+
 /**
  * Merges a hotfix branch back into the develop and master branch and then
  * creates a tag for the hotfix on master.
  */
-@Mojo(name = "hotfix-finish", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
+@Mojo(name = "hotfix-finish", aggregator = true)
 public class HotfixFinishMojo extends AbstractHotfixMojo {
 
     private static final Logger LOG = LoggerFactory.getLogger(HotfixFinishMojo.class.getName());
