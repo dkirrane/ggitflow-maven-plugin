@@ -18,7 +18,7 @@
         <dependency>
             <groupId>com.dkirrane.groovy.gitflow</groupId>
             <artifactId>ggitflow</artifactId>
-            <version>1.2-SNAPSHOT</version>
+            <version>1.2</version>
             <type>jar</type>
         </dependency>
         <dependency>
