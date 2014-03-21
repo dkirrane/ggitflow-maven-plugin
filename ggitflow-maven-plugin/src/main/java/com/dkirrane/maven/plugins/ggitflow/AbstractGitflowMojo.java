@@ -285,7 +285,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
             } catch (MojoExecutionException mee) {
                 String rootCauseMessage = ExceptionUtils.getRootCauseMessage(mee);
                 if (rootCauseMessage.contains("Project version is inherited from parent")) {
-                    LOG.warn("Skipping versions-maven-plugin:set for project {}. Project version is inherited from parent.", mavenProject.getArtifactId(), version);
+                    LOG.warn("Skipping versions-maven-plugin:set for project " + mavenProject.getArtifactId() + ". Project version is inherited from parent.");
                 } else {
                     LOG.error("Cannot set {} to version '{}'", mavenProject.getArtifactId(), version, mee);
                     throw mee;
@@ -436,28 +436,35 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
     protected final void checkForSnapshotDependencies() throws MojoExecutionException {
         LOG.info("Checking for SNAPSHOT dependencies");
+        Boolean hasSnapshots = false;
         for (MavenProject mavenProject : reactorProjects) {
+            String artifactId = mavenProject.getArtifactId();
             DependencyManagement dependencyManagement = mavenProject.getDependencyManagement();
             if (null != dependencyManagement) {
-                checkForSnapshot(dependencyManagement.getDependencies());
+                if (checkForSnapshot(artifactId, dependencyManagement.getDependencies())) {
+                    hasSnapshots = true;
+                }
             }
-            checkForSnapshot(mavenProject.getDependencies());
+            if (checkForSnapshot(artifactId, mavenProject.getDependencies())) {
+                hasSnapshots = true;
+            }
+        }
+        if (hasSnapshots) {
+            throw new MojoExecutionException("Cannot release because SNAPSHOT dependencies exist");
         }
     }
 
-    private void checkForSnapshot(List<Dependency> dependencies) throws MojoExecutionException {
+    private boolean checkForSnapshot(String artifactId, List<Dependency> dependencies) throws MojoExecutionException {
         Boolean hasSnapshotDependency = false;
         for (Dependency dependency : dependencies) {
             String version = dependency.getVersion();
             Matcher versionMatcher = matchSnapshotRegex.matcher(version);
             if (versionMatcher.find() && versionMatcher.end() == version.length()) {
-                LOG.error("Found SNAPSHOT dependency " + dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + version);
+                LOG.error("Project " + artifactId + " contains SNAPSHOT dependency " + dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + version);
                 hasSnapshotDependency = true;
             }
         }
-        if (hasSnapshotDependency) {
-            throw new MojoExecutionException("Cannot start release because SNAPSHOT dependencies exist");
-        }
+        return hasSnapshotDependency;
     }
 
     protected final void reloadReactorProjects() throws MojoExecutionException {
