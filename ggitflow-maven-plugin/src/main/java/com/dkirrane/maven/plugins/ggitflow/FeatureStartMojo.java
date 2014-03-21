@@ -15,13 +15,9 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
-import com.dkirrane.gitflow.groovy.GitflowFeature;
-import com.dkirrane.gitflow.groovy.ex.GitflowException;
-import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
@@ -29,10 +25,14 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.dkirrane.gitflow.groovy.GitflowFeature;
+import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
+
 /**
  * Creates a new feature branch off of the develop branch.
  */
-@Mojo(name = "feature-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
+@Mojo(name = "feature-start", aggregator = true)
 public class FeatureStartMojo extends AbstractFeatureMojo {
 
     private static final Logger LOG = LoggerFactory.getLogger(FeatureStartMojo.class.getName());

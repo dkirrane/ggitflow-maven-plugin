@@ -63,7 +63,7 @@ public class GenericArtifactVersion {
 
     private static final Pattern VERSION_COMPONENT_SEPARATOR_PATTERN = Pattern.compile(VERSION_COMPONENT_SEPARATOR_REGEX);
 
-    private static final String VERSION_PRIMARY_NUMBERS_REGEX = "(\\d(\\.\\d)*)";
+    private static final String VERSION_PRIMARY_NUMBERS_REGEX = "(\\d+(\\.\\d+)*)";
 
     private static final String VERSION_ANNOTATION_REGEX = "([a-zA-Z]+)";
 
