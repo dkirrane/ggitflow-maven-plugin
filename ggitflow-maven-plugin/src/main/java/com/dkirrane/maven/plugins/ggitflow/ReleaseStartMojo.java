@@ -42,7 +42,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "interactive", defaultValue = "false", required = false)
+    @Parameter(property = "interactive", defaultValue = "true", required = false)
     protected boolean interactive;
 
     /**
@@ -85,7 +85,16 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         String developVersion = project.getVersion();
         LOG.debug("current develop version = " + developVersion);
 
+        /* Get next development version */
         String nextDevelopVersion = getNextDevelopVersion(developVersion);
+        if (interactive) {
+            String message = "What is the next development version? ";
+            try {
+                nextDevelopVersion = prompter.prompt(message, nextDevelopVersion);
+            } catch (PrompterException ex) {
+                throw new MojoExecutionException("Error reading next development version from command line " + ex.getMessage(), ex);
+            }
+        }      
         LOG.debug("next develop version = " + developVersion);
 
         /* Get suggested release version */

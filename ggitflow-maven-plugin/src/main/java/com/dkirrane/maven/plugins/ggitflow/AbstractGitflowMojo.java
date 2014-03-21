@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.execution.MavenSession;
@@ -75,14 +76,14 @@ public class AbstractGitflowMojo extends AbstractMojo {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractGitflowMojo.class.getName());
 
     public final Pattern matchSnapshotRegex = Pattern.compile("-SNAPSHOT");
-    
+
     public static final ImmutableList<String> DEFAULT_INSTALL_ARGS = ImmutableList.of(
-            "-DinstallAtEnd=true");    
-    
+            "-DinstallAtEnd=true");
+
     public static final ImmutableList<String> DEFAULT_DEPLOY_ARGS = ImmutableList.of(
-            "-DdeployAtEnd=true", 
+            "-DdeployAtEnd=true",
             "-DretryFailedDeploymentCount=2");
-    
+
     public static final Splitter PROFILES_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
     public static final Joiner PROFILES_JOINER = Joiner.on(',').skipNulls();
 
@@ -263,23 +264,33 @@ public class AbstractGitflowMojo extends AbstractMojo {
         for (MavenProject mavenProject : reactorProjects) {
             LOG.debug("Calling versions-maven-plugin:set on " + mavenProject.getArtifactId());
             session.setCurrentProject(mavenProject);
-            executeMojo(
-                    plugin(
-                            groupId("org.codehaus.mojo"),
-                            artifactId("versions-maven-plugin"),
-                            version("2.1")
-                    ),
-                    goal("set"),
-                    configuration(
-                            element(name("generateBackupPoms"), "false"),
-                            element(name("newVersion"), version)
-                    ),
-                    executionEnvironment(
-                            mavenProject,
-                            session,
-                            pluginManager
-                    )
-            );
+            try {
+                executeMojo(
+                        plugin(
+                                groupId("org.codehaus.mojo"),
+                                artifactId("versions-maven-plugin"),
+                                version("2.1")
+                        ),
+                        goal("set"),
+                        configuration(
+                                element(name("generateBackupPoms"), "false"),
+                                element(name("newVersion"), version)
+                        ),
+                        executionEnvironment(
+                                mavenProject,
+                                session,
+                                pluginManager
+                        )
+                );
+            } catch (MojoExecutionException mee) {
+                String rootCauseMessage = ExceptionUtils.getRootCauseMessage(mee);
+                if (rootCauseMessage.contains("Project version is inherited from parent")) {
+                    LOG.warn("Skipping versions-maven-plugin:set for project {}. Project version is inherited from parent.", mavenProject.getArtifactId(), version);
+                } else {
+                    LOG.error("Cannot set {} to version '{}'", mavenProject.getArtifactId(), version, mee);
+                    throw mee;
+                }
+            }
         }
         LOG.debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
 
@@ -391,11 +402,11 @@ public class AbstractGitflowMojo extends AbstractMojo {
         ReleaseEnvironment env = new DefaultReleaseEnvironment();
         env.setSettings(session.getSettings());
         MavenExecutor mavenExecutor = mavenExecutors.get(env.getMavenExecutorId());
-        
+
         Joiner joiner = Joiner.on(" ").skipNulls();
         String additionalArguments = joiner.join(additionalArgs);
         LOG.debug("additionalArguments " + additionalArguments);
-        
+
         try {
             mavenExecutor.executeGoals(basedir, goals, env, false, additionalArguments, result);
         } catch (MavenExecutorException ex) {
