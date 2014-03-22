@@ -64,9 +64,11 @@ The configuration is almost identical to the <code>maven-jgitflow-plugin</code>.
 <pre><code>&lt;plugin&gt;
     &lt;groupId&gt;com.dkirrane.maven.plugins&lt;/groupId&gt;
     &lt;artifactId&gt;ggitflow-maven-plugin&lt;/artifactId&gt;
-    &lt;version&gt;1.2&lt;/version&gt;
+    &lt;version&gt;1.3&lt;/version&gt;
     &lt;configuration&gt;
-        &lt;!-- Optional Config
+        &lt;!-- Optional Config --&gt;
+        &lt;!-- For all parameters see http://dkirrane.github.io/ggitflow-maven-plugin/plugin-info.html --&gt;
+        &lt;!--
         &lt;prefixes&gt;
             &lt;masterBranch&gt;master&lt;/masterBranch&gt;
             &lt;developBranch&gt;development&lt;/developBranch&gt;
@@ -75,16 +77,18 @@ The configuration is almost identical to the <code>maven-jgitflow-plugin</code>.
             &lt;hotfixBranchPrefix&gt;hotfix/&lt;/hotfixBranchPrefix&gt;
             &lt;supportBranchPrefix&gt;support/&lt;/supportBranchPrefix&gt;
             &lt;versionTagPrefix&gt;v-&lt;/versionTagPrefix&gt;
-        &lt;/prefixes&gt;                    
-        &lt;enableFeatureVersions&gt;true&lt;/enableFeatureVersions&gt;
+        &lt;/prefixes&gt;
         &lt;msgPrefix&gt;[ggitflow-maven-plugin]&lt;/msgPrefix&gt;
         &lt;msgSuffix&gt;+review @reviewer123&lt;/msgSuffix&gt;
+        &lt;enableFeatureVersions&gt;true&lt;/enableFeatureVersions&gt;
+        &lt;releaseProfiles&gt;my-profile1, my-profile2&lt;/releaseProfiles&gt;
         &lt;pushFeatures&gt;true&lt;/pushFeatures&gt;
         &lt;pushReleases&gt;true&lt;/pushReleases&gt;
         &lt;pushHotfixes&gt;true&lt;/pushHotfixes&gt;
         &lt;pushSupport&gt;true&lt;/pushSupport&gt;
         &lt;skipBuild&gt;true&lt;/skipBuild&gt;
         &lt;skipDeploy&gt;true&lt;/skipDeploy&gt;
+        &lt;skipTests&gt;true&lt;/skipTests&gt;
         --&gt;
     &lt;/configuration&gt;
 &lt;/plugin&gt;
