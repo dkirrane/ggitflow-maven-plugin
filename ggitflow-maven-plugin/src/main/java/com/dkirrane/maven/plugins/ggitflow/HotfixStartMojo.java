@@ -15,18 +15,16 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
-import static org.jfrog.hudson.util.GenericArtifactVersion.DEFAULT_VERSION_COMPONENT_SEPARATOR;
-import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
-
+import com.dkirrane.gitflow.groovy.GitflowHotfix;
+import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.jfrog.hudson.util.GenericArtifactVersion;
+import static org.jfrog.hudson.util.GenericArtifactVersion.DEFAULT_VERSION_COMPONENT_SEPARATOR;
+import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.dkirrane.gitflow.groovy.GitflowHotfix;
-import com.dkirrane.gitflow.groovy.ex.GitflowException;
 
 /**
  * Creates a new hotfix branch off of the master branch.

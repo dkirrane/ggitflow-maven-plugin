@@ -45,7 +45,7 @@ public final class MavenUtil {
     public static Model readPom(List<MavenProject> reactorProjects) throws MojoExecutionException {
         MavenProject rootProject = getRootProject(reactorProjects);
         File pomFile = rootProject.getFile();
-        
+
         FileReader fileReader = null;
 
         try {
@@ -68,5 +68,5 @@ public final class MavenUtil {
             }
         }
     }
-    
+
 }

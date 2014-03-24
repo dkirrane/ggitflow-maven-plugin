@@ -5,12 +5,12 @@
     <parent>
         <groupId>com.dkirrane.maven.plugins</groupId>
         <artifactId>ggitflow-maven</artifactId>
-        <version>1.3</version>
+        <version>1.4</version>
     </parent>
 
     <groupId>com.dkirrane.maven.archetype</groupId>
     <artifactId>ggitflow-maven-archetype</artifactId>
-    <version>1.3</version>
+    <version>1.4</version>
     <packaging>maven-archetype</packaging>
     <name>ggitflow-maven-archetype</name>
 

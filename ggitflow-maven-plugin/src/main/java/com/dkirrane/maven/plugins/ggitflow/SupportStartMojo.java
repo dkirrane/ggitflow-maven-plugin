@@ -15,22 +15,19 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
-import static org.jfrog.hudson.util.GenericArtifactVersion.DEFAULT_VERSION_COMPONENT_SEPARATOR;
-import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
-
+import com.dkirrane.gitflow.groovy.GitflowSupport;
+import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import java.util.List;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.jfrog.hudson.util.GenericArtifactVersion;
+import static org.jfrog.hudson.util.GenericArtifactVersion.DEFAULT_VERSION_COMPONENT_SEPARATOR;
+import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.dkirrane.gitflow.groovy.GitflowSupport;
-import com.dkirrane.gitflow.groovy.ex.GitflowException;
 
 /**
  * Creates a new support branch from a specific commit on the master branch.
@@ -39,6 +36,15 @@ import com.dkirrane.gitflow.groovy.ex.GitflowException;
 public class SupportStartMojo extends AbstractGitflowMojo {
 
     private static final Logger LOG = LoggerFactory.getLogger(SupportStartMojo.class.getName());
+
+    /**
+     * If <code>true</code>, the support branch is pushed to the remote
+     * repository.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "pushSupport", defaultValue = "false", required = false)
+    protected boolean pushSupport;
 
     /**
      * The commit to start the support branch from.
@@ -74,6 +80,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
         gitflowSupport.setInit(getGitflowInit());
         gitflowSupport.setMsgPrefix(getMsgPrefix());
         gitflowSupport.setMsgSuffix(getMsgSuffix());
+        gitflowSupport.setPush(pushSupport);
         gitflowSupport.setStartCommit(startCommit);
 
         try {
@@ -127,7 +134,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
     private String getSupportSnapshotVersion(String currentVersion) throws MojoFailureException {
         LOG.debug("getSupportSnapshotVersion from '" + currentVersion + "'");
 
-        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);        
+        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
 
         StringBuilder sb = new StringBuilder(10);
         int pCount = artifactVersion.getPrimaryNumberCount();
@@ -141,7 +148,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
                 throw new MojoFailureException("Cannot start Support branch. Primary number " + artifactVersion.getPrimaryNumbersAsString() + " and annotations are already set " + artifactVersion.getAnnotation());
             }
             sb.append(artifactVersion.getPrimaryNumbersAsString()).append('-').append("01");
-        }        
+        }
 
         sb.append(DEFAULT_VERSION_COMPONENT_SEPARATOR).append(SNAPSHOT_QUALIFIER);
 

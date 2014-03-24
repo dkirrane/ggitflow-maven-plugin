@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.execution.MavenSession;
@@ -436,20 +437,32 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
     protected final void checkForSnapshotDependencies() throws MojoExecutionException {
         LOG.info("Checking for SNAPSHOT dependencies");
-        Boolean hasSnapshots = false;
+        Boolean hasDepSnapshots = false;
+        Boolean hasParentSnapshot = false;
         for (MavenProject mavenProject : reactorProjects) {
             String artifactId = mavenProject.getArtifactId();
+
+            /* Check <parent> */
+            Artifact parentArtifact = mavenProject.getParentArtifact();
+            if (parentArtifact != null && parentArtifact.isSnapshot()) {
+                LOG.error("Parent of project " + artifactId + " is a SNAPSHOT " + parentArtifact.getId());
+                hasParentSnapshot = true;
+            }
+
+            /* Check <dependencyManagement> */
             DependencyManagement dependencyManagement = mavenProject.getDependencyManagement();
             if (null != dependencyManagement) {
                 if (checkForSnapshot(artifactId, dependencyManagement.getDependencies())) {
-                    hasSnapshots = true;
+                    hasDepSnapshots = true;
                 }
             }
+
+            /* Check <dependencies> */
             if (checkForSnapshot(artifactId, mavenProject.getDependencies())) {
-                hasSnapshots = true;
+                hasDepSnapshots = true;
             }
         }
-        if (hasSnapshots) {
+        if (hasParentSnapshot || hasDepSnapshots) {
             throw new MojoExecutionException("Cannot release because SNAPSHOT dependencies exist");
         }
     }
@@ -460,7 +473,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
             String version = dependency.getVersion();
             Matcher versionMatcher = matchSnapshotRegex.matcher(version);
             if (versionMatcher.find() && versionMatcher.end() == version.length()) {
-                LOG.error("Project " + artifactId + " contains SNAPSHOT dependency " + dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + version);
+                LOG.error("Project " + artifactId + " contains SNAPSHOT dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + version);
                 hasSnapshotDependency = true;
             }
         }
