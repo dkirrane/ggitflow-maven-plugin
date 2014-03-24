@@ -15,6 +15,9 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
+import com.dkirrane.gitflow.groovy.GitflowFeature;
+import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -24,10 +27,6 @@ import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.dkirrane.gitflow.groovy.GitflowFeature;
-import com.dkirrane.gitflow.groovy.ex.GitflowException;
-import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 
 /**
  * Creates a new feature branch off of the develop branch.

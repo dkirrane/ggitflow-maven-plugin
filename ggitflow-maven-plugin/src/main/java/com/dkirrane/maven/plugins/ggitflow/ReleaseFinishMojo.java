@@ -277,7 +277,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
                 additionalArgs.add("-DperformRelease=true");
             }
             if (StringUtils.isNotBlank(releaseProfiles)) {
-                Iterable<String> profiles = PROFILES_SPLITTER.split(releaseProfiles);                
+                Iterable<String> profiles = PROFILES_SPLITTER.split(releaseProfiles);
                 additionalArgs.add("-P " + PROFILES_JOINER.join(profiles));
             }
             runGoals(goals, additionalArgs.build());

@@ -63,14 +63,14 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
      */
     @Parameter(property = "skipBuild", defaultValue = "false", required = false)
     private Boolean skipBuild;
-    
+
     /**
      * Skips any tests during <code>mvn install</code>
      *
      * @since 1.2
      */
     @Parameter(property = "skipTests", defaultValue = "false", required = false)
-    private Boolean skipTests;    
+    private Boolean skipTests;
 
     /**
      * If <code>true</code>, all commits to the branch will be squashed into a
@@ -137,11 +137,11 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             additionalArgs.addAll(DEFAULT_INSTALL_ARGS);
             if (skipTests) {
                 additionalArgs.add("-DskipTests=true");
-            }              
+            }
             runGoals("clean install", additionalArgs.build());
         } else {
             LOG.debug("Skipping mvn install for feature " + featureName);
-        }        
+        }
 
         GitflowFeature gitflowFeature = new GitflowFeature();
         gitflowFeature.setInit(getGitflowInit());

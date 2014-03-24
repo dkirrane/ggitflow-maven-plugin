@@ -15,10 +15,12 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
+import com.dkirrane.gitflow.groovy.GitflowHotfix;
+import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
 import static com.dkirrane.maven.plugins.ggitflow.AbstractGitflowMojo.DEFAULT_DEPLOY_ARGS;
-
+import com.google.common.collect.ImmutableList;
 import java.util.List;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -27,11 +29,6 @@ import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.dkirrane.gitflow.groovy.GitflowHotfix;
-import com.dkirrane.gitflow.groovy.ex.GitflowException;
-import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
-import com.google.common.collect.ImmutableList;
 
 /**
  * Merges a hotfix branch back into the develop and master branch and then
@@ -235,7 +232,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
                 additionalArgs.add("-DperformRelease=true");
             }
             if (StringUtils.isNotBlank(releaseProfiles)) {
-                Iterable<String> profiles = PROFILES_SPLITTER.split(releaseProfiles);                
+                Iterable<String> profiles = PROFILES_SPLITTER.split(releaseProfiles);
                 additionalArgs.add("-P " + PROFILES_JOINER.join(profiles));
             }
             runGoals(goals, additionalArgs.build());

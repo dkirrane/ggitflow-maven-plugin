@@ -15,12 +15,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <project name="ggitflow-maven-plugin">
-  <publishDate format="dd MMM yyyy" position="left"/>
-  <body>
-   <menu name="Overview">
-      <!--<item name="Introduction" href="index.html"/>-->
-      <item name="Goals" href="plugin-info.html"/>
-      <!--<item name="FAQ" href="faq.html"/>-->
-   </menu>
-  </body>
+    <publishDate format="dd MMM yyyy" position="left"/>
+    <body>
+        <menu name="Overview">
+            <!--<item name="Introduction" href="index.html"/>-->
+            <item name="Goals" href="plugin-info.html"/>
+            <!--<item name="FAQ" href="faq.html"/>-->
+        </menu>
+    </body>
 </project>

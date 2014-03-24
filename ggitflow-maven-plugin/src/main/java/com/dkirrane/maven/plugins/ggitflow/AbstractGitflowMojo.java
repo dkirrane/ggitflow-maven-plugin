@@ -70,7 +70,6 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.name;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
 public class AbstractGitflowMojo extends AbstractMojo {
@@ -445,9 +444,9 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
             /* Check <parent> */
             Artifact parentArtifact = mavenProject.getParentArtifact();
-            if (parentArtifact != null && parentArtifact.isSnapshot()) {                
+            if (parentArtifact != null && parentArtifact.isSnapshot()) {
                 LOG.error("Parent of project " + artifactId + " is a SNAPSHOT " + parentArtifact.getId());
-                hasParentSnapshot = true;                
+                hasParentSnapshot = true;
             }
 
             /* Check <dependencyManagement> */
@@ -457,7 +456,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                     hasDepSnapshots = true;
                 }
             }
-            
+
             /* Check <dependencies> */
             if (checkForSnapshot(artifactId, mavenProject.getDependencies())) {
                 hasDepSnapshots = true;

@@ -31,11 +31,11 @@ public class DebuggingMojo extends AbstractGitflowMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
-        
+
         reloadReactorProjects();
-        
+
         setVersion("1.4");
-        
-        runGoals("clean deploy", DEFAULT_DEPLOY_ARGS);  
+
+        runGoals("clean deploy", DEFAULT_DEPLOY_ARGS);
     }
 }
