@@ -15,6 +15,8 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
+import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -118,8 +120,10 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
             throw new MojoFailureException("Parameter <releaseName> cannot be null or empty.");
         }
 
+        GenericArtifactVersion releaseArtifactVersion;
         try {
-            new GenericArtifactVersion(releaseName);
+            releaseArtifactVersion = new GenericArtifactVersion(releaseName);
+            releaseArtifactVersion.setBuildSpecifier(SNAPSHOT_QUALIFIER);
         } catch (IllegalArgumentException e) {
             throw new MojoExecutionException("Provided releaseName " + releaseName + " is not a valid Maven version.");
         }
@@ -156,10 +160,13 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         // checkout develop branch and update it's version
         String developBranch = (String) getGitflowInit().getDevelopBrnName();
         getGitflowInit().executeLocal("git checkout " + developBranch);
+        reloadReactorProjects();
         setVersion(nextDevelopVersion);
 
         // checkout release branch again
         getGitflowInit().executeLocal("git checkout " + releaseBranch);
+        reloadReactorProjects();
+        setVersion(releaseArtifactVersion.toString());
     }
 
     public String getReleaseName() {
