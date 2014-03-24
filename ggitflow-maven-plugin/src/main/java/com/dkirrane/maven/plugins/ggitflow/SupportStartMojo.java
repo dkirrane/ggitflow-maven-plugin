@@ -38,6 +38,15 @@ public class SupportStartMojo extends AbstractGitflowMojo {
     private static final Logger LOG = LoggerFactory.getLogger(SupportStartMojo.class.getName());
 
     /**
+     * If <code>true</code>, the support branch is pushed to the remote
+     * repository.
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "pushSupport", defaultValue = "false", required = false)
+    protected boolean pushSupport;
+
+    /**
      * The commit to start the support branch from.
      *
      * @since 1.2
@@ -71,6 +80,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
         gitflowSupport.setInit(getGitflowInit());
         gitflowSupport.setMsgPrefix(getMsgPrefix());
         gitflowSupport.setMsgSuffix(getMsgSuffix());
+        gitflowSupport.setPush(pushSupport);
         gitflowSupport.setStartCommit(startCommit);
 
         try {
