@@ -168,6 +168,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         setVersion(hotfixReleaseVersion);
 
         if (!allowSnapshots) {
+            reloadReactorProjects();
             checkForSnapshotDependencies();
         }
 
