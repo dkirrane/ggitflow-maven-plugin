@@ -15,13 +15,11 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
-import com.dkirrane.gitflow.groovy.GitflowRelease;
-import com.dkirrane.gitflow.groovy.ex.GitflowException;
-import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
 import static com.dkirrane.maven.plugins.ggitflow.AbstractGitflowMojo.DEFAULT_DEPLOY_ARGS;
 import static com.dkirrane.maven.plugins.ggitflow.AbstractGitflowMojo.PROFILES_SPLITTER;
-import com.google.common.collect.ImmutableList;
+
 import java.util.List;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -31,6 +29,11 @@ import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.dkirrane.gitflow.groovy.GitflowRelease;
+import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
+import com.google.common.collect.ImmutableList;
 
 /**
  * Merges a release branch back into the develop and master branch and then
@@ -48,7 +51,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
      * @since 1.2
      */
     @Parameter(property = "allowSnapshots", defaultValue = "false", required = false)
-    private boolean allowSnapshots;
+    private Boolean allowSnapshots;
 
     /**
      * If the project has a parent with a release version it will be replaced
@@ -58,7 +61,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
      * @since 1.2
      */
     @Parameter(property = "updateParent", defaultValue = "true", required = false)
-    private boolean updateParent;
+    private Boolean updateParent;
 
     /**
      * On the release branch before finish is called any dependencies with a
@@ -72,7 +75,16 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
      * @since 1.2
      */
     @Parameter(property = "updateDependencies", defaultValue = "true", required = false)
-    private boolean updateDependencies;
+    private Boolean updateDependencies;
+
+    /**
+     * A comma separated list of artifact patterns to include. Follows the
+     * pattern <code>groupId:artifactId:type:classifier:version<code>
+     *
+     * @since 1.4
+     */
+    @Parameter(property = "dependenciesIncludesList", defaultValue = "", required = false)
+    private String dependenciesIncludesList;
 
     /**
      * Skips any calls to <code>mvn install</code>
@@ -193,7 +205,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         /* Update release branch dependencies to release version */
         if (updateDependencies) {
             reloadReactorProjects();
-            setNextVersions(false, updateParent);
+            setNextVersions(false, updateParent, dependenciesIncludesList);
         }
 
         if (!allowSnapshots) {
@@ -251,7 +263,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         /* Update develop branch dependencies to next snapshot version (if deployed) */
         if (updateDependencies) {
             reloadReactorProjects();
-            setNextVersions(true, updateParent);
+            setNextVersions(true, updateParent, dependenciesIncludesList);
         }
 
         /* Switch to release tag and deploy it */

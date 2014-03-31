@@ -15,12 +15,17 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
-import com.dkirrane.gitflow.groovy.GitflowInit;
-import com.dkirrane.gitflow.groovy.ex.GitflowException;
-import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.executeMojo;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.executionEnvironment;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.name;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
@@ -61,16 +67,13 @@ import org.jfrog.hudson.util.GenericArtifactVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.impl.StaticLoggerBinder;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.executeMojo;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.executionEnvironment;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.name;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
+
+import com.dkirrane.gitflow.groovy.GitflowInit;
+import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 
 public class AbstractGitflowMojo extends AbstractMojo {
 
@@ -317,7 +320,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
 //        }
     }
 
-    protected final void setNextVersions(Boolean allowSnapshots, Boolean updateParent) throws MojoExecutionException, MojoFailureException {
+    protected final void setNextVersions(Boolean allowSnapshots, Boolean updateParent, String dependenciesIncludesList) throws MojoExecutionException, MojoFailureException {
         LOG.debug("setNextVersions");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
@@ -358,7 +361,8 @@ public class AbstractGitflowMojo extends AbstractMojo {
                     goal("use-next-versions"),
                     configuration(
                             element(name("generateBackupPoms"), "false"),
-                            element(name("allowSnapshots"), allowSnapshots.toString())
+                            element(name("allowSnapshots"), allowSnapshots.toString()),
+                            element(name("includesList"), dependenciesIncludesList)
                     ),
                     executionEnvironment(
                             mavenProject,

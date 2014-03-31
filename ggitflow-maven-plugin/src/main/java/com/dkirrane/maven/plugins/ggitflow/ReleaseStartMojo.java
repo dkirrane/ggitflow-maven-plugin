@@ -67,6 +67,15 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
     private boolean updateDependencies;
 
     /**
+     * A comma separated list of artifact patterns to include. Follows the
+     * pattern <code>groupId:artifactId:type:classifier:version<code>
+     *
+     * @since 1.4
+     */
+    @Parameter(property = "dependenciesIncludesList", defaultValue = "", required = false)
+    private String dependenciesIncludesList;
+
+    /**
      * The commit to start the release branch from.
      *
      * @since 1.2
@@ -156,7 +165,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         /* Update release branch dependencies to release version */
         if (updateDependencies) {
             reloadReactorProjects();
-            setNextVersions(false, updateParent);
+            setNextVersions(false, updateParent, dependenciesIncludesList);
         }
 
         // checkout develop branch and update it's version
