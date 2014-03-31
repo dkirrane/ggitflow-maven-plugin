@@ -133,6 +133,7 @@
 
     <!--
         Sonatype upload details:
+        http://central.sonatype.org/pages/ossrh-guide.html
         http://jedicoder.blogspot.de/2011/11/automated-gradle-project-deployment-to.html
         https://support.sonatype.com/entries/21580432-how-do-i-configure-my-gradle-build-to-publish-artifacts-to-nexus
         https://support.sonatype.com/entries/21597257-how-do-i-stage-artifacts-to-a-nexus-staging-profile-from-a-gradle-build
