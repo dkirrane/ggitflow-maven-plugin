@@ -31,8 +31,8 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <h3>
-<a name="gitflow-maven-plugin" class="anchor" href="#gitflow-maven-plugin"><span class="octicon octicon-link"></span></a>Gitflow Maven Plugin</h3>
+        <h1>
+<a name="gitflow-maven-plugin" class="anchor" href="#gitflow-maven-plugin"><span class="octicon octicon-link"></span></a>Gitflow Maven Plugin</h1>
 
 <p><code>Ggitflow-maven-plugin</code> provides Maven support for Vincent Driessen's branching model <a href="http://nvie.com/posts/a-successful-git-branching-model/">http://nvie.com/posts/a-successful-git-branching-model/</a>.</p>
 
@@ -40,8 +40,8 @@
 
 <p>The plugin uses <a href="http://dkirrane.github.io/ggitflow/">GGitflow</a>, therefore it uses the git console directly under the hood rather than JGit.</p>
 
-<h3>
-<a name="maven-settings" class="anchor" href="#maven-settings"><span class="octicon octicon-link"></span></a>Maven settings</h3>
+<h1>
+<a name="maven-settings" class="anchor" href="#maven-settings"><span class="octicon octicon-link"></span></a>Maven settings</h1>
 
 <p>Add the following to your Maven <code>settings.xml</code></p>
 
@@ -50,29 +50,35 @@
 &lt;/pluginGroups&gt;
 </code></pre>
 
+<h1>
+<a name="credentials" class="anchor" href="#credentials"><span class="octicon octicon-link"></span></a>Credentials</h1>
+
+<p>The <code>netrc</code> file allows you to specify you Git credentials to use when you clone, pull, push or fetch from Git. Note, this does require you to store your passwords in plain text.</p>
+
 <h3>
-<a name="credentials" class="anchor" href="#credentials"><span class="octicon octicon-link"></span></a>Credentials</h3>
-
-<p>The <code>netrc</code> file allows you to specify you Git credentials to use when you pull, push or fetch from Git.</p>
-
-<h4>
-<a name="windows" class="anchor" href="#windows"><span class="octicon octicon-link"></span></a>Windows</h4>
+<a name="windows" class="anchor" href="#windows"><span class="octicon octicon-link"></span></a>Windows</h3>
 
 <ul>
-<li>Create a text file called <code>_netrc</code> in your home directory (e.g. %HOME%_netrc). </li>
-<li>Add credentials to the file for the Git server you want to store credentials for, using the format described below:</li>
+<li>Create a text file called <code>_netrc</code> in your home directory (%HOME%_netrc). </li>
+<li>Add credentials to this file for the Git server you want to store credentials for, using the following format:</li>
 </ul><pre><code>machine gitServer1.mycompany.com
 login myusername
 password mypassword
 </code></pre>
 
 <h3>
-<a name="goals" class="anchor" href="#goals"><span class="octicon octicon-link"></span></a>Goals</h3>
+<a name="linux-or-osx" class="anchor" href="#linux-or-osx"><span class="octicon octicon-link"></span></a>Linux or OSX</h3>
+
+<p>Create a file called <code>.netrc</code> in your home directory (<code>~/.netrc</code>). Note, this does require you to store your passwords in plain text.
+Add credentials to the file for the Git server in the same format as described above.</p>
+
+<h1>
+<a name="goals" class="anchor" href="#goals"><span class="octicon octicon-link"></span></a>Goals</h1>
 
 <p><a href="http://dkirrane.github.io/ggitflow-maven-plugin/plugin-info.html">Plugin Documentation</a></p>
 
-<h3>
-<a name="sample-pom-configuration" class="anchor" href="#sample-pom-configuration"><span class="octicon octicon-link"></span></a>Sample POM configuration</h3>
+<h2>
+<a name="sample-pom-configuration" class="anchor" href="#sample-pom-configuration"><span class="octicon octicon-link"></span></a>Sample POM configuration</h2>
 
 <p>Add the following to your top-level parent aggregator POM.
 The configuration is almost identical to the <code>maven-jgitflow-plugin</code>. However, under the hood the <code>Ggitflow-maven-plugin</code> invokes git commands directly. It does NOT use JGit. Why use JGit if a git command-line is provided for every Mac, Windows &amp; Linux OS?</p>
@@ -139,8 +145,8 @@ mvn ggitflow:hotfix-finish
 <pre><code>mvn ggitflow:support-start
 </code></pre>
 
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+<h2>
+<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h2>
 
 <p>Desmond (Dessie) Kirrane (<a href="https://github.com/dkirrane" class="user-mention">@dkirrane</a>)</p>
       </section>
