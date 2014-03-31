@@ -51,6 +51,22 @@
 </code></pre>
 
 <h3>
+<a name="credentials" class="anchor" href="#credentials"><span class="octicon octicon-link"></span></a>Credentials</h3>
+
+<p>The <code>netrc</code> file allows you to specify you Git credentials to use when you pull, push or fetch from Git.</p>
+
+<h4>
+<a name="windows" class="anchor" href="#windows"><span class="octicon octicon-link"></span></a>Windows</h4>
+
+<ul>
+<li>Create a text file called <code>_netrc</code> in your home directory (e.g. %HOME%_netrc). </li>
+<li>Add credentials to the file for the Git server you want to store credentials for, using the format described below:</li>
+</ul><pre><code>machine gitServer1.mycompany.com
+login myusername
+password mypassword
+</code></pre>
+
+<h3>
 <a name="goals" class="anchor" href="#goals"><span class="octicon octicon-link"></span></a>Goals</h3>
 
 <p><a href="http://dkirrane.github.io/ggitflow-maven-plugin/plugin-info.html">Plugin Documentation</a></p>
