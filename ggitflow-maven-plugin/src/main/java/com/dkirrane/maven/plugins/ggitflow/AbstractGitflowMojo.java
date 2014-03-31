@@ -362,7 +362,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                     configuration(
                             element(name("generateBackupPoms"), "false"),
                             element(name("allowSnapshots"), allowSnapshots.toString()),
-                            element(name("includesList"), dependenciesIncludesList)
+                            element(name("includes"), dependenciesIncludesList)
                     ),
                     executionEnvironment(
                             mavenProject,
