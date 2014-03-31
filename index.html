@@ -53,24 +53,28 @@
 <h1>
 <a name="credentials" class="anchor" href="#credentials"><span class="octicon octicon-link"></span></a>Credentials</h1>
 
-<p>The <code>netrc</code> file allows you to specify you Git credentials to use when you clone, pull, push or fetch from Git. Note, this does require you to store your passwords in plain text.</p>
+<p>The <code>netrc</code> file allows you to permanently store the Git credentials to use when you clone, pull, push or fetch from Git. Note, this does require you to store your passwords in plain text.</p>
 
 <h3>
 <a name="windows" class="anchor" href="#windows"><span class="octicon octicon-link"></span></a>Windows</h3>
 
 <ul>
 <li>Create a text file called <code>_netrc</code> in your home directory (%HOME%_netrc). </li>
-<li>Add credentials to this file for the Git server you want to store credentials for, using the following format:</li>
-</ul><pre><code>machine gitServer1.mycompany.com
+<li>Add credentials to the file for the Git server in the same format as described below.
+### Linux or OSX</li>
+<li>Create a file called <code>.netrc</code> in your home directory (<code>~/.netrc</code>).</li>
+<li>Add credentials to the file for the Git server in the same format as described below.</li>
+<li>
+<code>chmod 600 ~/.netrc</code>
+### Sample netrc file</li>
+</ul><pre><code>machine github.com
+login myusername
+password mypassword
+
+machine api.github.com
 login myusername
 password mypassword
 </code></pre>
-
-<h3>
-<a name="linux-or-osx" class="anchor" href="#linux-or-osx"><span class="octicon octicon-link"></span></a>Linux or OSX</h3>
-
-<p>Create a file called <code>.netrc</code> in your home directory (<code>~/.netrc</code>). Note, this does require you to store your passwords in plain text.
-Add credentials to the file for the Git server in the same format as described above.</p>
 
 <h1>
 <a name="goals" class="anchor" href="#goals"><span class="octicon octicon-link"></span></a>Goals</h1>
