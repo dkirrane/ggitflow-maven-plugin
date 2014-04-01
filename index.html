@@ -94,7 +94,7 @@ The configuration is almost identical to the <code>maven-jgitflow-plugin</code>.
 <pre><code>&lt;plugin&gt;
     &lt;groupId&gt;com.dkirrane.maven.plugins&lt;/groupId&gt;
     &lt;artifactId&gt;ggitflow-maven-plugin&lt;/artifactId&gt;
-    &lt;version&gt;1.4&lt;/version&gt;
+    &lt;version&gt;1.5-SNAPSHOT&lt;/version&gt;
     &lt;configuration&gt;
         &lt;!-- Optional Config For all parameters see: --&gt;
         &lt;!-- http://dkirrane.github.io/ggitflow-maven-plugin/plugin-info.html --&gt;
@@ -108,6 +108,7 @@ The configuration is almost identical to the <code>maven-jgitflow-plugin</code>.
             &lt;supportBranchPrefix&gt;support/&lt;/supportBranchPrefix&gt;
             &lt;versionTagPrefix&gt;v-&lt;/versionTagPrefix&gt;
         &lt;/prefixes&gt;
+        &lt;includes&gt;com.dep.one,com.dep.two&lt;/includes&gt;
         &lt;msgPrefix&gt;[ggitflow-maven-plugin]&lt;/msgPrefix&gt;
         &lt;msgSuffix&gt;+review @reviewer123&lt;/msgSuffix&gt;
         &lt;enableFeatureVersions&gt;true&lt;/enableFeatureVersions&gt;
