@@ -320,7 +320,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
 //        }
     }
 
-    protected final void setNextVersions(Boolean allowSnapshots, Boolean updateParent, String dependenciesIncludesList) throws MojoExecutionException, MojoFailureException {
+    protected final void setNextVersions(Boolean allowSnapshots, Boolean updateParent, String includes) throws MojoExecutionException, MojoFailureException {
         LOG.debug("setNextVersions");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
@@ -348,30 +348,34 @@ public class AbstractGitflowMojo extends AbstractMojo {
             LOG.debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:update-parent");
         }
 
-        LOG.debug("START org.codehaus.mojo:versions-maven-plugin:2.1:use-next-versions allowSnapshots={}", allowSnapshots);
-        for (MavenProject mavenProject : reactorProjects) {
-            LOG.debug("Calling use-next-versions on " + mavenProject.getArtifactId());
-            session.setCurrentProject(mavenProject);
-            executeMojo(
-                    plugin(
-                            groupId("org.codehaus.mojo"),
-                            artifactId("versions-maven-plugin"),
-                            version("2.1")
-                    ),
-                    goal("use-next-versions"),
-                    configuration(
-                            element(name("generateBackupPoms"), "false"),
-                            element(name("allowSnapshots"), allowSnapshots.toString()),
-                            element(name("includes"), dependenciesIncludesList)
-                    ),
-                    executionEnvironment(
-                            mavenProject,
-                            session,
-                            pluginManager
-                    )
-            );
+        if (!StringUtils.isBlank(includes)) {
+            LOG.debug("START org.codehaus.mojo:versions-maven-plugin:2.1:use-next-versions allowSnapshots={}", allowSnapshots);
+            for (MavenProject mavenProject : reactorProjects) {
+                LOG.debug("Calling use-next-versions on " + mavenProject.getArtifactId());
+                session.setCurrentProject(mavenProject);
+                executeMojo(
+                        plugin(
+                                groupId("org.codehaus.mojo"),
+                                artifactId("versions-maven-plugin"),
+                                version("2.1")
+                        ),
+                        goal("use-next-versions"),
+                        configuration(
+                                element(name("generateBackupPoms"), "false"),
+                                element(name("allowSnapshots"), allowSnapshots.toString()),
+                                element(name("includes"), includes)
+                        ),
+                        executionEnvironment(
+                                mavenProject,
+                                session,
+                                pluginManager
+                        )
+                );
+            }
+            LOG.debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:use-next-versions");
+        } else {
+            LOG.warn("Parameter <includes> is not set. Skipping dependency updates");
         }
-        LOG.debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:use-next-versions");
 
         if (!getGitflowInit().gitIsCleanWorkingTree()) {
             String msg;

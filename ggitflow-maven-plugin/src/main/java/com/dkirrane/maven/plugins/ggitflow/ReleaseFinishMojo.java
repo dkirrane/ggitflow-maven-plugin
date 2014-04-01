@@ -78,13 +78,13 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
     private Boolean updateDependencies;
 
     /**
-     * A comma separated list of artifact patterns to include. Follows the
-     * pattern <code>groupId:artifactId:type:classifier:version<code>
+     * If <code>updateDependencies</code> is set, then this should contain a
+     * comma separated list of artifact patterns to include. Follows the pattern <code>groupId:artifactId:type:classifier:version<code>
      *
-     * @since 1.4
+     * @since 1.5
      */
-    @Parameter(property = "dependenciesIncludesList", defaultValue = "", required = false)
-    private String dependenciesIncludesList;
+    @Parameter(property = "includes", defaultValue = "", required = false)
+    private String includes;
 
     /**
      * Skips any calls to <code>mvn install</code>
@@ -205,7 +205,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         /* Update release branch dependencies to release version */
         if (updateDependencies) {
             reloadReactorProjects();
-            setNextVersions(false, updateParent, dependenciesIncludesList);
+            setNextVersions(false, updateParent, includes);
         }
 
         if (!allowSnapshots) {
@@ -263,7 +263,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         /* Update develop branch dependencies to next snapshot version (if deployed) */
         if (updateDependencies) {
             reloadReactorProjects();
-            setNextVersions(true, updateParent, dependenciesIncludesList);
+            setNextVersions(true, updateParent, includes);
         }
 
         /* Switch to release tag and deploy it */
