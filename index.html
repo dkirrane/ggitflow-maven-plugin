@@ -131,21 +131,21 @@ password mypassword
 <a name="start--finish-a-feature-branch" class="anchor" href="#start--finish-a-feature-branch"><span class="octicon octicon-link"></span></a>Start &amp; Finish a Feature branch</h3>
 
 <div class="highlight highlight-bash"><pre>mvn ggitflow:feature-start
-mvn ggitflow:feature-finish -DskipTests -DskipBuild        <span class="c"># optionally skip test and install phase</span>
+mvn ggitflow:feature-finish -DskipTests -DskipBuild        <span class="c"># optionally skip test &amp; install phase</span>
 </pre></div>
 
 <h3>
 <a name="start--finish-a-release-branch" class="anchor" href="#start--finish-a-release-branch"><span class="octicon octicon-link"></span></a>Start &amp; Finish a Release branch</h3>
 
 <div class="highlight highlight-bash"><pre>mvn ggitflow:release-start
-mvn ggitflow:release-finish -DskipTests -DskipDeploy      <span class="c"># optionally skip test and deploy phase</span>
+mvn ggitflow:release-finish -DskipTests -DskipBuild -DskipDeploy      <span class="c"># optionally skip test, install &amp; deploy phase</span>
 </pre></div>
 
 <h3>
 <a name="start--finish-a-hotfix-branch" class="anchor" href="#start--finish-a-hotfix-branch"><span class="octicon octicon-link"></span></a>Start &amp; Finish a Hotfix branch</h3>
 
 <div class="highlight highlight-bash"><pre>mvn ggitflow:hotfix-start
-mvn ggitflow:hotfix-finish -DskipTests -DskipDeploy       <span class="c"># optionally skip test and deploy phase</span>
+mvn ggitflow:hotfix-finish -DskipTests -DskipBuild -DskipDeploy       <span class="c"># optionally skip test, install &amp; deploy phase</span>
 </pre></div>
 
 <h3>
