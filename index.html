@@ -131,7 +131,7 @@ password mypassword
 <a name="start--finish-a-feature-branch" class="anchor" href="#start--finish-a-feature-branch"><span class="octicon octicon-link"></span></a>Start &amp; Finish a Feature branch</h3>
 
 <div class="highlight highlight-bash"><pre>mvn ggitflow:feature-start
-mvn ggitflow:feature-finish -DskipTests        <span class="c"># optionally skip test phase</span>
+mvn ggitflow:feature-finish -DskipTests -DskipBuild        <span class="c"># optionally skip test and install phase</span>
 </pre></div>
 
 <h3>
