@@ -368,7 +368,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                         configuration(
                                 element(name("generateBackupPoms"), "false"),
                                 element(name("allowSnapshots"), allowSnapshots.toString()),
-                                element(name("includes"), includes)
+                                element(name("includesList"), includes)
                         ),
                         executionEnvironment(
                                 mavenProject,
@@ -529,7 +529,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         for (MavenProject p : reactorProjects) {
             ProjectBuildingRequest request = new DefaultProjectBuildingRequest();
 
-            request.setProcessPlugins(true);
+            request.setProcessPlugins(false);
             request.setProfiles(request.getProfiles());
             request.setActiveProfileIds(session.getRequest().getActiveProfiles());
             request.setInactiveProfileIds(session.getRequest().getInactiveProfiles());
@@ -541,7 +541,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
             request.setRepositorySession(session.getRepositorySession());
             request.setLocalRepository(localRepository);
             request.setBuildStartTime(session.getRequest().getStartTime());
-            request.setResolveDependencies(true);
+            request.setResolveDependencies(false);
             request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_STRICT);
             projects.add(projectBuilder.build(p.getFile(), request).getProject());
         }
