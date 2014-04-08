@@ -241,7 +241,9 @@ public class AbstractGitflowMojo extends AbstractMojo {
         if (null == init) {
             LOG.info("Initialising Gitflow");
             init = new GitflowInit();
-            init.setRepoDir(getProject().getBasedir());
+            File basedir = getProject().getBasedir();
+            LOG.debug("Setting base directory " + basedir);
+            init.setRepoDir(basedir);
             init.setMasterBrnName(prefixes.getMasterBranch());
             init.setDevelopBrnName(prefixes.getDevelopBranch());
             init.setFeatureBrnPref(prefixes.getFeatureBranchPrefix());
@@ -251,10 +253,13 @@ public class AbstractGitflowMojo extends AbstractMojo {
             init.setVersionTagPref(prefixes.getVersionTagPrefix());
 
             /* root Git directory may not be the pom directory */
-            String dotGitDir = init.executeLocal("git rev-parse --git-dir");
-            File dotGitFolder = new File(dotGitDir);
-            assert dotGitFolder.exists();
-            init.setRepoDir(dotGitFolder.getParentFile());
+            String gitRootPath = init.executeLocal("git rev-parse --show-toplevel"); 
+            LOG.debug("Git repo top level " + gitRootPath);
+            File baseGitDir = new File(gitRootPath);
+            if (baseGitDir.isDirectory()) {
+                LOG.debug("Setting git base directory " + baseGitDir);
+                init.setRepoDir(baseGitDir);
+            }
         }
         return init;
     }
