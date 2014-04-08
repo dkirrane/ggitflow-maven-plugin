@@ -147,6 +147,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
         gitflowFeature.setInit(getGitflowInit());
         gitflowFeature.setMsgPrefix(getMsgPrefix());
         gitflowFeature.setMsgSuffix(getMsgSuffix());
+        gitflowFeature.setPush(pushFeatures);
         gitflowFeature.setSquash(squash);
         gitflowFeature.setKeep(keep);
         gitflowFeature.setIsRebase(isRebase);

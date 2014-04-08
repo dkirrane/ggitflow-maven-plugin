@@ -218,6 +218,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         gitflowRelease.setInit(getGitflowInit());
         gitflowRelease.setMsgPrefix(getMsgPrefix());
         gitflowRelease.setMsgSuffix(getMsgSuffix());
+        gitflowRelease.setPush(pushReleases);
         gitflowRelease.setSquash(squash);
         gitflowRelease.setKeep(keep);
         gitflowRelease.setSign(sign);

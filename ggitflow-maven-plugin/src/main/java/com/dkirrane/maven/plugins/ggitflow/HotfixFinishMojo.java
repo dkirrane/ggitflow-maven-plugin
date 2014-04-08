@@ -174,6 +174,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         gitflowHotfix.setInit(getGitflowInit());
         gitflowHotfix.setMsgPrefix(getMsgPrefix());
         gitflowHotfix.setMsgSuffix(getMsgSuffix());
+        gitflowHotfix.setPush(pushHotfixes);
         gitflowHotfix.setSquash(squash);
         gitflowHotfix.setKeep(keep);
         gitflowHotfix.setSign(sign);
