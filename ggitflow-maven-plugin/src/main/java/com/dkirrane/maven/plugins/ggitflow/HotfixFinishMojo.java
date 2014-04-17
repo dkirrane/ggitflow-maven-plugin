@@ -153,6 +153,11 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         String hotfixReleaseVersion = getReleaseVersion(hotfixVersion);
         LOG.debug("hotfix release version = " + hotfixReleaseVersion);
         setVersion(hotfixReleaseVersion);
+        
+        if (!allowSnapshots) {
+            reloadReactorProjects();
+            checkForSnapshotDependencies();
+        }        
 
         /* Switch to develop branch and get current develop version */
         String developBranch = getGitflowInit().getDevelopBranch();
@@ -163,11 +168,6 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
 
         /* Set develop branch to hotfix version to prevent merge conflicts */
         setVersion(hotfixReleaseVersion);
-
-        if (!allowSnapshots) {
-            reloadReactorProjects();
-            checkForSnapshotDependencies();
-        }
 
         /* finish hotfix */
         GitflowHotfix gitflowHotfix = new GitflowHotfix();
