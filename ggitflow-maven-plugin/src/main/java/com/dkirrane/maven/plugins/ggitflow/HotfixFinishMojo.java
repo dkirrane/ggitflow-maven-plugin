@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 desmondkirrane.
+ * Copyright 2014 Desmond Kirrane.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,6 +145,13 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
 
         LOG.info("Finishing hotfix '{}'", hotfixName);
 
+        /* Switch to develop branch and get its current version */
+        String developBranch = getGitflowInit().getDevelopBranch();
+        getGitflowInit().executeLocal("git checkout " + developBranch);
+        reloadReactorProjects();
+        String developVersion = project.getVersion();
+        LOG.debug("develop version = " + developVersion);
+
         /* Switch to hotfix branch and set poms to hotfix version */
         getGitflowInit().executeLocal("git checkout " + hotfixName);
         reloadReactorProjects();
@@ -152,22 +159,13 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         LOG.debug("hotfix snapshot version = " + hotfixVersion);
         String hotfixReleaseVersion = getReleaseVersion(hotfixVersion);
         LOG.debug("hotfix release version = " + hotfixReleaseVersion);
+
         setVersion(hotfixReleaseVersion);
-        
+
         if (!allowSnapshots) {
             reloadReactorProjects();
             checkForSnapshotDependencies();
-        }        
-
-        /* Switch to develop branch and get current develop version */
-        String developBranch = getGitflowInit().getDevelopBranch();
-        getGitflowInit().executeLocal("git checkout " + developBranch);
-        reloadReactorProjects();
-        String developVersion = project.getVersion();
-        LOG.debug("develop version = " + developVersion);
-
-        /* Set develop branch to hotfix version to prevent merge conflicts */
-        setVersion(hotfixReleaseVersion);
+        }
 
         /* finish hotfix */
         GitflowHotfix gitflowHotfix = new GitflowHotfix();
@@ -180,17 +178,28 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         gitflowHotfix.setSign(sign);
         gitflowHotfix.setSigningkey(signingkey);
 
+        /* 1. merge to master */
         try {
-            gitflowHotfix.finish(hotfixName);
+            gitflowHotfix.finishToMaster(hotfixName);
         } catch (GitflowException ge) {
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {
-            LOG.error("Merge conflicts exist.", gmce);
             throw new MojoFailureException(gmce.getMessage());
+        }
 
-//            LOG.info("Attempting to auto-resolve any pom version conflicts.", gmce);
+        /* 2. make versions in hotfix and develop branches match to avoid conflicts */
+        getGitflowInit().executeLocal("git checkout " + hotfixName);
+        reloadReactorProjects();
+        setVersion(developVersion);
+
+        /* 3. merge to develop */
+        try {
+            gitflowHotfix.finishToDevelop(hotfixName);
+        } catch (GitflowException ge) {
+            throw new MojoFailureException(ge.getMessage());
+        } catch (GitflowMergeConflictException gmce) {
+            throw new MojoFailureException(gmce.getMessage());
 //            FixPomMergeConflicts fixPomMergeConflicts = new FixPomMergeConflicts();
-//            fixPomMergeConflicts.setInit(getGitflowInit());
 //            try {
 //                fixPomMergeConflicts.resolveConflicts2();
 //            } catch (GitflowException ge) {
@@ -206,15 +215,11 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
             throw new MojoFailureException("Current branch should be " + developBranch + " but was " + currentBranch);
         }
 
-        /* Set develop branch back to original develop version */
-        setVersion(developVersion);
-        if (getGitflowInit().gitRemoteBranchExists(developBranch)) {
-            getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + developBranch);
-        }
-
         /* Switch to hotfix tag and deploy it */
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixReleaseVersion);
         reloadReactorProjects();
+        String tagVersion = project.getVersion();
+        LOG.debug("tag version = " + tagVersion);
 
         /* install or deploy */
         if (skipDeploy == false) {

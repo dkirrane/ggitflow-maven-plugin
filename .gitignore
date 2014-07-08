@@ -47,3 +47,4 @@ local.properties
 .idea/
 
 *.orig
+.DS_Store
