@@ -83,7 +83,7 @@ public class HotfixStartMojo extends AbstractHotfixMojo {
             result.append(primaryNumbersAsString).append('.').append('1');
             result.append(annotationAsString);
         } else {
-            artifactVersion.upgradeAnnotationRevision();
+            artifactVersion.upgradeLeastSignificantPrimaryNumber();
             result.append(artifactVersion.toString());
         }
         return result.toString();
