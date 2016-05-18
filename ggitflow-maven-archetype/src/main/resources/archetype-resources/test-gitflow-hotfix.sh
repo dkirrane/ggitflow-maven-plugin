@@ -5,3 +5,5 @@ mvn ggitflow:hotfix-start
 git commit --allow-empty -m "JIRA-7 hotfix commit"
 git commit --allow-empty -m "JIRA-8 hotfix commit"
 mvn ggitflow:hotfix-finish
+
+git log --branches --remotes --tags --graph --oneline --decorate
