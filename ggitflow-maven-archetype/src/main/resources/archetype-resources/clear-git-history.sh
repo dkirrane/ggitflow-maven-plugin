@@ -1,11 +1,12 @@
 #!/bin/sh
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-BASE_DIR=$( git rev-parse --show-toplevel )
-cd $BASE_DIR
- 
-$SCRIPT_DIR/clear-gitflow-config.sh
+$PROJ_DIR/clear-gitflow-config.sh
+
+
+GIT_BASE_DIR=$( git rev-parse --show-toplevel )
+cd $GIT_BASE_DIR
 
 ##
 # Removes all Git history 
@@ -46,8 +47,10 @@ done
 
 git fetch --all --prune
 
+cd $PROJ_DIR
 mvn versions:set -DgenerateBackupPoms=false -DnewVersion=1.0-SNAPSHOT
 
+cd $GIT_BASE_DIR
 rm -rf .git
 git init
 git add .
