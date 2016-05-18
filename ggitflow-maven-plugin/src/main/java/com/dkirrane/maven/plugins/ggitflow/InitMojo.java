@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 desmondkirrane.
+ * Copyright 2014 Desmond Kirrane.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,19 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
-import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
 
-public class AbstractHotfixMojo extends AbstractGitflowMojo {
+/**
+ * Mojo to initialise Gitflow branches
+ */
+@Mojo(name = "init", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
+public class InitMojo extends AbstractGitflowMojo {
 
-    /**
-     * If <code>true</code>, the hotfix branch is pushed to the remote
-     * repository
-     *
-     * @since 1.6
-     */
-    @Parameter(property = "pushHotfixBranch", defaultValue = "false", required = false)
-    protected boolean pushHotfixBranch;
-
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        super.execute();
+    }
 }

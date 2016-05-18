@@ -53,8 +53,8 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "pushFeatures", defaultValue = "false", required = false)
-    protected boolean pushFeatures;
+    @Parameter(property = "pushFeatureBranch", defaultValue = "false", required = false)
+    protected boolean pushFeatureBranch;
 
     public String getFeatureBranchPrefix() {
         String prefix = getGitflowInit().getFeatureBranchPrefix();

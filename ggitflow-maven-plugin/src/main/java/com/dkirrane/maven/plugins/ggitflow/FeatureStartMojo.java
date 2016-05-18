@@ -70,7 +70,7 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
         gitflowFeature.setInit(getGitflowInit());
         gitflowFeature.setMsgPrefix(getMsgPrefix());
         gitflowFeature.setMsgSuffix(getMsgSuffix());
-        gitflowFeature.setPush(pushFeatures);
+        gitflowFeature.setPush(pushFeatureBranch);
         gitflowFeature.setStartCommit(startCommit);
 
         try {

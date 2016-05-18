@@ -39,10 +39,10 @@ public class AbstractReleaseMojo extends AbstractGitflowMojo {
      * If <code>true</code>, the release branch is pushed to the remote
      * repository.
      *
-     * @since 1.2
+     * @since 1.6
      */
-    @Parameter(property = "pushReleases", defaultValue = "false", required = false)
-    protected boolean pushReleases;
+    @Parameter(property = "pushReleaseBranch", defaultValue = "false", required = false)
+    protected boolean pushReleaseBranch;
 
     public String getReleaseBranchPrefix() {
         String prefix = getGitflowInit().getReleaseBranchPrefix();

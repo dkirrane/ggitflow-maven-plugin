@@ -147,7 +147,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         gitflowRelease.setInit(getGitflowInit());
         gitflowRelease.setMsgPrefix(getMsgPrefix());
         gitflowRelease.setMsgSuffix(getMsgSuffix());
-        gitflowRelease.setPush(pushReleases);
+        gitflowRelease.setPush(pushReleaseBranch);
         gitflowRelease.setStartCommit(startCommit);
 
         try {

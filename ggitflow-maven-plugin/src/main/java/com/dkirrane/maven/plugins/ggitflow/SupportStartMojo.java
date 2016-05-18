@@ -43,8 +43,8 @@ public class SupportStartMojo extends AbstractGitflowMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "pushSupport", defaultValue = "false", required = false)
-    protected boolean pushSupport;
+    @Parameter(property = "pushSupportBranch", defaultValue = "false", required = false)
+    protected boolean pushSupportBranch;
 
     /**
      * The commit to start the support branch from.
@@ -80,7 +80,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
         gitflowSupport.setInit(getGitflowInit());
         gitflowSupport.setMsgPrefix(getMsgPrefix());
         gitflowSupport.setMsgSuffix(getMsgSuffix());
-        gitflowSupport.setPush(pushSupport);
+        gitflowSupport.setPush(pushSupportBranch);
         gitflowSupport.setStartCommit(startCommit);
 
         try {

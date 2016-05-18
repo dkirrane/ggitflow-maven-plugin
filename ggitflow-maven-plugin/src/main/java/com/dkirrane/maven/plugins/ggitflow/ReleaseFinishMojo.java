@@ -45,6 +45,15 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
     private static final Logger LOG = LoggerFactory.getLogger(ReleaseFinishMojo.class.getName());
 
     /**
+     * If <code>true</code>, the release finish merge to develop & master and
+     * the created tag will get pushed to the remote repository
+     *
+     * @since 1.6
+     */
+    @Parameter(property = "pushReleaseFinish", defaultValue = "false", required = false)
+    protected boolean pushReleaseFinish;
+
+    /**
      * If <code>true</code>, the release can still finish even if
      * <code>-SNAPSHOT</code> dependencies exists in the pom.
      *
@@ -218,7 +227,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         gitflowRelease.setInit(getGitflowInit());
         gitflowRelease.setMsgPrefix(getMsgPrefix());
         gitflowRelease.setMsgSuffix(getMsgSuffix());
-        gitflowRelease.setPush(pushReleases);
+        gitflowRelease.setPush(pushReleaseBranch);
         gitflowRelease.setSquash(squash);
         gitflowRelease.setKeep(keep);
         gitflowRelease.setSign(sign);
@@ -226,7 +235,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
 
         /* 1. merge to master */
         try {
-            gitflowRelease.finishToMaster(releaseName);
+            gitflowRelease.finishToMaster(releaseName, pushReleaseFinish);
         } catch (GitflowException ge) {
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {
@@ -240,7 +249,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
 
         /* 3. merge to develop */
         try {
-            gitflowRelease.finishToDevelop(releaseName);
+            gitflowRelease.finishToDevelop(releaseName, pushReleaseFinish);
         } catch (GitflowException ge) {
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {

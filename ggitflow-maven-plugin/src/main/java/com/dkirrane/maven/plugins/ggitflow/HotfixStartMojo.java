@@ -55,7 +55,7 @@ public class HotfixStartMojo extends AbstractHotfixMojo {
         gitflowHotfix.setInit(getGitflowInit());
         gitflowHotfix.setMsgPrefix(getMsgPrefix());
         gitflowHotfix.setMsgSuffix(getMsgSuffix());
-        gitflowHotfix.setPush(pushHotfixes);
+        gitflowHotfix.setPush(pushHotfixBranch);
 
         try {
             gitflowHotfix.start(hotfixVersion);

@@ -42,6 +42,15 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
     protected String hotfixName;
 
     /**
+     * If <code>true</code>, the hotfix finish merge to develop & master and
+     * created tag will get pushed to the remote repository
+     *
+     * @since 1.6
+     */
+    @Parameter(property = "pushHotfixFinish", defaultValue = "false", required = false)
+    protected boolean pushHotfixFinish;
+
+    /**
      * If <code>true</code>, the hotfix can still finish even if
      * <code>-SNAPSHOT</code> dependencies exists in the pom.
      *
@@ -172,7 +181,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         gitflowHotfix.setInit(getGitflowInit());
         gitflowHotfix.setMsgPrefix(getMsgPrefix());
         gitflowHotfix.setMsgSuffix(getMsgSuffix());
-        gitflowHotfix.setPush(pushHotfixes);
+        gitflowHotfix.setPush(pushHotfixBranch);
         gitflowHotfix.setSquash(squash);
         gitflowHotfix.setKeep(keep);
         gitflowHotfix.setSign(sign);
@@ -180,7 +189,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
 
         /* 1. merge to master */
         try {
-            gitflowHotfix.finishToMaster(hotfixName);
+            gitflowHotfix.finishToMaster(hotfixName, pushHotfixFinish);
         } catch (GitflowException ge) {
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {
@@ -194,7 +203,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
 
         /* 3. merge to develop */
         try {
-            gitflowHotfix.finishToDevelop(hotfixName);
+            gitflowHotfix.finishToDevelop(hotfixName, pushHotfixFinish);
         } catch (GitflowException ge) {
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {

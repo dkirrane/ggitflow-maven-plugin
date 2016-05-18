@@ -1,12 +1,21 @@
 #!/bin/sh
+################################################################################
+# Removes all Git history 
+# Reconstructs the repo with only the current content 
+# Pushes to origin
+################################################################################
 
 PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-$PROJ_DIR/clear-gitflow-config.sh
-
-
 GIT_BASE_DIR=$( git rev-parse --show-toplevel )
 cd $GIT_BASE_DIR
+
+##
+# Clear gitflow config
+##
+git config --local --remove-section gitflow.branch
+git config --local --remove-section gitflow.prefix
+git config --local -l
 
 ##
 # Removes all Git history 
@@ -47,8 +56,7 @@ done
 
 git fetch --all --prune
 
-cd $PROJ_DIR
-mvn versions:set -DgenerateBackupPoms=false -DnewVersion=1.0-SNAPSHOT
+mvn -f $PROJ_DIR/pom.xml versions:set -DgenerateBackupPoms=false -DnewVersion=1.0-SNAPSHOT
 
 cd $GIT_BASE_DIR
 rm -rf .git
@@ -58,6 +66,7 @@ git commit -am "Initial commit. pom version 1.0-SNAPSHOT"
 
 # git remote add origin https://github.com/dkirrane/ggitflow-test1.git
 git remote add origin $ORIGIN
-git push origin master --force
+git push origin master --force --set-upstream
 
 git fetch --all
+git config --local -l
