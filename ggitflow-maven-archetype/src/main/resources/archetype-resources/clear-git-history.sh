@@ -1,6 +1,11 @@
 #!/bin/sh
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+BASE_DIR=$( git rev-parse --show-toplevel )
+cd $BASE_DIR
  
-sh ./clear-gitflow-config.sh
+$SCRIPT_DIR/clear-gitflow-config.sh
 
 ##
 # Removes all Git history 
