@@ -53,8 +53,8 @@ mvn versions:set -DgenerateBackupPoms=false -DnewVersion=1.0-SNAPSHOT
 cd $GIT_BASE_DIR
 rm -rf .git
 git init
-git add .
-git commit -m "Initial commit. pom version 1.0-SNAPSHOT"
+git add --all
+git commit -am "Initial commit. pom version 1.0-SNAPSHOT"
 
 # git remote add origin https://github.com/dkirrane/ggitflow-test1.git
 git remote add origin $ORIGIN
