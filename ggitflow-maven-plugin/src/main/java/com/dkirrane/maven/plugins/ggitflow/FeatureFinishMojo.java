@@ -61,7 +61,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "skipBuild", defaultValue = "false", required = false)
+    @Parameter(property = "skipBuild", defaultValue = "true", required = false)
     private Boolean skipBuild;
 
     /**
@@ -69,7 +69,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "skipTests", defaultValue = "false", required = false)
+    @Parameter(property = "skipTests", defaultValue = "true", required = false)
     private Boolean skipTests;
 
     /**

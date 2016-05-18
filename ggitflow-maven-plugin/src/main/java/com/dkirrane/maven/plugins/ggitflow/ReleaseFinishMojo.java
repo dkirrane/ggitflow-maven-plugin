@@ -60,7 +60,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "updateParent", defaultValue = "true", required = false)
+    @Parameter(property = "updateParent", defaultValue = "false", required = false)
     private Boolean updateParent;
 
     /**
@@ -74,7 +74,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "updateDependencies", defaultValue = "true", required = false)
+    @Parameter(property = "updateDependencies", defaultValue = "false", required = false)
     private Boolean updateDependencies;
 
     /**
@@ -91,7 +91,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "skipBuild", defaultValue = "false", required = false)
+    @Parameter(property = "skipBuild", defaultValue = "true", required = false)
     private Boolean skipBuild;
 
     /**
@@ -99,7 +99,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "skipDeploy", defaultValue = "false", required = false)
+    @Parameter(property = "skipDeploy", defaultValue = "true", required = false)
     private Boolean skipDeploy;
 
     /**
@@ -108,7 +108,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "skipTests", defaultValue = "false", required = false)
+    @Parameter(property = "skipTests", defaultValue = "true", required = false)
     private Boolean skipTests;
 
     /**
