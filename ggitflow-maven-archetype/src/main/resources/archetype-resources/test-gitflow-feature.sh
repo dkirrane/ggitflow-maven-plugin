@@ -10,7 +10,7 @@ function runCmd {
     return $status
 }
 
-# Feature
+# Feature 1
 runCmd mvn ggitflow:feature-start -DfeatureName=JIRA-1-Feature1
 runCmd git commit --allow-empty -m "JIRA-1 feature1 commit"
 runCmd git commit --allow-empty -m "JIRA-2 feature1 commit"
@@ -18,7 +18,10 @@ runCmd mvn ggitflow:feature-finish -DfeatureName=feature/JIRA-1-Feature1
 
 git log --branches --remotes --tags --graph --oneline --decorate
 
-# Feature
+# need to push merged 'Feature 1' in order to start 'Feature 2'
+runCmd git push origin develop
+
+# Feature 2
 runCmd mvn ggitflow:feature-start -DfeatureName=JIRA-2-Feature2
 runCmd git commit --allow-empty -m "JIRA-3 feature2 commit"
 runCmd git commit --allow-empty -m "JIRA-4 feature2 commit"
