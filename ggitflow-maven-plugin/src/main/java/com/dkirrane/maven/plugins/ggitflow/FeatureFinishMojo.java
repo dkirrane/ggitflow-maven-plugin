@@ -26,8 +26,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Merges a feature branch back into the develop.
@@ -35,7 +33,14 @@ import org.slf4j.LoggerFactory;
 @Mojo(name = "feature-finish", aggregator = true)
 public class FeatureFinishMojo extends AbstractFeatureMojo {
 
-    private static final Logger LOG = LoggerFactory.getLogger(FeatureFinishMojo.class.getName());
+    /**
+     * If <code>true</code>, the feature finish merge to develop will get pushed
+     * to the remote repository
+     *
+     * @since 1.6
+     */
+    @Parameter(property = "pushFeatureFinish", defaultValue = "false", required = false)
+    protected boolean pushFeatureFinish;
 
     /**
      * If <code>true</code>, the feature branch will be rebased onto develop,
@@ -92,7 +97,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
-        LOG.debug("Finishing feature");
+        getLog().debug("Finishing feature");
 
         List<String> featureBranches = getGitflowInit().gitLocalFeatureBranches();
 
@@ -114,22 +119,22 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
 
         featureName = promptForExistingFeatureName(featureBranches, featureName);
 
-        LOG.info("Finishing feature '{}'", featureName);
+        getLog().info("Finishing feature '" + featureName + "'");
 
         if (enableFeatureVersions) {
             /* Switch to develop branch and get its current version */
             getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
             reloadReactorProjects();
             String developVersion = project.getVersion();
-            LOG.debug("develop version = " + developVersion);
+            getLog().debug("develop version = " + developVersion);
 
             /* Switch to feature branch and get its current version */
             getGitflowInit().executeLocal("git checkout " + featureName);
             reloadReactorProjects();
             String featureVersion = project.getVersion();
-            LOG.debug("feature version = " + featureVersion);
+            getLog().debug("feature version = " + featureVersion);
 
-            setVersion(developVersion);
+            setVersion(developVersion, pushFeatureFinish);
         }
 
         if (skipBuild == false) {
@@ -140,7 +145,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             }
             runGoals("clean install", additionalArgs.build());
         } else {
-            LOG.debug("Skipping mvn install for feature " + featureName);
+            getLog().debug("Skipping mvn install for feature " + featureName);
         }
 
         GitflowFeature gitflowFeature = new GitflowFeature();

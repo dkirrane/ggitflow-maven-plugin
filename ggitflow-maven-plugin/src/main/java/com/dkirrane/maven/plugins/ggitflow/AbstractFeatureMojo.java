@@ -20,15 +20,11 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  */
 public class AbstractFeatureMojo extends AbstractGitflowMojo {
-
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractFeatureMojo.class.getName());
 
     /**
      * The name for the feature branch
@@ -75,9 +71,9 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
     }
 
     public String getFeatureVersion(String currentVersion, String featureLabel) throws MojoFailureException {
-        LOG.debug("getFeatureVersion from '" + currentVersion + "'");
+        getLog().debug("getFeatureVersion from '" + currentVersion + "'");
         featureLabel = getValidFeatureVersionAnnotation(featureLabel);
-        LOG.debug("Feature version annotation '" + featureLabel + "'");
+        getLog().debug("Feature version annotation '" + featureLabel + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
         String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
@@ -86,7 +82,7 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
         String buildSpecifier = artifactVersion.getBuildSpecifier();
         Character buildSpecifierSeparator = artifactVersion.getBuildSpecifierSeparator();
 
-        LOG.debug("Parsed version = " + artifactVersion.toString());
+        getLog().debug("Parsed version = " + artifactVersion.toString());
         if (!StringUtils.isBlank(annotationAsString)) {
             throw new MojoFailureException("Cannot add feature name to version. An annotation " + annotationAsString + " already exists");
         }
@@ -106,9 +102,9 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
     }
 
     public String getNonFeatureVersion(String version, String featureLabel) {
-        LOG.debug("getNonFeatureVersion from '" + version + "'");
+        getLog().debug("getNonFeatureVersion from '" + version + "'");
         featureLabel = getValidFeatureVersionAnnotation(featureLabel);
-        LOG.debug("Feature version annotation '" + featureLabel + "'");
+        getLog().debug("Feature version annotation '" + featureLabel + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(version);
         String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
@@ -116,9 +112,9 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
         String buildSpecifier = artifactVersion.getBuildSpecifier();
         Character buildSpecifierSeparator = artifactVersion.getBuildSpecifierSeparator();
 
-        LOG.debug("Parsed version = " + artifactVersion.toString());
+        getLog().debug("Parsed version = " + artifactVersion.toString());
         if (StringUtils.isBlank(annotationAsString)) {
-            LOG.warn("Cannot remove feature name from pom version. The version annotation does not exists");
+            getLog().warn("Cannot remove feature name from pom version. The version annotation does not exists");
             return version;
         }
 
@@ -135,7 +131,7 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
 
             return result.toString();
         } else {
-            LOG.warn("Cannot remove feature name from pom version. The version annotation [" + annotationAsString + "] does not match the feature label [" + featureLabel + "]");
+            getLog().warn("Cannot remove feature name from pom version. The version annotation [" + annotationAsString + "] does not match the feature label [" + featureLabel + "]");
             return version;
         }
     }

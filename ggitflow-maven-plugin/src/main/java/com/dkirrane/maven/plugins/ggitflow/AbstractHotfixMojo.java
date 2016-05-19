@@ -25,7 +25,7 @@ public class AbstractHotfixMojo extends AbstractGitflowMojo {
      *
      * @since 1.6
      */
-    @Parameter(property = "pushHotfixBranch", defaultValue = "false", required = false)
+    @Parameter(property = "pushHotfixBranch", defaultValue = "true", required = false)
     protected boolean pushHotfixBranch;
 
 }

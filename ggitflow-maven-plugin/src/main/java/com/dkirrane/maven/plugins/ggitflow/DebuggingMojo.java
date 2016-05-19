@@ -17,8 +17,6 @@ package com.dkirrane.maven.plugins.ggitflow;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Mojo used for Testing
@@ -26,15 +24,13 @@ import org.slf4j.LoggerFactory;
 //@Mojo(name = "debug-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class DebuggingMojo extends AbstractGitflowMojo {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DebuggingMojo.class.getName());
-
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
 
         reloadReactorProjects();
 
-        setVersion("1.4");
+        setVersion("1.4", false);
 
         runGoals("clean deploy", DEFAULT_DEPLOY_ARGS);
     }

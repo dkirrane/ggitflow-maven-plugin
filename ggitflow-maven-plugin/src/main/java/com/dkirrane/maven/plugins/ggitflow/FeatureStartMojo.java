@@ -25,16 +25,12 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Creates a new feature branch off of the develop branch.
  */
 @Mojo(name = "feature-start", aggregator = true)
 public class FeatureStartMojo extends AbstractFeatureMojo {
-
-    private static final Logger LOG = LoggerFactory.getLogger(FeatureStartMojo.class.getName());
 
     /**
      * The commit to start the feature branch from.
@@ -62,9 +58,9 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
         }
         featureName = getFeatureName(featureName);
 
-        LOG.info("Starting feature '" + featureName + "'");
-        LOG.debug("msgPrefix '" + getMsgPrefix() + "'");
-        LOG.debug("msgSuffix '" + getMsgSuffix() + "'");
+        getLog().info("Starting feature '" + featureName + "'");
+        getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
+        getLog().debug("msgSuffix '" + getMsgSuffix() + "'");
 
         GitflowFeature gitflowFeature = new GitflowFeature();
         gitflowFeature.setInit(getGitflowInit());
@@ -85,7 +81,7 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
             String currentVersion = model.getVersion();
 
             String featureVersion = getFeatureVersion(currentVersion, featureName);
-            setVersion(featureVersion);
+            setVersion(featureVersion, pushFeatureBranch);
 
             if (getGitflowInit().gitRemoteBranchExists(prefix + featureName)) {
                 getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + prefix + featureName);
@@ -93,7 +89,7 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
 
             /* print feature version */
             reloadReactorProjects();
-            LOG.debug("project = " + project.getVersion());
+            getLog().debug("project = " + project.getVersion());
         }
     }
 

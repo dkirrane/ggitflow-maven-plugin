@@ -15,11 +15,13 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
+import com.dkirrane.gitflow.groovy.GitflowRelease;
+import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
 import static com.dkirrane.maven.plugins.ggitflow.AbstractGitflowMojo.DEFAULT_DEPLOY_ARGS;
 import static com.dkirrane.maven.plugins.ggitflow.AbstractGitflowMojo.PROFILES_SPLITTER;
-
+import com.google.common.collect.ImmutableList;
 import java.util.List;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -27,13 +29,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.dkirrane.gitflow.groovy.GitflowRelease;
-import com.dkirrane.gitflow.groovy.ex.GitflowException;
-import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
-import com.google.common.collect.ImmutableList;
 
 /**
  * Merges a release branch back into the develop and master branch and then
@@ -41,8 +36,6 @@ import com.google.common.collect.ImmutableList;
  */
 @Mojo(name = "release-finish", aggregator = true)
 public class ReleaseFinishMojo extends AbstractReleaseMojo {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ReleaseFinishMojo.class.getName());
 
     /**
      * If <code>true</code>, the release finish merge to develop & master and
@@ -176,7 +169,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
-        LOG.debug("Finishing release");
+        getLog().debug("Finishing release");
 
         /* Get release branch name */
         List<String> releaseBranches = getGitflowInit().gitLocalReleaseBranches();
@@ -188,14 +181,14 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
             releaseName = promptForExistingReleaseName(releaseBranches, releaseName);
         }
 
-        LOG.info("Finishing release '{}'", releaseName);
+        getLog().info("Finishing release '" + releaseName + "'");
 
         /* Switch to develop branch and get its current version */
         String developBranch = getGitflowInit().getDevelopBranch();
         getGitflowInit().executeLocal("git checkout " + developBranch);
         reloadReactorProjects();
         String developVersion = project.getVersion();
-        LOG.debug("develop version = " + developVersion);
+        getLog().debug("develop version = " + developVersion);
 
         /* Switch to release branch and set poms to release version */
         getGitflowInit().executeLocal("git checkout " + releaseName);
@@ -207,9 +200,9 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         } else {
             releaseVersion = project.getVersion();
         }
-        LOG.debug("release version = " + releaseVersion);
+        getLog().debug("release version = " + releaseVersion);
 
-        setVersion(releaseVersion);
+        setVersion(releaseVersion, pushReleaseFinish);
 
         /* Update release branch dependencies to release version */
         if (updateDependencies) {
@@ -245,7 +238,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         /* 2. make versions in release and develop branches match to avoid conflicts */
         getGitflowInit().executeLocal("git checkout " + releaseName);
         reloadReactorProjects();
-        setVersion(developVersion);
+        setVersion(developVersion, pushReleaseFinish);
 
         /* 3. merge to develop */
         try {
@@ -280,7 +273,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + releaseVersion);
         reloadReactorProjects();
         String tagVersion = project.getVersion();
-        LOG.debug("tag version = " + tagVersion);
+        getLog().debug("tag version = " + tagVersion);
 
         /* install or deploy */
         if (skipDeploy == false) {
@@ -311,7 +304,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
             }
             runGoals("clean install", additionalArgs.build());
         } else {
-            LOG.debug("Skipping both install and deploy for release tag " + releaseName);
+            getLog().debug("Skipping both install and deploy for release tag " + releaseName);
         }
 
         getGitflowInit().executeLocal("git checkout " + developBranch);

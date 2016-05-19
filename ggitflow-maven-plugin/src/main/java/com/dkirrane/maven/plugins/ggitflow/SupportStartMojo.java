@@ -26,8 +26,6 @@ import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 import static org.jfrog.hudson.util.GenericArtifactVersion.DEFAULT_VERSION_COMPONENT_SEPARATOR;
 import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Creates a new support branch from a specific commit on the master branch.
@@ -35,15 +33,13 @@ import org.slf4j.LoggerFactory;
 @Mojo(name = "support-start", aggregator = true)
 public class SupportStartMojo extends AbstractGitflowMojo {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SupportStartMojo.class.getName());
-
     /**
      * If <code>true</code>, the support branch is pushed to the remote
      * repository.
      *
      * @since 1.2
      */
-    @Parameter(property = "pushSupportBranch", defaultValue = "false", required = false)
+    @Parameter(property = "pushSupportBranch", defaultValue = "true", required = false)
     protected boolean pushSupportBranch;
 
     /**
@@ -72,9 +68,9 @@ public class SupportStartMojo extends AbstractGitflowMojo {
         String supportVersion = getSupportVersion(project.getVersion());
         String supportSnapshotVersion = getSupportSnapshotVersion(project.getVersion());
 
-        LOG.info("Starting support branch '" + supportVersion + "'");
-        LOG.debug("msgPrefix '" + getMsgPrefix() + "'");
-        LOG.debug("msgSuffix '" + getMsgSuffix() + "'");
+        getLog().info("Starting support branch '" + supportVersion + "'");
+        getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
+        getLog().debug("msgSuffix '" + getMsgSuffix() + "'");
 
         GitflowSupport gitflowSupport = new GitflowSupport();
         gitflowSupport.setInit(getGitflowInit());
@@ -89,7 +85,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
             throw new MojoFailureException(ge.getMessage());
         }
 
-        setVersion(supportSnapshotVersion);
+        setVersion(supportSnapshotVersion, pushSupportBranch);
 
         if (getGitflowInit().gitRemoteBranchExists(prefix + supportVersion)) {
             getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + prefix + supportVersion);
@@ -110,7 +106,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
     }
 
     private String getSupportVersion(String currentVersion) throws MojoFailureException {
-        LOG.debug("getSupportVersion from '" + currentVersion + "'");
+        getLog().debug("getSupportVersion from '" + currentVersion + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
 
@@ -132,7 +128,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
     }
 
     private String getSupportSnapshotVersion(String currentVersion) throws MojoFailureException {
-        LOG.debug("getSupportSnapshotVersion from '" + currentVersion + "'");
+        getLog().debug("getSupportSnapshotVersion from '" + currentVersion + "'");
 
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
 

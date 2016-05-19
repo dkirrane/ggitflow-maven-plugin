@@ -25,16 +25,12 @@ import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Creates a new release branch off of the develop branch.
  */
 @Mojo(name = "release-start", aggregator = true)
 public class ReleaseStartMojo extends AbstractReleaseMojo {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ReleaseStartMojo.class.getName());
 
     /**
      * Whether to run the plugin in interactive mode or not. The default is to
@@ -92,7 +88,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         reloadReactorProjects();
 
         String developVersion = project.getVersion();
-        LOG.info("Current develop version = " + developVersion);
+        getLog().info("Current develop version = " + developVersion);
 
         /* Get next development version */
         String nextDevelopVersion = getNextDevelopVersion(developVersion);
@@ -104,16 +100,16 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
                 throw new MojoExecutionException("Error reading next development version from command line " + ex.getMessage(), ex);
             }
         }
-        LOG.debug("Next development version = " + developVersion);
+        getLog().debug("Next development version = " + developVersion);
 
         /* Get suggested release version */
         String releaseVersion = getReleaseVersion(developVersion);
-        LOG.debug("release version = " + releaseVersion);
+        getLog().debug("release version = " + releaseVersion);
 
         /* create release branch */
         String prefix = getReleaseBranchPrefix();
         if (!StringUtils.isBlank(releaseName)) {
-            LOG.debug("Using releaseName passed  '" + releaseName + "'");
+            getLog().debug("Using releaseName passed  '" + releaseName + "'");
         } else if (interactive) {
             String message = "What is the release branch name? " + prefix;
             try {
@@ -139,9 +135,9 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
             throw new MojoExecutionException("Parameter <releaseName> value '" + releaseName + "' is not a valid Maven release version.");
         }
 
-        LOG.info("Starting release '" + releaseName + "'");
-        LOG.debug("msgPrefix '" + getMsgPrefix() + "'");
-        LOG.debug("msgSuffix '" + getMsgSuffix() + "'");
+        getLog().info("Starting release '" + releaseName + "'");
+        getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
+        getLog().debug("msgSuffix '" + getMsgSuffix() + "'");
 
         GitflowRelease gitflowRelease = new GitflowRelease();
         gitflowRelease.setInit(getGitflowInit());
@@ -172,12 +168,12 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         String developBranch = (String) getGitflowInit().getDevelopBrnName();
         getGitflowInit().executeLocal("git checkout " + developBranch);
         reloadReactorProjects();
-        setVersion(nextDevelopVersion);
+        setVersion(nextDevelopVersion, pushReleaseBranch);
 
         // checkout release branch again and update it's version to required release version
         getGitflowInit().executeLocal("git checkout " + releaseBranch);
         reloadReactorProjects();
-        setVersion(releaseArtifactVersion.setBuildSpecifier(SNAPSHOT_QUALIFIER).toString());
+        setVersion(releaseArtifactVersion.setBuildSpecifier(SNAPSHOT_QUALIFIER).toString(), pushReleaseBranch);
     }
 
     public String getReleaseName() {

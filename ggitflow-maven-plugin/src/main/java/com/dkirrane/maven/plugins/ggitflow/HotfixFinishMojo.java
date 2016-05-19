@@ -27,8 +27,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Merges a hotfix branch back into the develop and master branch and then
@@ -36,8 +34,6 @@ import org.slf4j.LoggerFactory;
  */
 @Mojo(name = "hotfix-finish", aggregator = true)
 public class HotfixFinishMojo extends AbstractHotfixMojo {
-
-    private static final Logger LOG = LoggerFactory.getLogger(HotfixFinishMojo.class.getName());
 
     protected String hotfixName;
 
@@ -140,7 +136,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
-        LOG.debug("Finishing hotfix");
+        getLog().debug("Finishing hotfix");
 
         /* Get hotfix branch name */
         List<String> hotfixBranches = getGitflowInit().gitLocalHotfixBranches();
@@ -152,24 +148,24 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
             hotfixName = promptForExistingHotfixName(hotfixBranches, hotfixName);
         }
 
-        LOG.info("Finishing hotfix '{}'", hotfixName);
+        getLog().info("Finishing hotfix '" + hotfixName + "'");
 
         /* Switch to develop branch and get its current version */
         String developBranch = getGitflowInit().getDevelopBranch();
         getGitflowInit().executeLocal("git checkout " + developBranch);
         reloadReactorProjects();
         String developVersion = project.getVersion();
-        LOG.debug("develop version = " + developVersion);
+        getLog().debug("develop version = " + developVersion);
 
         /* Switch to hotfix branch and set poms to hotfix version */
         getGitflowInit().executeLocal("git checkout " + hotfixName);
         reloadReactorProjects();
         String hotfixVersion = project.getVersion();
-        LOG.debug("hotfix snapshot version = " + hotfixVersion);
+        getLog().debug("hotfix snapshot version = " + hotfixVersion);
         String hotfixReleaseVersion = getReleaseVersion(hotfixVersion);
-        LOG.debug("hotfix release version = " + hotfixReleaseVersion);
+        getLog().debug("hotfix release version = " + hotfixReleaseVersion);
 
-        setVersion(hotfixReleaseVersion);
+        setVersion(hotfixReleaseVersion, pushHotfixFinish);
 
         if (!allowSnapshots) {
             reloadReactorProjects();
@@ -199,7 +195,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         /* 2. make versions in hotfix and develop branches match to avoid conflicts */
         getGitflowInit().executeLocal("git checkout " + hotfixName);
         reloadReactorProjects();
-        setVersion(developVersion);
+        setVersion(developVersion, pushHotfixFinish);
 
         /* 3. merge to develop */
         try {
@@ -208,14 +204,6 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {
             throw new MojoFailureException(gmce.getMessage());
-//            FixPomMergeConflicts fixPomMergeConflicts = new FixPomMergeConflicts();
-//            try {
-//                fixPomMergeConflicts.resolveConflicts2();
-//            } catch (GitflowException ge) {
-//                throw new MojoFailureException(ge.getMessage());
-//            } catch (GitflowMergeConflictException gmce2) {
-//                throw new MojoFailureException(gmce2.getMessage());
-//            }
         }
 
         /* make sure we're on the develop branch */
@@ -228,7 +216,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixReleaseVersion);
         reloadReactorProjects();
         String tagVersion = project.getVersion();
-        LOG.debug("tag version = " + tagVersion);
+        getLog().debug("tag version = " + tagVersion);
 
         /* install or deploy */
         if (skipDeploy == false) {
@@ -259,7 +247,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
             }
             runGoals("clean install", additionalArgs.build());
         } else {
-            LOG.debug("Skipping both install and deploy for hotfix tag " + hotfixName);
+            getLog().debug("Skipping both install and deploy for hotfix tag " + hotfixName);
         }
 
         getGitflowInit().executeLocal("git checkout " + developBranch);
