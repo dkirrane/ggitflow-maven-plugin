@@ -105,25 +105,22 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             throw new MojoFailureException("No local feature branches exist!");
         }
 
-        String featureBranchPrefix = getFeatureBranchPrefix();
         if (StringUtils.isBlank(featureName)) {
+            String defaultFeatureBranch;
             String currentBranch = getGitflowInit().gitCurrentBranch();
-            if (currentBranch.startsWith(featureBranchPrefix)) {
-                featureName = currentBranch;
+            if (currentBranch.startsWith(getFeatureBranchPrefix())) {
+                defaultFeatureBranch = currentBranch;
             } else {
-                featureName = featureBranches.get(0);
+                defaultFeatureBranch = featureBranches.get(0);
             }
+            String featureBranch = promptForExistingFeatureBranch(featureBranches, defaultFeatureBranch);
+            featureName = trimFeatureName(featureBranch);
         } else {
-            featureName = getFeatureName(featureName);
-            if (!featureName.startsWith(featureBranchPrefix)) {
-                featureName = featureBranchPrefix + featureName;
-            }
-            if(!getGitflowInit().gitLocalBranchExists(featureName)){
+            featureName = trimFeatureName(featureName);
+            if(!getGitflowInit().gitLocalBranchExists(getFeatureBranchPrefix() + featureName)){
                 throw new MojoFailureException("No local feature branch named '" + featureName + "' exists!");
             }            
         }
-
-        featureName = promptForExistingFeatureName(featureBranches, featureName);
 
         getLog().info("Finishing feature '" + featureName + "'");
 
@@ -135,7 +132,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             getLog().debug("develop version = " + developVersion);
 
             /* Switch to feature branch and get its current version */
-            getGitflowInit().executeLocal("git checkout " + featureName);
+            getGitflowInit().executeLocal("git checkout " + getFeatureBranchPrefix() + featureName);
             reloadReactorProjects();
             String featureVersion = project.getVersion();
             getLog().debug("feature version = " + featureVersion);
@@ -173,12 +170,12 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
         }
     }
 
-    private String promptForExistingFeatureName(List<String> featureBranches, String defaultFeatureName) throws MojoFailureException {
+    private String promptForExistingFeatureBranch(List<String> featureBranches, String defaultFeatureBranch) throws MojoFailureException {
         String message = "Please select a feature branch to finish?";
 
         String name = "";
         try {
-            name = prompter.prompt(message, featureBranches, defaultFeatureName);
+            name = prompter.prompt(message, featureBranches, defaultFeatureBranch);
         } catch (PrompterException e) {
             throw new MojoFailureException("Error reading feature name from command line " + e.getMessage());
         }

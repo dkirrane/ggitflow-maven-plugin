@@ -60,13 +60,20 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
         return prefix;
     }
 
-    public String getFeatureName(String featureLabel) throws MojoFailureException {
+    public String trimFeatureName(String featureLabel) throws MojoFailureException {
         if (StringUtils.isBlank(featureLabel)) {
             throw new MojoFailureException("Missing argument <featureName>");
-        }
-
+        }  
+        
+        // remove whitespace
         featureLabel = featureLabel.replaceAll("\\s+", "");
-//        featureLabel = featureLabel.replaceAll("-+", "_");
+
+        // trim off starting any leading 'feature/' prefix
+        String featureBranchPrefix = getFeatureBranchPrefix();
+        if (!featureLabel.startsWith(featureBranchPrefix)) {
+            featureLabel = featureLabel.substring(featureBranchPrefix.length());
+        }            
+        
         return featureLabel;
     }
 

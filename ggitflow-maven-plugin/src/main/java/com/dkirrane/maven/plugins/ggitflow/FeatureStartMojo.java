@@ -56,7 +56,7 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
                 throw new MojoExecutionException("Error reading feature name from command line " + ex.getMessage(), ex);
             }
         }
-        featureName = getFeatureName(featureName);
+        featureName = trimFeatureName(featureName);
 
         getLog().info("Starting feature '" + featureName + "'");
         getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
@@ -91,10 +91,6 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
             reloadReactorProjects();
             getLog().debug("project = " + project.getVersion());
         }
-    }
-
-    public String getFeatureName() {
-        return featureName;
     }
 
 }
