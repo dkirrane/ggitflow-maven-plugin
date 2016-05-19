@@ -17,21 +17,17 @@ package com.dkirrane.maven.plugins.ggitflow;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
 
 /**
- * Mojo used for Testing
+ * Mojo to initialise Gitflow branches
  */
-//@Mojo(name = "debug-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
-public class DebuggingMojo extends AbstractGitflowMojo {
+@Mojo(name = "init", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
+public class InitMojo extends AbstractGitflowMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
-
-        reloadReactorProjects();
-
-        setVersion("1.4", false);
-
-        runGoals("clean deploy", DEFAULT_DEPLOY_ARGS);
     }
 }

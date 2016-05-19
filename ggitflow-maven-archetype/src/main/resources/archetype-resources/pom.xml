@@ -7,7 +7,7 @@
     <version>${version}</version>
     <packaging>pom</packaging>
     <name>${artifactId}</name>
-    
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -17,18 +17,7 @@
             <plugin>
                 <groupId>com.dkirrane.maven.plugins</groupId>
                 <artifactId>ggitflow-maven-plugin</artifactId>
-                <version>${version}</version>
-                <configuration>
-                    <prefixes>
-                        <masterBranch>master</masterBranch>
-                        <developBranch>development</developBranch>
-                        <featureBranchPrefix>feature/</featureBranchPrefix>
-                        <releaseBranchPrefix>release/</releaseBranchPrefix>
-                        <hotfixBranchPrefix>hotfix/</hotfixBranchPrefix>
-                        <supportBranchPrefix>support/</supportBranchPrefix>
-                        <versionTagPrefix>v-</versionTagPrefix>
-                    </prefixes>
-                </configuration>
+                <version>1.6-SNAPSHOT</version>
             </plugin>
         </plugins>
     </build>
@@ -37,10 +26,6 @@
         <pluginRepository>
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public</url>
-            <releases>
-            </releases>
-            <snapshots>
-            </snapshots>
         </pluginRepository>
     </pluginRepositories>
 </project>
