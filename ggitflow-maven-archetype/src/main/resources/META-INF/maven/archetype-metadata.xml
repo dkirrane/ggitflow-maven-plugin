@@ -13,7 +13,8 @@
             <directory></directory>
             <includes>
                 <include>.gitignore</include>
-                <include>unset-gitlfow-config.sh</include>
+                <include>*.sh</include>
+                <include>README.*</include>
             </includes>
         </fileSet>
     </fileSets>
