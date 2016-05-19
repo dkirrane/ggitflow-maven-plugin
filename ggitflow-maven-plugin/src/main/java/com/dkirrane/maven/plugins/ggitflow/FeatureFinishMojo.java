@@ -99,6 +99,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
         super.execute();
         getLog().debug("Finishing feature");
 
+        String prefix = getFeatureBranchPrefix();
         List<String> featureBranches = getGitflowInit().gitLocalFeatureBranches();
 
         if (null == featureBranches || featureBranches.isEmpty()) {
@@ -108,7 +109,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
         if (StringUtils.isBlank(featureName)) {
             String defaultFeatureBranch;
             String currentBranch = getGitflowInit().gitCurrentBranch();
-            if (currentBranch.startsWith(getFeatureBranchPrefix())) {
+            if (currentBranch.startsWith(prefix)) {
                 defaultFeatureBranch = currentBranch;
             } else {
                 defaultFeatureBranch = featureBranches.get(0);
@@ -117,8 +118,8 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             featureName = trimFeatureName(featureBranch);
         } else {
             featureName = trimFeatureName(featureName);
-            if(!getGitflowInit().gitLocalBranchExists(getFeatureBranchPrefix() + featureName)){
-                throw new MojoFailureException("No local feature branch named '" + featureName + "' exists!");
+            if(!getGitflowInit().gitLocalBranchExists(prefix + featureName)){
+                throw new MojoFailureException("No local feature branch named '" + prefix + featureName + "' exists!");
             }            
         }
 
@@ -132,7 +133,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             getLog().debug("develop version = " + developVersion);
 
             /* Switch to feature branch and get its current version */
-            getGitflowInit().executeLocal("git checkout " + getFeatureBranchPrefix() + featureName);
+            getGitflowInit().executeLocal("git checkout " + prefix + featureName);
             reloadReactorProjects();
             String featureVersion = project.getVersion();
             getLog().debug("feature version = " + featureVersion);

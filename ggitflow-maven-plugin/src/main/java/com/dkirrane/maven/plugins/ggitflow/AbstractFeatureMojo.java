@@ -70,7 +70,7 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
 
         // trim off starting any leading 'feature/' prefix
         String featureBranchPrefix = getFeatureBranchPrefix();
-        if (!featureLabel.startsWith(featureBranchPrefix)) {
+        if (featureLabel.startsWith(featureBranchPrefix)) {
             featureLabel = featureLabel.substring(featureBranchPrefix.length());
         }            
         
@@ -106,41 +106,6 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
         }
 
         return result.toString();
-    }
-
-    public String getNonFeatureVersion(String version, String featureLabel) {
-        getLog().debug("getNonFeatureVersion from '" + version + "'");
-        featureLabel = getValidFeatureVersionAnnotation(featureLabel);
-        getLog().debug("Feature version annotation '" + featureLabel + "'");
-
-        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(version);
-        String primaryNumbersAsString = artifactVersion.getPrimaryNumbersAsString();
-        String annotationAsString = artifactVersion.getAnnotationAsString();
-        String buildSpecifier = artifactVersion.getBuildSpecifier();
-        Character buildSpecifierSeparator = artifactVersion.getBuildSpecifierSeparator();
-
-        getLog().debug("Parsed version = " + artifactVersion.toString());
-        if (StringUtils.isBlank(annotationAsString)) {
-            getLog().warn("Cannot remove feature name from pom version. The version annotation does not exists");
-            return version;
-        }
-
-        if (('-' + featureLabel).equals(annotationAsString)) {
-            final StringBuilder result = new StringBuilder(30);
-            result.append(primaryNumbersAsString);
-
-            if (buildSpecifier != null) {
-                if (buildSpecifierSeparator != null) {
-                    result.append(buildSpecifierSeparator);
-                }
-                result.append(buildSpecifier);
-            }
-
-            return result.toString();
-        } else {
-            getLog().warn("Cannot remove feature name from pom version. The version annotation [" + annotationAsString + "] does not match the feature label [" + featureLabel + "]");
-            return version;
-        }
     }
 
     private String getValidFeatureVersionAnnotation(String featureLabel) {
