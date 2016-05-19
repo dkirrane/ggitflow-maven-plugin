@@ -74,10 +74,10 @@ public class AbstractGitflowMojo extends AbstractMojo {
     public final Pattern matchSnapshotRegex = Pattern.compile("-SNAPSHOT");
 
     public static final ImmutableList<String> DEFAULT_INSTALL_ARGS = ImmutableList.of(
-            "-DinstallAtEnd=true");
+            "-DinstallAtEnd=false");
 
     public static final ImmutableList<String> DEFAULT_DEPLOY_ARGS = ImmutableList.of(
-            "-DdeployAtEnd=true",
+            "-DdeployAtEnd=false",
             "-DretryFailedDeploymentCount=2");
 
     public static final Splitter PROFILES_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();

@@ -25,7 +25,7 @@
                 <goal>deploy</goal>
             </goals>
             <properties>
-                <deployAtEnd>true</deployAtEnd>
+                
                 <skipTests>true</skipTests>
             </properties>
         </action>
