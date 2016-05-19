@@ -10,7 +10,5 @@ function runCmd {
     return $status
 }
 
-# Init
+# Gitflow Init
 runCmd mvn ggitflow:init
-
-git log --branches --remotes --tags --graph --oneline --decorate

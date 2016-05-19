@@ -10,5 +10,5 @@ function runCmd {
     return $status
 }
 
-# Support Start (ServicePack) - e.g. release version 3.0.0.0 becomes support version 3.0.1.0-SNAPSHOT
-runCmd mvn ggitflow:support-start
+# Release Finish
+runCmd mvn ggitflow:release-finish

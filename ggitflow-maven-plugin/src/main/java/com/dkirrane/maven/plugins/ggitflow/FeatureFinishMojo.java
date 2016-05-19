@@ -102,7 +102,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
         List<String> featureBranches = getGitflowInit().gitLocalFeatureBranches();
 
         if (null == featureBranches || featureBranches.isEmpty()) {
-            throw new MojoFailureException("No local feature branches exit!");
+            throw new MojoFailureException("No local feature branches exist!");
         }
 
         String featureBranchPrefix = getFeatureBranchPrefix();
@@ -115,6 +115,12 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             }
         } else {
             featureName = getFeatureName(featureName);
+            if (!featureName.startsWith(featureBranchPrefix)) {
+                featureName = featureBranchPrefix + featureName;
+            }
+            if(!getGitflowInit().gitLocalBranchExists(featureName)){
+                throw new MojoFailureException("No local feature branch named '" + featureName + "' exists!");
+            }            
         }
 
         featureName = promptForExistingFeatureName(featureBranches, featureName);

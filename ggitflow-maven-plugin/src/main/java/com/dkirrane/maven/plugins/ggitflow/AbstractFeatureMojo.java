@@ -40,7 +40,7 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
      *
      * @since 1.2
      */
-    @Parameter(property = "enableFeatureVersions", defaultValue = "false", required = false)
+    @Parameter(property = "enableFeatureVersions", defaultValue = "true", required = false)
     protected boolean enableFeatureVersions;
 
     /**

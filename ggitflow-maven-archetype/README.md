@@ -1,4 +1,13 @@
-Maven Archetype that will get you started with the ggitflow-maven-plugin
+################################################################################
+#
+# Maven Archetype that will get you started with the ggitflow-maven-plugin
+#
+################################################################################
+
+# Manually download the plugin
+mvn org.apache.maven.plugins:maven-dependency-plugin:get \
+    -DrepoUrl=https://oss.sonatype.org/content/groups/public \
+    -Dartifact=com.dkirrane.maven.plugins:ggitflow-maven-plugin:1.6-SNAPSHOT
 
 For example, run the following command to create a sample multi-module project
 with ggitflow-maven-plugin configured:
