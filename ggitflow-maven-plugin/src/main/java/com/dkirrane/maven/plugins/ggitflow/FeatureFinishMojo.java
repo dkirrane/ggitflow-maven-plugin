@@ -87,12 +87,22 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
     private Boolean squash;
 
     /**
-     * If <code>true</code>, the branch will not be deleted after the merge.
+     * If <code>true</code>, the local feature branch will not be deleted after
+     * the merge.
      *
-     * @since 1.2
+     * @since 1.6
      */
     @Parameter(property = "keep", defaultValue = "false", required = false)
-    private Boolean keep;
+    private Boolean keepLocal;
+
+    /**
+     * If <code>true</code>, the remote feature branch will not be deleted after
+     * the merge.
+     *
+     * @since 1.6
+     */
+    @Parameter(property = "keep", defaultValue = "true", required = false)
+    private Boolean keepRemote;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -118,9 +128,9 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             featureName = trimFeatureName(featureBranch);
         } else {
             featureName = trimFeatureName(featureName);
-            if(!getGitflowInit().gitLocalBranchExists(prefix + featureName)){
+            if (!getGitflowInit().gitLocalBranchExists(prefix + featureName)) {
                 throw new MojoFailureException("No local feature branch named '" + prefix + featureName + "' exists!");
-            }            
+            }
         }
 
         getLog().info("Finishing feature '" + featureName + "'");
@@ -158,7 +168,8 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
         gitflowFeature.setMsgSuffix(getMsgSuffix());
         gitflowFeature.setPush(pushFeatureBranch);
         gitflowFeature.setSquash(squash);
-        gitflowFeature.setKeep(keep);
+        gitflowFeature.setKeepLocal(keepLocal);
+        gitflowFeature.setKeepRemote(keepRemote);
         gitflowFeature.setIsRebase(isRebase);
         gitflowFeature.setIsInteractive(isInteractive);
 

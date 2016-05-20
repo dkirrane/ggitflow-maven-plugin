@@ -143,12 +143,22 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
     private Boolean squash;
 
     /**
-     * If <code>true</code>, the branch will not be deleted after the merge.
+     * If <code>true</code>, the local release branch will not be deleted after
+     * the merge.
      *
-     * @since 1.2
+     * @since 1.6
      */
     @Parameter(property = "keep", defaultValue = "false", required = false)
-    private Boolean keep;
+    private Boolean keepLocal;
+
+    /**
+     * If <code>true</code>, the remote release branch will not be deleted after
+     * the merge.
+     *
+     * @since 1.6
+     */
+    @Parameter(property = "keep", defaultValue = "true", required = false)
+    private Boolean keepRemote;
 
     /**
      * If <code>true</code>, the release tag will be signed.
@@ -222,7 +232,8 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         gitflowRelease.setMsgSuffix(getMsgSuffix());
         gitflowRelease.setPush(pushReleaseBranch);
         gitflowRelease.setSquash(squash);
-        gitflowRelease.setKeep(keep);
+        gitflowRelease.setKeepLocal(keepLocal);
+        gitflowRelease.setKeepRemote(keepRemote);
         gitflowRelease.setSign(sign);
         gitflowRelease.setSigningkey(signingkey);
 

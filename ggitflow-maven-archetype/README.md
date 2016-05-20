@@ -7,7 +7,7 @@
 # Manually download the plugin
 mvn org.apache.maven.plugins:maven-dependency-plugin:get \
     -DrepoUrl=https://oss.sonatype.org/content/groups/public \
-    -Dartifact=com.dkirrane.maven.plugins:ggitflow-maven-plugin:1.6-SNAPSHOT
+    -Dartifact=com.dkirrane.maven.plugins:ggitflow-maven-plugin:1.6
 
 For example, run the following command to create a sample multi-module project
 with ggitflow-maven-plugin configured:
@@ -21,7 +21,7 @@ mvn archetype:generate \
     -DinteractiveMode=true \
     -DarchetypeGroupId=com.dkirrane.maven.archetype \
     -DarchetypeArtifactId=ggitflow-maven-archetype \
-    -DarchetypeVersion=1.6-SNAPSHOT \
+    -DarchetypeVersion=1.6 \
     -DarchetypeRepository=https://oss.sonatype.org/content/repositories/snapshots
 
 
@@ -30,7 +30,7 @@ mvn archetype:generate \
     -DinteractiveMode=false \
     -DarchetypeGroupId=com.dkirrane.maven.archetype \
     -DarchetypeArtifactId=ggitflow-maven-archetype \
-    -DarchetypeVersion=1.6-SNAPSHOT \
+    -DarchetypeVersion=1.6 \
     -DarchetypeRepository=https://oss.sonatype.org/content/repositories/snapshots \
     -DgroupId=com.mycompany -DartifactId=my-proj -Dversion=1.0-SNAPSHOT
 
