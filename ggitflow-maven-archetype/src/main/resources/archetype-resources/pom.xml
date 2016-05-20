@@ -17,7 +17,10 @@
             <plugin>
                 <groupId>com.dkirrane.maven.plugins</groupId>
                 <artifactId>ggitflow-maven-plugin</artifactId>
-                <version>1.6-SNAPSHOT</version>
+                <version>1.7</version>
+                <configuration>
+                    <msgPrefix>[ggitflow-maven-plugin]</msgPrefix>
+                </configuration>
             </plugin>
         </plugins>
     </build>

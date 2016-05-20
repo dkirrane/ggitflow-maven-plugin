@@ -110,12 +110,22 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
     private Boolean squash;
 
     /**
-     * If <code>true</code>, the branch will not be deleted after the merge.
+     * If <code>true</code>, the hotfix feature branch will not be deleted after
+     * the merge.
      *
-     * @since 1.2
+     * @since 1.6
      */
     @Parameter(property = "keep", defaultValue = "false", required = false)
-    private Boolean keep;
+    private Boolean keepLocal;
+
+    /**
+     * If <code>true</code>, the hotfix feature branch will not be deleted after
+     * the merge.
+     *
+     * @since 1.6
+     */
+    @Parameter(property = "keep", defaultValue = "true", required = false)
+    private Boolean keepRemote;
 
     /**
      * If <code>true</code>, the hotfix tag will be signed.
@@ -179,7 +189,8 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         gitflowHotfix.setMsgSuffix(getMsgSuffix());
         gitflowHotfix.setPush(pushHotfixBranch);
         gitflowHotfix.setSquash(squash);
-        gitflowHotfix.setKeep(keep);
+        gitflowHotfix.setKeepLocal(keepLocal);
+        gitflowHotfix.setKeepRemote(keepRemote);
         gitflowHotfix.setSign(sign);
         gitflowHotfix.setSigningkey(signingkey);
 
