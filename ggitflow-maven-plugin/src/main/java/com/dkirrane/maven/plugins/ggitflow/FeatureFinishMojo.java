@@ -148,7 +148,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
             String featureVersion = project.getVersion();
             getLog().debug("feature version = " + featureVersion);
 
-            setVersion(developVersion, pushFeatureFinish);
+            setVersion(developVersion, pushFeatureFinish, prefix + featureName);
         }
 
         if (skipBuild == false) {

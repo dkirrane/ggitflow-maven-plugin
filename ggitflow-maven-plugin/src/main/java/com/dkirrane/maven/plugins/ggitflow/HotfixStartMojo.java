@@ -59,9 +59,10 @@ public class HotfixStartMojo extends AbstractHotfixMojo {
             throw new MojoFailureException(ge.getMessage());
         }
 
-        setVersion(hotfixSnapshotVersion, pushHotfixBranch);
-
         String prefix = getGitflowInit().getHotfixBranchPrefix();
+
+        setVersion(hotfixSnapshotVersion, pushHotfixBranch, prefix + hotfixVersion);
+
         if (getGitflowInit().gitRemoteBranchExists(prefix + hotfixVersion)) {
             getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + prefix + hotfixVersion);
         }

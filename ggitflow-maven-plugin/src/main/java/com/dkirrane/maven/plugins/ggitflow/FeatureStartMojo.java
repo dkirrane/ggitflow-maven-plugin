@@ -81,7 +81,7 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
             String currentVersion = model.getVersion();
 
             String featureVersion = getFeatureVersion(currentVersion, featureName);
-            setVersion(featureVersion, pushFeatureBranch);
+            setVersion(featureVersion, pushFeatureBranch, prefix + featureName);
 
             if (getGitflowInit().gitRemoteBranchExists(prefix + featureName)) {
                 getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + prefix + featureName);

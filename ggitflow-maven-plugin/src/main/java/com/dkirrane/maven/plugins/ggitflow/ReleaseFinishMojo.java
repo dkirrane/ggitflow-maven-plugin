@@ -212,17 +212,32 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         }
         getLog().debug("release version = " + releaseVersion);
 
-        setVersion(releaseVersion, pushReleaseFinish);
+        boolean setVersion = setVersion(releaseVersion, pushReleaseFinish, releaseName);
 
         /* Update release branch dependencies to release version */
+        boolean setNextVersions = false;
         if (updateDependencies) {
             reloadReactorProjects();
-            setNextVersions(false, updateParent, includes);
+            setNextVersions = setNextVersions(false, updateParent, includes);
         }
 
         if (!allowSnapshots) {
             reloadReactorProjects();
-            checkForSnapshotDependencies();
+            try {
+                checkForSnapshotDependencies();
+            } catch (MojoExecutionException mee) {
+                // reset setNextVersions and/or setVersion commits to allow user fix & push SNAPSHOT dependencies
+                // but can only reset if it the commits have not been pushed */
+                if (!pushReleaseFinish) {
+                    if (setNextVersions) {
+                        getGitflowInit().executeLocal("git reset HEAD~1");
+                    }
+                    if (setVersion) {
+                        getGitflowInit().executeLocal("git reset HEAD~1");
+                    }
+                }
+                throw mee;
+            }
         }
 
         /* finish release */
@@ -249,7 +264,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         /* 2. make versions in release and develop branches match to avoid conflicts */
         getGitflowInit().executeLocal("git checkout " + releaseName);
         reloadReactorProjects();
-        setVersion(developVersion, pushReleaseFinish);
+        setVersion(developVersion, pushReleaseFinish, releaseName);
 
         /* 3. merge to develop */
         try {

@@ -168,12 +168,12 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         String developBranch = (String) getGitflowInit().getDevelopBrnName();
         getGitflowInit().executeLocal("git checkout " + developBranch);
         reloadReactorProjects();
-        setVersion(nextDevelopVersion, pushReleaseBranch);
+        setVersion(nextDevelopVersion, pushReleaseBranch, developBranch);
 
         // checkout release branch again and update it's version to required release version
         getGitflowInit().executeLocal("git checkout " + releaseBranch);
         reloadReactorProjects();
-        setVersion(releaseArtifactVersion.setBuildSpecifier(SNAPSHOT_QUALIFIER).toString(), pushReleaseBranch);
+        setVersion(releaseArtifactVersion.setBuildSpecifier(SNAPSHOT_QUALIFIER).toString(), pushReleaseBranch, releaseBranch);
     }
 
     public String getReleaseName() {

@@ -175,11 +175,20 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         String hotfixReleaseVersion = getReleaseVersion(hotfixVersion);
         getLog().debug("hotfix release version = " + hotfixReleaseVersion);
 
-        setVersion(hotfixReleaseVersion, pushHotfixFinish);
+        boolean setVersion = setVersion(hotfixReleaseVersion, pushHotfixFinish, hotfixName);
 
         if (!allowSnapshots) {
             reloadReactorProjects();
-            checkForSnapshotDependencies();
+            try {
+                checkForSnapshotDependencies();
+            } catch (MojoExecutionException mee) {
+                // reset setVersion commit and allow user fix & push SNAPSHOT dependencies
+                // but can only reset if the commit has not been pushed */
+                if (!pushHotfixFinish && setVersion) {
+                    getGitflowInit().executeLocal("git reset HEAD~1");
+                }
+                throw mee;
+            }
         }
 
         /* finish hotfix */
@@ -206,7 +215,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         /* 2. make versions in hotfix and develop branches match to avoid conflicts */
         getGitflowInit().executeLocal("git checkout " + hotfixName);
         reloadReactorProjects();
-        setVersion(developVersion, pushHotfixFinish);
+        setVersion(developVersion, pushHotfixFinish, hotfixName);
 
         /* 3. merge to develop */
         try {

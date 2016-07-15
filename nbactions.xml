@@ -4,10 +4,12 @@
         <actionName>CUSTOM-versions:set</actionName>
         <displayName>versions:set</displayName>
         <goals>
-            <goal>versions:set</goal>
+            <goal>org.codehaus.mojo:versions-maven-plugin:2.2:set</goal>
         </goals>
         <properties>
             <generateBackupPoms>false</generateBackupPoms>
+            <versions.logOutput>false</versions.logOutput>
+            
         </properties>
     </action>
     <action>

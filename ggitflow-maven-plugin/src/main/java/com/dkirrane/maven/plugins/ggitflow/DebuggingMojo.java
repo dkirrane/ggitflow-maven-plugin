@@ -30,7 +30,7 @@ public class DebuggingMojo extends AbstractGitflowMojo {
 
         reloadReactorProjects();
 
-        setVersion("1.4", false);
+        setVersion("1.4", false, "someBranchName");
 
         runGoals("clean deploy", DEFAULT_DEPLOY_ARGS);
     }
