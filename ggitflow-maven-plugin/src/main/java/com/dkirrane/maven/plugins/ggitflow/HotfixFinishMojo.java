@@ -185,7 +185,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
                 // reset setVersion commit and allow user fix & push SNAPSHOT dependencies
                 // but can only reset if the commit has not been pushed */
                 if (!pushHotfixFinish && setVersion) {
-                    getGitflowInit().executeLocal("git reset HEAD~1");
+                    getGitflowInit().executeLocal("git reset --hard HEAD~1");
                 }
                 throw mee;
             }

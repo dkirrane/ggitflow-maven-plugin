@@ -230,10 +230,10 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
                 // but can only reset if it the commits have not been pushed */
                 if (!pushReleaseFinish) {
                     if (setNextVersions) {
-                        getGitflowInit().executeLocal("git reset HEAD~1");
+                        getGitflowInit().executeLocal("git reset --hard HEAD~1");
                     }
                     if (setVersion) {
-                        getGitflowInit().executeLocal("git reset HEAD~1");
+                        getGitflowInit().executeLocal("git reset --hard HEAD~1");
                     }
                 }
                 throw mee;
