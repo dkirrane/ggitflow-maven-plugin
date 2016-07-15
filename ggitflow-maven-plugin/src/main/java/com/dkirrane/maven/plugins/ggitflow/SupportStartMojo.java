@@ -85,7 +85,7 @@ public class SupportStartMojo extends AbstractGitflowMojo {
             throw new MojoFailureException(ge.getMessage());
         }
 
-        setVersion(supportSnapshotVersion, pushSupportBranch);
+        setVersion(supportSnapshotVersion, pushSupportBranch, prefix + supportVersion);
 
         if (getGitflowInit().gitRemoteBranchExists(prefix + supportVersion)) {
             getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + prefix + supportVersion);

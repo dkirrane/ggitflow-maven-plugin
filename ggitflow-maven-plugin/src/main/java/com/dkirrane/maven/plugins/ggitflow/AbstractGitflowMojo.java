@@ -22,6 +22,10 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import java.io.File;
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -35,6 +39,7 @@ import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.model.building.ModelBuildingRequest;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
@@ -244,7 +249,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
             init.setVersionTagPref(prefixes.getVersionTagPrefix());
 
             /* root Git directory may not be the pom directory */
-            String gitRootPath = init.executeLocal("git rev-parse --show-toplevel"); 
+            String gitRootPath = init.executeLocal("git rev-parse --show-toplevel");
             getLog().debug("Git repo top level " + gitRootPath);
             File baseGitDir = new File(gitRootPath);
             if (baseGitDir.isDirectory()) {
@@ -255,45 +260,81 @@ public class AbstractGitflowMojo extends AbstractMojo {
         return init;
     }
 
-    protected final void setVersion(String version, Boolean push) throws MojoExecutionException, MojoFailureException {
-        getLog().debug("START org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
+    protected final boolean setVersion(String version, Boolean push, String branch) throws MojoExecutionException, MojoFailureException {
+        getLog().debug("START org.codehaus.mojo:versions-maven-plugin:2.2:set '" + version + "'");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
         session.setProjects(reactorProjects);
 
-        for (MavenProject mavenProject : reactorProjects) {
-            getLog().debug("Calling versions-maven-plugin:set on " + mavenProject.getArtifactId());
-            session.setCurrentProject(mavenProject);
+//        session.getRequest().setLoggingLevel(MavenExecutionRequest.LOGGING_LEVEL_WARN);
+//        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "error");
+//        System.setProperty("maven.logging.root.level", "error");
+        Plugin versionsPlugin = plugin(
+                groupId("org.codehaus.mojo"),
+                artifactId("versions-maven-plugin"),
+                version("2.2")
+        );
+
+        String goal = goal("set");
+
+        MavenProject topLevelProject = session.getTopLevelProject();
+        getLog().info("");
+        getLog().info("--- " + versionsPlugin.getArtifactId() + ':' + versionsPlugin.getVersion() + ':' + goal + " " + topLevelProject.getArtifactId() + " to " + version + " (" + branch + ") ---");
+        session.setCurrentProject(topLevelProject);
+        PrintStream stdout = System.out;
+        try {
+
+            /* Capture System.out */
+            PipedOutputStream pipeOut;
+            PipedInputStream pipeIn;
+            PrintStream printOut;
             try {
-                executeMojo(
-                        plugin(
-                                groupId("org.codehaus.mojo"),
-                                artifactId("versions-maven-plugin"),
-                                version("2.1")
-                        ),
-                        goal("set"),
-                        configuration(
-                                element(name("generateBackupPoms"), "false"),
-                                element(name("newVersion"), version)
-                        ),
-                        executionEnvironment(
-                                mavenProject,
-                                session,
-                                pluginManager
-                        )
-                );
-            } catch (MojoExecutionException mee) {
-                String rootCauseMessage = ExceptionUtils.getRootCauseMessage(mee);
-                if (rootCauseMessage.contains("Project version is inherited from parent")) {
-                    getLog().warn("Skipping versions-maven-plugin:set for project " + mavenProject.getArtifactId() + ". Project version is inherited from parent.");
-                } else {
-                    getLog().error("Cannot set "+mavenProject.getArtifactId()+" to version '"+version+ "'", mee);
-                    throw mee;
-                }
+                pipeOut = new PipedOutputStream();
+                pipeIn = new PipedInputStream(pipeOut);
+                printOut = new PrintStream(pipeOut);
+                System.setOut(printOut);
+            } catch (IOException ioe) {
+                throw new MojoExecutionException("Failed to capture System.out", ioe);
+            }
+
+            /* Execute versions:set */
+            executeMojo(
+                    versionsPlugin,
+                    goal,
+                    configuration(
+                            element(name("generateBackupPoms"), "false"),
+                            element(name("newVersion"), version)
+                    ),
+                    executionEnvironment(
+                            topLevelProject,
+                            session,
+                            pluginManager
+                    )
+            );
+
+            /* Reset System.out */
+            try {
+                System.setOut(stdout);
+                printOut.close();
+                pipeIn.close();
+                printOut.close();
+            } catch (IOException ex) {
+            }
+
+        } catch (MojoExecutionException mee) {
+            /* Reset System.out */
+            System.setOut(stdout);
+            String rootCauseMessage = ExceptionUtils.getRootCauseMessage(mee);
+            if (rootCauseMessage.contains("Project version is inherited from parent")) {
+                getLog().debug("Skipping versions-maven-plugin:set for project " + topLevelProject.getArtifactId() + ". Project version is inherited from parent.");
+            } else {
+                getLog().error("Cannot set " + topLevelProject.getArtifactId() + " to version '" + version + "'", mee);
+                throw mee;
             }
         }
-        getLog().debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:set '" + version + "'");
+        getLog().info("------------------------------------------------------------------------");
 
+        boolean commitMade = false;
         if (!getGitflowInit().gitIsCleanWorkingTree()) {
             String msg = getMsgPrefix() + "Updating poms to version " + version + "" + getMsgSuffix();
             getGitflowInit().executeLocal("git add -A .");
@@ -309,26 +350,28 @@ public class AbstractGitflowMojo extends AbstractMojo {
                     throw new MojoExecutionException("Failed to push version change " + version + " to origin. ExitCode:" + exitCode);
                 }
             }
+            commitMade = true;
         }
         /* We don't want to fail maybe the version was manually set correctly */
 //        else {
 //            throw new MojoFailureException("Failed to update poms to version " + version);
 //        }
+        return commitMade;
     }
 
-    protected final void setNextVersions(Boolean allowSnapshots, Boolean updateParent, String includes) throws MojoExecutionException, MojoFailureException {
+    protected final boolean setNextVersions(Boolean allowSnapshots, Boolean updateParent, String includes) throws MojoExecutionException, MojoFailureException {
         getLog().debug("setNextVersions");
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
         session.setProjects(reactorProjects);
 
         if (updateParent) {
-            getLog().debug("START org.codehaus.mojo:versions-maven-plugin:2.1:update-parent updateParent=" + updateParent);
+            getLog().debug("START org.codehaus.mojo:versions-maven-plugin:2.2:update-parent updateParent=" + updateParent);
             executeMojo(
                     plugin(
                             groupId("org.codehaus.mojo"),
                             artifactId("versions-maven-plugin"),
-                            version("2.1")
+                            version("2.2")
                     ),
                     goal("update-parent"),
                     configuration(
@@ -341,11 +384,11 @@ public class AbstractGitflowMojo extends AbstractMojo {
                             pluginManager
                     )
             );
-            getLog().debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:update-parent");
+            getLog().debug("DONE org.codehaus.mojo:versions-maven-plugin:2.2:update-parent");
         }
 
         if (!StringUtils.isBlank(includes)) {
-            getLog().debug("START org.codehaus.mojo:versions-maven-plugin:2.1:use-next-versions allowSnapshots=" + allowSnapshots);
+            getLog().debug("START org.codehaus.mojo:versions-maven-plugin:2.2:use-next-versions allowSnapshots=" + allowSnapshots);
             for (MavenProject mavenProject : reactorProjects) {
                 getLog().debug("Calling use-next-versions on " + mavenProject.getArtifactId());
                 session.setCurrentProject(mavenProject);
@@ -353,7 +396,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                         plugin(
                                 groupId("org.codehaus.mojo"),
                                 artifactId("versions-maven-plugin"),
-                                version("2.1")
+                                version("2.2")
                         ),
                         goal("use-next-versions"),
                         configuration(
@@ -368,11 +411,12 @@ public class AbstractGitflowMojo extends AbstractMojo {
                         )
                 );
             }
-            getLog().debug("DONE org.codehaus.mojo:versions-maven-plugin:2.1:use-next-versions");
+            getLog().debug("DONE org.codehaus.mojo:versions-maven-plugin:2.2:use-next-versions");
         } else {
             getLog().warn("Parameter <includes> is not set. Skipping dependency updates");
         }
 
+        boolean commitMade = false;
         if (!getGitflowInit().gitIsCleanWorkingTree()) {
             String msg;
             if (allowSnapshots) {
@@ -394,7 +438,9 @@ public class AbstractGitflowMojo extends AbstractMojo {
                     throw new MojoExecutionException("Failed to push version change to origin. ExitCode:" + exitCode);
                 }
             }
+            commitMade = true;
         }
+        return commitMade;
     }
 
     protected final void runGoals(String goals, List<String> additionalArgs) throws MojoExecutionException, MojoFailureException {
