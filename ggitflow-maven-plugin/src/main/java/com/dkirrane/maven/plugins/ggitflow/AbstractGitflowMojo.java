@@ -17,15 +17,19 @@ package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowInit;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import com.dkirrane.maven.plugins.ggitflow.util.Finder;
+import com.dkirrane.maven.plugins.ggitflow.util.Finder.Syntax;
 import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -60,6 +64,7 @@ import org.apache.maven.shared.release.env.ReleaseEnvironment;
 import org.apache.maven.shared.release.exec.MavenExecutor;
 import org.apache.maven.shared.release.exec.MavenExecutorException;
 import org.codehaus.plexus.components.interactivity.Prompter;
+import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.dag.CycleDetectedException;
 import org.jfrog.hudson.util.GenericArtifactVersion;
@@ -198,6 +203,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
 //    @Component
 //    protected Settings settings;
     private GitflowInit init;
+    private Path tempDir;
 
     protected final MavenProject getProject() {
         return project;
@@ -256,6 +262,20 @@ public class AbstractGitflowMojo extends AbstractMojo {
                 getLog().debug("Setting git base directory " + baseGitDir);
                 init.setRepoDir(baseGitDir);
             }
+
+            /* Create temp directory - delete any previous first */
+            try {
+                Finder finder = new Finder(Syntax.glob, "mvn-gitflow*");
+                Files.walkFileTree(Paths.get(System.getProperty("java.io.tmpdir")), finder);
+                List<Path> paths = finder.getPaths();
+                getLog().info("Deleting old temp directories " + paths);
+                for (Path path : paths) {
+                    FileUtils.deleteDirectory(path.toFile());
+                }
+                tempDir = Files.createTempDirectory("mvn-gitflow");
+            } catch (IOException ioe) {
+                getLog().error("Failed to create temp directory", ioe);
+            }
         }
         return init;
     }
@@ -285,16 +305,16 @@ public class AbstractGitflowMojo extends AbstractMojo {
         try {
 
             /* Capture System.out */
-            PipedOutputStream pipeOut;
-            PipedInputStream pipeIn;
-            PrintStream printOut;
-            try {
-                pipeOut = new PipedOutputStream();
-                pipeIn = new PipedInputStream(pipeOut);
-                printOut = new PrintStream(pipeOut);
-                System.setOut(printOut);
-            } catch (IOException ioe) {
-                throw new MojoExecutionException("Failed to capture System.out", ioe);
+            Path tempStoutFile = null;
+            PrintStream stoutStream = null;
+            if (!getLog().isDebugEnabled()) {
+                try {
+                    tempStoutFile = Files.createTempFile(tempDir, "mvn-versions-set-", ".log");
+                    stoutStream = new PrintStream(new FileOutputStream(tempStoutFile.toFile(), true));
+                    System.setOut(stoutStream);
+                } catch (Exception ioe) {
+                    throw new MojoExecutionException("Failed to capture System.out", ioe);
+                }
             }
 
             /* Execute versions:set */
@@ -313,12 +333,13 @@ public class AbstractGitflowMojo extends AbstractMojo {
             );
 
             /* Reset System.out */
-            try {
-                System.setOut(stdout);
-                printOut.close();
-                pipeIn.close();
-                printOut.close();
-            } catch (IOException ex) {
+            if (!getLog().isDebugEnabled()) {
+                try {
+                    System.setOut(stdout);
+                    stoutStream.close();
+                    getLog().info("versions-maven-plugin:2.2:set log " + tempStoutFile.toString());
+                } catch (Exception ex) {
+                }
             }
 
         } catch (MojoExecutionException mee) {
