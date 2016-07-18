@@ -268,7 +268,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                 Finder finder = new Finder(Syntax.glob, "mvn-gitflow*");
                 Files.walkFileTree(Paths.get(System.getProperty("java.io.tmpdir")), finder);
                 List<Path> paths = finder.getPaths();
-                getLog().info("Deleting old temp directories " + paths);
+                getLog().debug("Deleting old temp directories " + paths);
                 for (Path path : paths) {
                     FileUtils.deleteDirectory(path.toFile());
                 }
