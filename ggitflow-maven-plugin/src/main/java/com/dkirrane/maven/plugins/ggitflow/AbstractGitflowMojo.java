@@ -67,8 +67,8 @@ import org.codehaus.plexus.components.interactivity.Prompter;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.dag.CycleDetectedException;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.jfrog.hudson.util.GenericArtifactVersion;
-import org.twdata.maven.mojoexecutor.MojoExecutor;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
@@ -288,74 +288,23 @@ public class AbstractGitflowMojo extends AbstractMojo {
     }
 
     protected final boolean setVersion(String version, Boolean push, String branch) throws MojoExecutionException, MojoFailureException {
-        String goal = goal("set");
-        getLog().debug("START + " + VERSIONS_MVN_PLUGIN.getArtifactId() + ':' + VERSIONS_MVN_PLUGIN.getVersion() + ':' + goal);
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
         session.setProjects(reactorProjects);
-
-//        session.getRequest().setLoggingLevel(MavenExecutionRequest.LOGGING_LEVEL_WARN);
-//        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "error");
-//        System.setProperty("maven.logging.root.level", "error");
         MavenProject topLevelProject = session.getTopLevelProject();
-        getLog().info("");
-        getLog().info("--- " + VERSIONS_MVN_PLUGIN.getArtifactId() + ':' + VERSIONS_MVN_PLUGIN.getVersion() + ':' + goal + " " + topLevelProject.getArtifactId() + " to " + version + " (" + branch + ") ---");
         session.setCurrentProject(topLevelProject);
-        PrintStream stdout = System.out;
-        Path tempStoutFile = null;
-        try {
 
-            /* Capture System.out */
-            PrintStream stoutStream = null;
-            if (!getLog().isDebugEnabled()) {
-                try {
-                    tempStoutFile = Files.createTempFile(tempDir, "mvn-versions-set-", ".log");
-                    stoutStream = new PrintStream(new FileOutputStream(tempStoutFile.toFile(), true));
-                    System.setOut(stoutStream);
-                } catch (Exception ioe) {
-                    throw new MojoExecutionException("Failed to capture System.out", ioe);
-                }
-            }
+        String goal = goal("set");
+        Xpp3Dom configuration = configuration(
+                element(name("generateBackupPoms"), "false"),
+                element(name("newVersion"), version)
+        );
 
-            /* Execute versions:set */
-            executeMojo(
-                    VERSIONS_MVN_PLUGIN,
-                    goal,
-                    configuration(
-                            element(name("generateBackupPoms"), "false"),
-                            element(name("newVersion"), version)
-                    ),
-                    executionEnvironment(
-                            topLevelProject,
-                            session,
-                            pluginManager
-                    )
-            );
+        String mavenCommand = getMavenCommand(VERSIONS_MVN_PLUGIN, goal);
 
-            /* Reset System.out */
-            if (!getLog().isDebugEnabled()) {
-                try {
-                    System.setOut(stdout);
-                    stoutStream.close();
-                } catch (Exception ex) {
-                }
-            }
-
-        } catch (MojoExecutionException mee) {
-            /* Reset System.out */
-            System.setOut(stdout);
-            String rootCauseMessage = ExceptionUtils.getRootCauseMessage(mee);
-            if (rootCauseMessage.contains("Project version is inherited from parent")) {
-                getLog().debug("Skipping " + VERSIONS_MVN_PLUGIN.getArtifactId() + ':' + VERSIONS_MVN_PLUGIN.getVersion() + ':' + goal + " for project " + topLevelProject.getArtifactId() + ". Project version is inherited from parent.");
-            } else {
-                getLog().error("Cannot set " + topLevelProject.getArtifactId() + " to version '" + version + "'", mee);
-                throw mee;
-            }
-        } finally {
-            if (!getLog().isDebugEnabled()) {
-                getLog().info(VERSIONS_MVN_PLUGIN.getArtifactId() + ':' + VERSIONS_MVN_PLUGIN.getVersion() + ':' + goal + " log " + tempStoutFile.toString());
-            }
-        }
+        getLog().info("");
+        getLog().info("--- " + mavenCommand + " " + topLevelProject.getArtifactId() + " to " + version + " (" + branch + ") ---");
+        executeMyMojo(VERSIONS_MVN_PLUGIN, goal, configuration);
         getLog().info("------------------------------------------------------------------------");
 
         boolean commitMade = false;
@@ -389,44 +338,35 @@ public class AbstractGitflowMojo extends AbstractMojo {
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
         session.setProjects(reactorProjects);
-
         MavenProject topLevelProject = session.getTopLevelProject();
+        session.setCurrentProject(topLevelProject);
+
         if (updateParent) {
             String updateParentGoal = goal("update-parent");
-            getLog().info("START + " + VERSIONS_MVN_PLUGIN.getArtifactId() + ':' + VERSIONS_MVN_PLUGIN.getVersion() + ':' + updateParentGoal);
-            executeMojo(
-                    VERSIONS_MVN_PLUGIN,
-                    updateParentGoal,
-                    configuration(
-                            element(name("generateBackupPoms"), "false"),
-                            element(name("allowSnapshots"), allowSnapshots.toString())
-                    ),
-                    executionEnvironment(
-                            topLevelProject,
-                            session,
-                            pluginManager
-                    )
+            Xpp3Dom configuration = configuration(
+                    element(name("generateBackupPoms"), "false"),
+                    element(name("allowSnapshots"), allowSnapshots.toString())
             );
+
+            String mavenCommand = getMavenCommand(VERSIONS_MVN_PLUGIN, updateParentGoal);
+            getLog().info("");
+            getLog().info("--- " + mavenCommand + " " + topLevelProject.getArtifactId() + " ---");
+            executeMyMojo(VERSIONS_MVN_PLUGIN, updateParentGoal, configuration);
             getLog().info("------------------------------------------------------------------------");
         }
 
         if (!StringUtils.isBlank(includes)) {
             String useNextVersionsGoal = goal("use-next-versions");
-            getLog().info("START + " + VERSIONS_MVN_PLUGIN.getArtifactId() + ':' + VERSIONS_MVN_PLUGIN.getVersion() + ':' + useNextVersionsGoal);
-            executeMojo(
-                    VERSIONS_MVN_PLUGIN,
-                    useNextVersionsGoal,
-                    configuration(
-                            element(name("generateBackupPoms"), "false"),
-                            element(name("allowSnapshots"), allowSnapshots.toString()),
-                            element(name("includesList"), includes)
-                    ),
-                    executionEnvironment(
-                            topLevelProject,
-                            session,
-                            pluginManager
-                    )
+            Xpp3Dom configuration = configuration(
+                    element(name("generateBackupPoms"), "false"),
+                    element(name("allowSnapshots"), allowSnapshots.toString()),
+                    element(name("includesList"), includes)
             );
+
+            String mavenCommand = getMavenCommand(VERSIONS_MVN_PLUGIN, useNextVersionsGoal);
+            getLog().info("");
+            getLog().info("--- " + mavenCommand + " " + topLevelProject.getArtifactId() + " ---");
+            executeMyMojo(VERSIONS_MVN_PLUGIN, useNextVersionsGoal, configuration);
             getLog().info("------------------------------------------------------------------------");
         } else {
             getLog().warn("Parameter <includes> is not set. Skipping dependency updates");
@@ -457,6 +397,80 @@ public class AbstractGitflowMojo extends AbstractMojo {
             commitMade = true;
         }
         return commitMade;
+    }
+
+    protected final void executeMyMojo(Plugin plugin, String goal, Xpp3Dom configuration) throws MojoExecutionException, MojoFailureException {
+        String mavenCommand = getMavenCommand(plugin, goal);
+        MavenProject topLevelProject = session.getTopLevelProject();
+        String projArtifactId = topLevelProject.getArtifactId();
+        getLog().debug("START " + mavenCommand + " on " + projArtifactId);
+        getLog().debug("configuration " + configuration.toUnescapedString());
+
+        /* Maven 3.3.x log settings */
+//        session.getRequest().setLoggingLevel(MavenExecutionRequest.LOGGING_LEVEL_WARN);
+//        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "error");
+//        System.setProperty("maven.logging.root.level", "error");
+        PrintStream stdout = System.out;
+        PrintStream stoutStream = null;
+        Path tempStoutFile = null;
+        try {
+
+            /* Capture System.out */
+            if (!getLog().isDebugEnabled()) {
+                try {
+                    String logFileName = plugin.getArtifactId() + '-' + goal + '-';
+                    tempStoutFile = Files.createTempFile(tempDir, logFileName, ".log");
+                    stoutStream = new PrintStream(new FileOutputStream(tempStoutFile.toFile(), true));
+                    System.setOut(stoutStream);
+                } catch (Exception ioe) {
+                    getLog().warn("Failed to capture System.out", ioe);
+                }
+            }
+
+            /* Execute Maven plugin goal */
+            executeMojo(
+                    plugin,
+                    goal,
+                    configuration,
+                    executionEnvironment(
+                            session.getTopLevelProject(),
+                            session,
+                            pluginManager
+                    )
+            );
+
+        } catch (MojoExecutionException mee) {
+            /* Reset System.out */
+            System.setOut(stdout);
+            String rootCauseMessage = ExceptionUtils.getRootCauseMessage(mee);
+            if (rootCauseMessage.contains("Project version is inherited from parent")) {
+                getLog().debug("Skipping " + mavenCommand + " for project " + projArtifactId + ". Project version is inherited from parent.");
+            } else {
+                getLog().error("Failed to execute " + mavenCommand + " on " + projArtifactId, mee);
+                throw mee;
+            }
+        } finally {
+            if (!getLog().isDebugEnabled()) {
+                /* Reset System.out */
+                System.setOut(stdout);
+
+                if (null != tempStoutFile) {
+                    getLog().info(mavenCommand + " log " + tempStoutFile.toString());
+                }
+
+                if (null != stoutStream) {
+                    try {
+                        stoutStream.close();
+                    } catch (Exception e) {
+                    }
+                }
+            }
+            getLog().debug("DONE " + mavenCommand);
+        }
+    }
+
+    private String getMavenCommand(Plugin plugin, String goal) {
+        return plugin.getArtifactId() + ':' + plugin.getVersion() + ':' + goal;
     }
 
     protected final void runGoals(String goals, List<String> additionalArgs) throws MojoExecutionException, MojoFailureException {
