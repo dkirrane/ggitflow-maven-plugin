@@ -135,8 +135,8 @@ public class SupportStartMojo extends AbstractGitflowMojo {
         StringBuilder sb = new StringBuilder(10);
         int pCount = artifactVersion.getPrimaryNumberCount();
         if (pCount < 3) {
-            // Support versions should be like 1.0.x e.g. 1.0.1, 1.0.2 etc
-            sb.append(artifactVersion.getPrimaryNumbersAsString()).append('.').append('1');
+            // Support versions should be like 1.0-xx e.g. 1.0-01, 1.0-02 etc
+            sb.append(artifactVersion.getPrimaryNumbersAsString()).append('-').append("01");
             sb.append(artifactVersion.getAnnotationAsString());
         } else {
             // Support versions should be like 1.0.0-xx e.g. 1.0.0-01, 1.0.0-02 etc
