@@ -215,14 +215,20 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         /* 2. make versions in hotfix and develop branches match to avoid conflicts */
         getGitflowInit().executeLocal("git checkout " + hotfixName);
         reloadReactorProjects();
-        setVersion(developVersion, pushHotfixFinish, hotfixName);
+        boolean setDevVersion = setVersion(developVersion, pushHotfixFinish, hotfixName);
 
         /* 3. merge to develop */
         try {
             gitflowHotfix.finishToDevelop(hotfixName, pushHotfixFinish);
         } catch (GitflowException ge) {
+            // reset setVersion commit and allow user fix whatever exception occurred
+            // but can only reset if the commit has not been pushed */
+            if (!pushHotfixFinish && setDevVersion) {
+                getGitflowInit().executeLocal("git reset --hard HEAD~1");
+            }
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {
+            // If a merge conflict arises we don't want to reset setDevVersion commit
             throw new MojoFailureException(gmce.getMessage());
         }
 
@@ -233,7 +239,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         }
 
         /* Switch to hotfix tag and deploy it */
-        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixReleaseVersion);
+        getGitflowInit().executeLocal("git checkout " + hotfixName);
         reloadReactorProjects();
         String tagVersion = project.getVersion();
         getLog().debug("tag version = " + tagVersion);

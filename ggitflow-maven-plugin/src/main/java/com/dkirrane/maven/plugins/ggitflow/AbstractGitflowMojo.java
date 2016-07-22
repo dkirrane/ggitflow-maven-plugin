@@ -226,12 +226,13 @@ public class AbstractGitflowMojo extends AbstractMojo {
         GitflowInit gitflowInit = getGitflowInit();
 
         gitflowInit.requireGitRepo();
+        gitflowInit.checkRemoteConnection();
 
         if (!gitflowInit.gitflowIsInitialized()) {
             try {
                 gitflowInit.cmdDefault();
             } catch (GitflowException ex) {
-                throw new MojoExecutionException("Failed to inintialise Gitflow " + ex.getMessage(), ex);
+                throw new MojoExecutionException("Failed to initialise Gitflow " + ex.getMessage(), ex);
             }
         }
 
@@ -248,7 +249,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
     protected final GitflowInit getGitflowInit() {
         if (null == init) {
-            getLog().info("Initialising Gitflow");
+            getLog().debug("Initialising Gitflow");
             init = new GitflowInit();
             File basedir = getProject().getBasedir();
             getLog().debug("Setting base directory " + basedir);
