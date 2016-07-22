@@ -264,12 +264,17 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         /* 2. make versions in release and develop branches match to avoid conflicts */
         getGitflowInit().executeLocal("git checkout " + releaseName);
         reloadReactorProjects();
-        setVersion(developVersion, pushReleaseFinish, releaseName);
+        boolean setDevVersion = setVersion(developVersion, pushReleaseFinish, releaseName);
 
         /* 3. merge to develop */
         try {
             gitflowRelease.finishToDevelop(releaseName, pushReleaseFinish);
         } catch (GitflowException ge) {
+            // reset setVersion commit and allow user fix whatever exception occurred
+            // but can only reset if the commit has not been pushed */
+            if (!pushReleaseFinish && setDevVersion) {
+                getGitflowInit().executeLocal("git reset --hard HEAD~1");
+            }            
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {
             throw new MojoFailureException(gmce.getMessage());
