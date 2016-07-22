@@ -4,7 +4,7 @@
 
     <groupId>com.dkirrane.maven.plugins</groupId>
     <artifactId>ggitflow-maven</artifactId>
-    <version>2.1</version>
+    <version>2.2-SNAPSHOT</version>
     <name>ggitflow-maven</name>
     <packaging>pom</packaging>
 
