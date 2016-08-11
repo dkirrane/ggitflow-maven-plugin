@@ -239,7 +239,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         }
 
         /* Switch to hotfix tag and deploy it */
-        getGitflowInit().executeLocal("git checkout " + hotfixName);
+        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixReleaseVersion);
         reloadReactorProjects();
         String tagVersion = project.getVersion();
         getLog().debug("tag version = " + tagVersion);
