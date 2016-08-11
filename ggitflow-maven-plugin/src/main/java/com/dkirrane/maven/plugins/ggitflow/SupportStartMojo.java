@@ -23,6 +23,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
+import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 import static org.jfrog.hudson.util.GenericArtifactVersion.DEFAULT_VERSION_COMPONENT_SEPARATOR;
 import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
@@ -61,9 +62,11 @@ public class SupportStartMojo extends AbstractGitflowMojo {
             throw new MojoFailureException("Could not find any tags to create support branch from!");
         }
 
-        String baseName = promptForExistingTagName(tags, tags.get(tags.size() - 1));
+        if (StringUtils.isBlank(startCommit)) {
+            startCommit = promptForExistingTagName(tags, tags.get(tags.size() - 1));
+        }
 
-        getGitflowInit().executeLocal("git checkout " + baseName);
+        getGitflowInit().executeLocal("git checkout " + startCommit);
         reloadReactorProjects();
         String supportVersion = getSupportVersion(project.getVersion());
         String supportSnapshotVersion = getSupportSnapshotVersion(project.getVersion());
