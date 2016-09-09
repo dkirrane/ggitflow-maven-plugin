@@ -116,11 +116,11 @@ public class SupportStartMojo extends AbstractGitflowMojo {
         StringBuilder sb = new StringBuilder(10);
         int pCount = artifactVersion.getPrimaryNumberCount();
         if (pCount < 3) {
-            // Support versions should be like 1.0-xx e.g. 1.0-01, 1.0-02 etc
+            // Support versions should be like 1.0-xx e.g. 1.0-1, 1.0-2 etc
             sb.append(artifactVersion.getPrimaryNumbersAsString()).append('-').append("xx");
             sb.append(artifactVersion.getAnnotationAsString()).append(artifactVersion.getBuildSpecifierAsString());
         } else {
-            // Support versions should be like 1.0.1-xx e.g. 1.0.1-01, 1.0.1-02 etc
+            // Support versions should be like 1.0.1-xx e.g. 1.0.1-1, 1.0.1-2 etc
             if (null != artifactVersion.getAnnotation()) {
                 throw new MojoFailureException("Cannot start Support branch. Primary number " + artifactVersion.getPrimaryNumbersAsString() + " and annotations are already set " + artifactVersion.getAnnotation());
             }
@@ -138,15 +138,15 @@ public class SupportStartMojo extends AbstractGitflowMojo {
         StringBuilder sb = new StringBuilder(10);
         int pCount = artifactVersion.getPrimaryNumberCount();
         if (pCount < 3) {
-            // Support versions should be like 1.0-xx e.g. 1.0-01, 1.0-02 etc
-            sb.append(artifactVersion.getPrimaryNumbersAsString()).append('-').append("01");
+            // Support versions should be like 1.0-xx e.g. 1.0-1, 1.0-2 etc
+            sb.append(artifactVersion.getPrimaryNumbersAsString()).append('-').append("1");
             sb.append(artifactVersion.getAnnotationAsString());
         } else {
-            // Support versions should be like 1.0.1-xx e.g. 1.0.1-01, 1.0.1-02 etc
+            // Support versions should be like 1.0.1-xx e.g. 1.0.1-1, 1.0.1-2 etc
             if (null != artifactVersion.getAnnotation()) {
                 throw new MojoFailureException("Cannot start Support branch. Primary number " + artifactVersion.getPrimaryNumbersAsString() + " and annotations are already set " + artifactVersion.getAnnotation());
             }
-            sb.append(artifactVersion.getPrimaryNumbersAsString()).append('-').append("01");
+            sb.append(artifactVersion.getPrimaryNumbersAsString()).append('-').append("1");
         }
 
         sb.append(DEFAULT_VERSION_COMPONENT_SEPARATOR).append(SNAPSHOT_QUALIFIER);

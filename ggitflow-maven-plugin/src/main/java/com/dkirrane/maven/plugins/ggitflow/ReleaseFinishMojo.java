@@ -274,7 +274,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
             // but can only reset if the commit has not been pushed */
             if (!pushReleaseFinish && setDevVersion) {
                 getGitflowInit().executeLocal("git reset --hard HEAD~1");
-            }            
+            }
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {
             throw new MojoFailureException(gmce.getMessage());
