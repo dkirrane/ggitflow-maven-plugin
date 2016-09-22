@@ -34,7 +34,7 @@ import jline.console.completer.StringsCompleter;
 import jline.internal.Configuration;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.plexus.component.annotations.Component;
-import static org.fusesource.jansi.Ansi.Color.BLUE;
+import static org.fusesource.jansi.Ansi.Color.GREEN;
 import static org.fusesource.jansi.Ansi.ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
