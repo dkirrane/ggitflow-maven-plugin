@@ -21,13 +21,10 @@ import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
 import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -147,7 +144,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
         }
 
         if (skipBuild == false) {
-            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<String>();
+            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<>();
             additionalArgs.addAll(DEFAULT_INSTALL_ARGS);
             if (skipTests) {
                 additionalArgs.add("-DskipTests=true");

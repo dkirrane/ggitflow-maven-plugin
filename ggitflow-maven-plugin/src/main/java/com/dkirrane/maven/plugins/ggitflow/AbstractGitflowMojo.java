@@ -24,6 +24,7 @@ import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import static com.google.common.collect.Lists.newArrayList;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -38,28 +39,33 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.execution.ReactorManager;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
-import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
-import org.apache.maven.model.building.DefaultModelProcessor;
-import org.apache.maven.model.io.DefaultModelReader;
-import org.apache.maven.model.locator.DefaultModelLocator;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.DuplicateProjectException;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.ProjectBuilder;
+import org.apache.maven.project.ProjectBuildingException;
+import org.apache.maven.project.ProjectBuildingRequest;
+import org.apache.maven.project.ProjectBuildingResult;
 import org.apache.maven.shared.release.ReleaseResult;
 import org.apache.maven.shared.release.env.DefaultReleaseEnvironment;
 import org.apache.maven.shared.release.env.ReleaseEnvironment;
 import org.apache.maven.shared.release.exec.MavenExecutor;
 import org.apache.maven.shared.release.exec.MavenExecutorException;
+import org.apache.maven.shared.release.util.ReleaseUtil;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
+import org.codehaus.plexus.util.dag.CycleDetectedException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
@@ -101,6 +107,9 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${reactorProjects}", readonly = true, required = true)
     protected List<MavenProject> reactorProjects;
+
+    @Component
+    private ProjectBuilder projectBuilder;
 
     @Component
     protected BuildPluginManager pluginManager;
@@ -488,37 +497,57 @@ public class AbstractGitflowMojo extends AbstractMojo {
         return hasSnapshotDependency;
     }
 
-    protected final void reloadReactorProjects() {
+    protected void reloadReactorProjects() {
         getLog().debug("Reloading poms...");
 
         List<MavenProject> updatedReactorProjects = new ArrayList<>();
-        for (MavenProject mavenProject : reactorProjects) {
-            File pomFile = mavenProject.getFile();
-            if (pomFile.canRead()) {
-                Model readModel = readModel(pomFile);
-                MavenProject updatedMavenProject = new MavenProject(readModel);
-                updatedReactorProjects.add(updatedMavenProject);
-            } else {
-                getLog().warn("Cannot reload pom file " + pomFile + ". It may not exist on this Git branch");
+
+        MavenProject rootProject = ReleaseUtil.getRootProject(reactorProjects);
+        getLog().debug("rootProject = " + rootProject);
+        if (rootProject.getFile().exists() && rootProject.getFile().canRead()) {
+            MavenExecutionRequest mavenExecutionRequest = session.getRequest();
+            ProjectBuildingRequest projectBuildingRequest = mavenExecutionRequest.getProjectBuildingRequest();
+            try {
+                List<ProjectBuildingResult> buildResults = projectBuilder.build(newArrayList(rootProject.getFile()), true, projectBuildingRequest);
+                for (ProjectBuildingResult buildResult : buildResults) {
+                    MavenProject reloadProject = buildResult.getProject();
+                    reloadProject.setActiveProfiles(rootProject.getActiveProfiles());
+                    updatedReactorProjects.add(reloadProject);
+                }
+            } catch (ProjectBuildingException ex) {
+                getLog().error("Build error reloading Maven projects", ex);
             }
         }
-        for (MavenProject updatedReactorProject : updatedReactorProjects) {
-            getLog().debug(String.format("\t %-30s %-30s", updatedReactorProject.getArtifactId(), updatedReactorProject.getVersion()));
+
+        try {
+            ReactorManager reactorManager = new ReactorManager(updatedReactorProjects);
+            updatedReactorProjects = reactorManager.getSortedProjects();
+        } catch (CycleDetectedException | DuplicateProjectException ex) {
+            getLog().error("Failed to sort reactor projects", ex);
+        }
+
+        session.setProjects(updatedReactorProjects);
+        project = ReleaseUtil.getRootProject(updatedReactorProjects);
+        reactorProjects = updatedReactorProjects;
+
+        if (getLog().isDebugEnabled()) {
+            getLog().debug("Updated MavenSession: " + session);
+            getLog().debug("Updated MavenProject: " + project);
+            getLog().debug("Updated reactorProjects: ");
+            for (int i = 0; i < reactorProjects.size(); i++) {
+                MavenProject updatedReactorProject = updatedReactorProjects.get(i);
+                System.out.println("");
+                System.out.printf(" %d) %s:%s \n \t\t\t Parent: %s \n \t\t\t DependencyManagement:%s \n \t\t\t Dependencies:%s \n",
+                        i,
+                        updatedReactorProject.getArtifactId(), updatedReactorProject.getVersion(),
+                        updatedReactorProject.getParentArtifact(),
+                        null != updatedReactorProject.getDependencyManagement() ? updatedReactorProject.getDependencyManagement().getDependencies() : null,
+                        updatedReactorProject.getDependencies());
+                System.out.println("");
+            }
         }
 
         getLog().debug("Reloading poms complete");
-    }
-
-    private static Model readModel(File pomFile) {
-        DefaultModelProcessor modelProcessor = new DefaultModelProcessor();
-        modelProcessor.setModelLocator(new DefaultModelLocator());
-        modelProcessor.setModelReader(new DefaultModelReader());
-
-        try {
-            return modelProcessor.read(pomFile, null);
-        } catch (IOException ex) {
-            throw new IllegalStateException("Failed to build model from pom " + pomFile, ex);
-        }
     }
 
     protected List<String> rearrange(String input, List<String> strings) {

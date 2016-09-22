@@ -18,13 +18,10 @@ package com.dkirrane.maven.plugins.ggitflow;
 import com.dkirrane.gitflow.groovy.GitflowRelease;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
@@ -34,15 +31,6 @@ import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
  */
 @Mojo(name = "release-start", aggregator = true)
 public class ReleaseStartMojo extends AbstractReleaseMojo {
-
-    /**
-     * Whether to run the plugin in interactive mode or not. The default is to
-     * run without interaction when possible.
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "interactive", defaultValue = "true", required = false)
-    protected boolean interactive;
 
     /**
      * If the project has a parent with a <code>-SNAPSHOT</code> version it will
@@ -98,7 +86,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
 
         /* Get next development version */
         String nextDevelopVersion = getNextDevelopVersion(developVersion);
-        if (interactive) {
+        if (session.getRequest().isInteractiveMode()) {
             try {
                 nextDevelopVersion = prompter.promptWithDefault("Please enter the next development version? ", nextDevelopVersion);
             } catch (IOException ex) {
@@ -115,7 +103,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         String prefix = getReleaseBranchPrefix();
         if (!StringUtils.isBlank(releaseName)) {
             getLog().debug("Using releaseName passed  '" + releaseName + "'");
-        } else if (interactive) {
+        } else if (session.getRequest().isInteractiveMode()) {
             try {
                 releaseName = prompter.promptWithDefault("Please enter the release branch name? " + prefix, releaseVersion);
             } catch (IOException ex) {
