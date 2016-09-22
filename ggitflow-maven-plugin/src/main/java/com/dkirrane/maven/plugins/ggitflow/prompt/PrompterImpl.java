@@ -73,7 +73,7 @@ public class PrompterImpl implements Prompter {
         do {
             // mask DOES NOT WORK on WINDOWS 10 https://github.com/jline/jline2/issues/225
 //            value = console.readLine(ansi().fg(GREEN).a(prompt).reset().toString(), mask);
-            value = console.readLine(ansi().fg(BLUE).bold().a(prompt).boldOff().reset().toString(), null);
+            value = console.readLine(ansi().fg(GREEN).bold().a(prompt).boldOff().reset().toString(), null);
 
             // Do not LOG values read when masked
             if (mask == null) {
@@ -98,7 +98,7 @@ public class PrompterImpl implements Prompter {
         checkNotNull(defaultValue);
 
         final String prompt = String.format("%s [%s]: ", message, defaultValue);
-        String value = console.readLine(ansi().fg(BLUE).bold().a(prompt).boldOff().reset().toString());
+        String value = console.readLine(ansi().fg(GREEN).bold().a(prompt).boldOff().reset().toString());
         if (StringUtils.isBlank(value)) {
             return defaultValue;
         }
