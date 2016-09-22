@@ -48,6 +48,23 @@ public class AbstractReleaseMojo extends AbstractGitflowMojo {
         return prefix;
     }
 
+    public String trimReleaseName(String name) throws MojoFailureException {
+        if (StringUtils.isBlank(name)) {
+            throw new MojoFailureException("Missing argument <name>");
+        }
+
+        // remove whitespace
+        name = name.replaceAll("\\s+", "");
+
+        // trim off starting any leading 'release/' prefix
+        String prefix = getReleaseBranchPrefix();
+        if (name.startsWith(prefix)) {
+            name = name.substring(prefix.length());
+        }
+
+        return name;
+    }
+
     public String getNextDevelopmentVersion(String version) throws MojoFailureException {
         getLog().debug("Project version '" + version + "'");
 

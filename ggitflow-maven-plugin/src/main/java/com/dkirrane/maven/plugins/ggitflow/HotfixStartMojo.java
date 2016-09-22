@@ -34,6 +34,9 @@ public class HotfixStartMojo extends AbstractHotfixMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
 
+        /* Fetch any new tags and prune any branches that may already be deleted */
+        getGitflowInit().executeRemote("git fetch --tags --prune");
+
         /* Switch to master branch and get current version i.e. lastest tag */
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getMasterBrnName());
         reloadReactorProjects();

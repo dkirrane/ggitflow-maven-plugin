@@ -15,7 +15,10 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
+import static com.dkirrane.gitflow.groovy.Constants.DEFAULT_HOTFIX_BRN_PREFIX;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.codehaus.plexus.util.StringUtils;
 
 public class AbstractHotfixMojo extends AbstractGitflowMojo {
 
@@ -28,4 +31,28 @@ public class AbstractHotfixMojo extends AbstractGitflowMojo {
     @Parameter(property = "pushHotfixBranch", defaultValue = "true", required = false)
     protected boolean pushHotfixBranch;
 
+    public String getHotfixBranchPrefix() {
+        String prefix = getGitflowInit().getHotfixBranchPrefix();
+        if (StringUtils.isBlank(prefix)) {
+            prefix = DEFAULT_HOTFIX_BRN_PREFIX;
+        }
+        return prefix;
+    }
+
+    public String trimHotfixName(String name) throws MojoFailureException {
+        if (StringUtils.isBlank(name)) {
+            throw new MojoFailureException("Missing argument <featureName>");
+        }
+
+        // remove whitespace
+        name = name.replaceAll("\\s+", "");
+
+        // trim off starting any leading 'hotfix/' prefix
+        String prefix = getHotfixBranchPrefix();
+        if (name.startsWith(prefix)) {
+            name = name.substring(prefix.length());
+        }
+
+        return name;
+    }
 }

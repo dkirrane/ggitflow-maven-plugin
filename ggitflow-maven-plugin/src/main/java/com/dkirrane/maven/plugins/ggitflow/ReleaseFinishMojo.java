@@ -21,6 +21,7 @@ import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
 import static com.dkirrane.maven.plugins.ggitflow.AbstractGitflowMojo.DEFAULT_DEPLOY_ARGS;
 import static com.dkirrane.maven.plugins.ggitflow.AbstractGitflowMojo.PROFILES_SPLITTER;
 import com.google.common.collect.ImmutableList;
+import java.io.IOException;
 import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -181,17 +182,35 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         super.execute();
         getLog().debug("Finishing release");
 
+        /* Fetch any new tags and prune any branches that may already be deleted */
+        getGitflowInit().executeRemote("git fetch --tags --prune");
+
         /* Get release branch name */
+        String prefix = getReleaseBranchPrefix();
         List<String> releaseBranches = getGitflowInit().gitLocalReleaseBranches();
         if (releaseBranches.isEmpty()) {
-            throw new MojoFailureException("Could not find release branch!");
-        } else if (releaseBranches.size() == 1) {
-            releaseName = releaseBranches.get(0);
+            throw new MojoFailureException("Could not find any local release branch!");
+        }
+
+        if (StringUtils.isBlank(releaseName)) {
+            if (releaseBranches.size() == 1) {
+                String releaseBranch = releaseBranches.get(0);
+                releaseName = trimReleaseName(releaseBranch);
+            } else {
+                String releaseBranch = promptForExistingReleaseBranch(prefix, releaseBranches);
+                releaseName = trimReleaseName(releaseBranch);
+            }
+
         } else {
-            releaseName = promptForExistingReleaseName(releaseBranches, releaseName);
+            releaseName = trimReleaseName(releaseName);
+            if (!getGitflowInit().gitLocalBranchExists(prefix + releaseName)) {
+                throw new MojoFailureException("No local release branch named '" + prefix + releaseName + "' exists!");
+            }
         }
 
         getLog().info("Finishing release '" + releaseName + "'");
+        
+        String releaseBranch = prefix + releaseName;
 
         /* Switch to develop branch and get its current version */
         String developBranch = getGitflowInit().getDevelopBranch();
@@ -201,7 +220,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         getLog().debug("develop version = " + developVersion);
 
         /* Switch to release branch and set poms to release version */
-        getGitflowInit().executeLocal("git checkout " + releaseName);
+        getGitflowInit().executeLocal("git checkout " + releaseBranch);
         reloadReactorProjects();
         GenericArtifactVersion artifactVersion = new GenericArtifactVersion(project.getVersion());
         String releaseVersion;
@@ -212,7 +231,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         }
         getLog().debug("release version = " + releaseVersion);
 
-        boolean setVersion = setVersion(releaseVersion, pushReleaseFinish, releaseName);
+        boolean setVersion = setVersion(releaseVersion, pushReleaseFinish, releaseBranch);
 
         /* Update release branch dependencies to release version */
         boolean setNextVersions = false;
@@ -254,7 +273,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
 
         /* 1. merge to master */
         try {
-            gitflowRelease.finishToMaster(releaseName, pushReleaseFinish);
+            gitflowRelease.finishToMaster(releaseBranch, pushReleaseFinish);
         } catch (GitflowException ge) {
             throw new MojoFailureException(ge.getMessage());
         } catch (GitflowMergeConflictException gmce) {
@@ -262,13 +281,13 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         }
 
         /* 2. make versions in release and develop branches match to avoid conflicts */
-        getGitflowInit().executeLocal("git checkout " + releaseName);
+        getGitflowInit().executeLocal("git checkout " + releaseBranch);
         reloadReactorProjects();
-        boolean setDevVersion = setVersion(developVersion, pushReleaseFinish, releaseName);
+        boolean setDevVersion = setVersion(developVersion, pushReleaseFinish, releaseBranch);
 
         /* 3. merge to develop */
         try {
-            gitflowRelease.finishToDevelop(releaseName, pushReleaseFinish);
+            gitflowRelease.finishToDevelop(releaseBranch, pushReleaseFinish);
         } catch (GitflowException ge) {
             // reset setVersion commit and allow user fix whatever exception occurred
             // but can only reset if the commit has not been pushed */
@@ -314,7 +333,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
                 goals += " site-deploy";
             }
 
-            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<String>();
+            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<>();
             additionalArgs.addAll(DEFAULT_DEPLOY_ARGS);
             if (skipTests) {
                 additionalArgs.add("-DskipTests=true");
@@ -328,29 +347,34 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
             }
             runGoals(goals, additionalArgs.build());
         } else if (skipBuild == false) {
-            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<String>();
+            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<>();
             additionalArgs.addAll(DEFAULT_DEPLOY_ARGS);
             if (skipTests) {
                 additionalArgs.add("-DskipTests=true");
             }
             runGoals("clean install", additionalArgs.build());
         } else {
-            getLog().debug("Skipping both install and deploy for release tag " + releaseName);
+            getLog().debug("Skipping both install and deploy for release tag " + releaseBranch);
         }
 
         getGitflowInit().executeLocal("git checkout " + developBranch);
     }
 
-    private String promptForExistingReleaseName(List<String> releaseBranches, String defaultReleaseName) throws MojoFailureException {
-        String message = "Please select a release branch to finish?";
+    private String promptForExistingReleaseBranch(String prefix, List<String> releaseBranches) throws MojoFailureException {
+        List<String> choices = releaseBranches;
+
+        /* if current branch is a feature branch at it to start of list so it is the default in prompt */
+        String currentBranch = getGitflowInit().gitCurrentBranch();
+        if (currentBranch.startsWith(prefix)) {
+            choices = rearrange(currentBranch, releaseBranches);
+        }
 
         String name = "";
         try {
-            name = prompter.prompt(message, releaseBranches, defaultReleaseName);
-        } catch (PrompterException e) {
-            throw new MojoFailureException("Error reading release name from command line " + e.getMessage());
+            prompter.promptChoice("Release branches", "Please select a release branch to finish", choices);
+        } catch (IOException ex) {
+            throw new MojoFailureException("Error reading release name from command line " + ex.getMessage());
         }
-
-        return name;
+        return name.trim();
     }
 }

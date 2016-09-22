@@ -17,6 +17,9 @@ package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowRelease;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -83,6 +86,9 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
 
+        /* Fetch any new tags and prune any branches that may already be deleted */
+        getGitflowInit().executeRemote("git fetch --tags --prune");
+
         /* Switch to develop branch and get its current version */
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
         reloadReactorProjects();
@@ -93,10 +99,9 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         /* Get next development version */
         String nextDevelopVersion = getNextDevelopVersion(developVersion);
         if (interactive) {
-            String message = "What is the next development version? ";
             try {
-                nextDevelopVersion = prompter.prompt(message, nextDevelopVersion);
-            } catch (PrompterException ex) {
+                nextDevelopVersion = prompter.promptWithDefault("Please enter the next development version? ", nextDevelopVersion);
+            } catch (IOException ex) {
                 throw new MojoExecutionException("Error reading next development version from command line " + ex.getMessage(), ex);
             }
         }
@@ -111,15 +116,16 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         if (!StringUtils.isBlank(releaseName)) {
             getLog().debug("Using releaseName passed  '" + releaseName + "'");
         } else if (interactive) {
-            String message = "What is the release branch name? " + prefix;
             try {
-                releaseName = prompter.prompt(message, releaseVersion);
-            } catch (PrompterException ex) {
+                releaseName = prompter.promptWithDefault("Please enter the release branch name? " + prefix, releaseVersion);
+            } catch (IOException ex) {
                 throw new MojoExecutionException("Error reading release name from command line " + ex.getMessage(), ex);
             }
         } else {
             releaseName = releaseVersion;
         }
+
+        releaseName = trimReleaseName(releaseName);
 
         if (StringUtils.isBlank(releaseName)) {
             throw new MojoFailureException("Parameter <releaseName> cannot be null or empty.");

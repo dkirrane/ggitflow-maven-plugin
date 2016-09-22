@@ -20,12 +20,12 @@ import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
 import static com.dkirrane.maven.plugins.ggitflow.AbstractGitflowMojo.DEFAULT_DEPLOY_ARGS;
 import com.google.common.collect.ImmutableList;
+import java.io.IOException;
 import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -148,17 +148,35 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         super.execute();
         getLog().debug("Finishing hotfix");
 
+        /* Fetch any new tags and prune any branches that may already be deleted */
+        getGitflowInit().executeRemote("git fetch --tags --prune");
+
         /* Get hotfix branch name */
+        String prefix = getHotfixBranchPrefix();
         List<String> hotfixBranches = getGitflowInit().gitLocalHotfixBranches();
         if (hotfixBranches.isEmpty()) {
-            throw new MojoFailureException("Could not find hotfix branch!");
-        } else if (hotfixBranches.size() == 1) {
-            hotfixName = hotfixBranches.get(0);
+            throw new MojoFailureException("Could not find any local hotfix branch!");
+        }
+
+        if (StringUtils.isBlank(hotfixName)) {
+            if (hotfixBranches.size() == 1) {
+                String hotfixBranch = hotfixBranches.get(0);
+                hotfixName = trimHotfixName(hotfixBranch);
+            } else {
+                String hotfixBranch = promptForExistingHotfixBranch(prefix, hotfixBranches);
+                hotfixName = trimHotfixName(hotfixBranch);
+            }
+
         } else {
-            hotfixName = promptForExistingHotfixName(hotfixBranches, hotfixName);
+            hotfixName = trimHotfixName(hotfixName);
+            if (!getGitflowInit().gitLocalBranchExists(prefix + hotfixName)) {
+                throw new MojoFailureException("No local hotfix branch named '" + prefix + hotfixName + "' exists!");
+            }
         }
 
         getLog().info("Finishing hotfix '" + hotfixName + "'");
+
+        String hotfixBranch = prefix + hotfixName;
 
         /* Switch to develop branch and get its current version */
         String developBranch = getGitflowInit().getDevelopBranch();
@@ -168,14 +186,14 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         getLog().debug("develop version = " + developVersion);
 
         /* Switch to hotfix branch and set poms to hotfix version */
-        getGitflowInit().executeLocal("git checkout " + hotfixName);
+        getGitflowInit().executeLocal("git checkout " + hotfixBranch);
         reloadReactorProjects();
         String hotfixVersion = project.getVersion();
         getLog().debug("hotfix snapshot version = " + hotfixVersion);
         String hotfixReleaseVersion = getReleaseVersion(hotfixVersion);
         getLog().debug("hotfix release version = " + hotfixReleaseVersion);
 
-        boolean setVersion = setVersion(hotfixReleaseVersion, pushHotfixFinish, hotfixName);
+        boolean setVersion = setVersion(hotfixReleaseVersion, pushHotfixFinish, hotfixBranch);
 
         if (!allowSnapshots) {
             reloadReactorProjects();
@@ -205,21 +223,19 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
 
         /* 1. merge to master */
         try {
-            gitflowHotfix.finishToMaster(hotfixName, pushHotfixFinish);
-        } catch (GitflowException ge) {
+            gitflowHotfix.finishToMaster(hotfixBranch, pushHotfixFinish);
+        } catch (GitflowException | GitflowMergeConflictException ge) {
             throw new MojoFailureException(ge.getMessage());
-        } catch (GitflowMergeConflictException gmce) {
-            throw new MojoFailureException(gmce.getMessage());
         }
 
         /* 2. make versions in hotfix and develop branches match to avoid conflicts */
-        getGitflowInit().executeLocal("git checkout " + hotfixName);
+        getGitflowInit().executeLocal("git checkout " + hotfixBranch);
         reloadReactorProjects();
-        boolean setDevVersion = setVersion(developVersion, pushHotfixFinish, hotfixName);
+        boolean setDevVersion = setVersion(developVersion, pushHotfixFinish, hotfixBranch);
 
         /* 3. merge to develop */
         try {
-            gitflowHotfix.finishToDevelop(hotfixName, pushHotfixFinish);
+            gitflowHotfix.finishToDevelop(hotfixBranch, pushHotfixFinish);
         } catch (GitflowException ge) {
             // reset setVersion commit and allow user fix whatever exception occurred
             // but can only reset if the commit has not been pushed */
@@ -252,7 +268,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
                 goals += " site-deploy";
             }
 
-            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<String>();
+            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<>();
             additionalArgs.addAll(DEFAULT_DEPLOY_ARGS);
             if (skipTests) {
                 additionalArgs.add("-DskipTests=true");
@@ -266,7 +282,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
             }
             runGoals(goals, additionalArgs.build());
         } else if (skipBuild == false) {
-            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<String>();
+            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<>();
             additionalArgs.addAll(DEFAULT_DEPLOY_ARGS);
             if (skipTests) {
                 additionalArgs.add("-DskipTests=true");
@@ -279,16 +295,21 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         getGitflowInit().executeLocal("git checkout " + developBranch);
     }
 
-    private String promptForExistingHotfixName(List<String> hotfixBranches, String defaultHotfixName) throws MojoFailureException {
-        String message = "Please select a hotfix branch to finish?";
+    private String promptForExistingHotfixBranch(String prefix, List<String> hotfixBranches) throws MojoFailureException {
+        List<String> choices = hotfixBranches;
+
+        /* if current branch is a feature branch at it to start of list so it is the default in prompt */
+        String currentBranch = getGitflowInit().gitCurrentBranch();
+        if (currentBranch.startsWith(prefix)) {
+            choices = rearrange(currentBranch, hotfixBranches);
+        }
 
         String name = "";
         try {
-            name = prompter.prompt(message, hotfixBranches, defaultHotfixName);
-        } catch (PrompterException e) {
-            throw new MojoFailureException("Error reading hotfix name from command line " + e.getMessage());
+            prompter.promptChoice("Hotfix branches", "Please select a hotfix branch to finish", choices);
+        } catch (IOException ex) {
+            throw new MojoFailureException("Error reading hotfix name from command line " + ex.getMessage());
         }
-
-        return name;
+        return name.trim();
     }
 }

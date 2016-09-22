@@ -19,7 +19,10 @@ import com.dkirrane.gitflow.groovy.GitflowFeature;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
 import com.google.common.collect.ImmutableList;
+import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -111,20 +114,12 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
 
         String prefix = getFeatureBranchPrefix();
         List<String> featureBranches = getGitflowInit().gitLocalFeatureBranches();
-
         if (null == featureBranches || featureBranches.isEmpty()) {
             throw new MojoFailureException("No local feature branches exist!");
         }
 
         if (StringUtils.isBlank(featureName)) {
-            String defaultFeatureBranch;
-            String currentBranch = getGitflowInit().gitCurrentBranch();
-            if (currentBranch.startsWith(prefix)) {
-                defaultFeatureBranch = currentBranch;
-            } else {
-                defaultFeatureBranch = featureBranches.get(0);
-            }
-            String featureBranch = promptForExistingFeatureBranch(featureBranches, defaultFeatureBranch);
+            String featureBranch = promptForExistingFeatureBranch(prefix, featureBranches);
             featureName = trimFeatureName(featureBranch);
         } else {
             featureName = trimFeatureName(featureName);
@@ -182,16 +177,21 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
         }
     }
 
-    private String promptForExistingFeatureBranch(List<String> featureBranches, String defaultFeatureBranch) throws MojoFailureException {
-        String message = "Please select a feature branch to finish?";
+    private String promptForExistingFeatureBranch(String prefix, List<String> featureBranches) throws MojoFailureException {
+        List<String> choices = featureBranches;
+
+        /* if current branch is a feature branch at it to start of list so it is the default in prompt */
+        String currentBranch = getGitflowInit().gitCurrentBranch();
+        if (currentBranch.startsWith(prefix)) {
+            choices = rearrange(currentBranch, featureBranches);
+        }
 
         String name = "";
         try {
-            name = prompter.prompt(message, featureBranches, defaultFeatureBranch);
-        } catch (PrompterException e) {
-            throw new MojoFailureException("Error reading feature name from command line " + e.getMessage());
+            prompter.promptChoice("Feature branches", "Please select a feature branch to finish", choices);
+        } catch (IOException ex) {
+            throw new MojoFailureException("Error reading feature name from command line " + ex.getMessage());
         }
-
         return name.trim();
     }
 
