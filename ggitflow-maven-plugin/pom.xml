@@ -14,18 +14,6 @@
     <packaging>maven-plugin</packaging>
     <name>ggitflow-maven-plugin</name>
 
-    <properties>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <netbeans.hint.license>apache20</netbeans.hint.license>
-
-        <maven.version>3.3.9</maven.version>
-        <maven.plugin.version>3.5</maven.plugin.version>
-        <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
-        <plexus.component.version>1.6</plexus.component.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.dkirrane.groovy.gitflow</groupId>
