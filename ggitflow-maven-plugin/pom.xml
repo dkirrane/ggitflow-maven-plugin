@@ -133,7 +133,7 @@
                 <artifactId>maven-plugin-plugin</artifactId>
                 <version>${maven.plugin.version}</version>
                 <configuration>
-                    <goalPrefix>reload</goalPrefix>
+                    <goalPrefix>gitflow</goalPrefix>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
                 </configuration>
                 <executions>
