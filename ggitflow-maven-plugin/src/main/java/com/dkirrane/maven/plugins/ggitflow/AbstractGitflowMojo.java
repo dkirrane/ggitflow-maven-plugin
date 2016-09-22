@@ -142,6 +142,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         return project;
     }
 
+    @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (null == project) {
             throw new NullPointerException("MavenProject is null");

@@ -29,5 +29,8 @@ public class InitMojo extends AbstractGitflowMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
+
+        String result = getGitflowInit().executeLocal("git config --get-regexp gitflow.*");
+        getLog().info("Gitflow config:\n\n" + result + "\n");
     }
 }
