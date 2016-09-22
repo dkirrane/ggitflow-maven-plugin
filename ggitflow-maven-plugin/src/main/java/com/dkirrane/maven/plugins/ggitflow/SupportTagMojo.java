@@ -15,12 +15,14 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
+import java.io.IOException;
 import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.components.interactivity.PrompterException;
+import org.codehaus.plexus.util.StringUtils;
 import org.jfrog.hudson.util.GenericArtifactVersion;
 
 /**
@@ -28,7 +30,7 @@ import org.jfrog.hudson.util.GenericArtifactVersion;
  * this does not merge support branch changes back to develop
  */
 @Mojo(name = "support-tag", aggregator = true)
-public class SupportTagMojo extends AbstractGitflowMojo {
+public class SupportTagMojo extends AbstractSupportMojo {
 
     /**
      * If <code>true</code>, the tag can still get created even if
@@ -60,18 +62,35 @@ public class SupportTagMojo extends AbstractGitflowMojo {
         super.execute();
         getLog().debug("Tagging support branch");
 
-        /* Get release branch name */
+        /* Fetch any new tags and prune any branches that may already be deleted */
+        getGitflowInit().executeRemote("git fetch --tags --prune");
+
+        /* Get support branch name */
+        String prefix = getSupportBranchPrefix();
         List<String> supportBranches = getGitflowInit().gitLocalSupportBranches();
-        String supportBranch = "";
         if (supportBranches.isEmpty()) {
             throw new MojoFailureException("Could not find any local support branch!");
-        } else if (supportBranches.size() == 1) {
-            supportBranch = supportBranches.get(0);
-        } else {
-            supportBranch = promptForExistingSupportBranch(supportBranches, supportBranch);
         }
 
-        getLog().info("Tagging support branch '" + supportBranch + "'");
+        if (StringUtils.isBlank(supportName)) {
+            if (supportBranches.size() == 1) {
+                String supportBranch = supportBranches.get(0);
+                supportName = trimSupportName(supportBranch);
+            } else {
+                String supportBranch = promptForExistingSupportBranch(prefix, supportBranches);
+                supportName = trimSupportName(supportBranch);
+            }
+
+        } else {
+            supportName = trimSupportName(supportName);
+            if (!getGitflowInit().gitLocalBranchExists(prefix + supportName)) {
+                throw new MojoFailureException("No local support branch named '" + prefix + supportName + "' exists!");
+            }
+        }
+
+        getLog().info("Tagging support branch '" + supportName + "'");
+
+        String supportBranch = prefix + supportName;
 
         /* Switch to support branch and get its current version */
         getGitflowInit().executeLocal("git checkout " + supportBranch);
@@ -119,17 +138,22 @@ public class SupportTagMojo extends AbstractGitflowMojo {
 
     }
 
-    private String promptForExistingSupportBranch(List<String> supportBranches, String defaultSupportBranch) throws MojoFailureException {
-        String message = "Please select a support branch to tag?";
+    private String promptForExistingSupportBranch(String prefix, List<String> supportBranches) throws MojoFailureException {
+        List<String> choices = supportBranches;
+
+        /* if current branch is a support branch at it to start of list so it is the default in prompt */
+        String currentBranch = getGitflowInit().gitCurrentBranch();
+        if (currentBranch.startsWith(prefix)) {
+            choices = rearrange(currentBranch, supportBranches);
+        }
 
         String name = "";
         try {
-            name = prompter.prompt(message, supportBranches, defaultSupportBranch);
-        } catch (PrompterException e) {
-            throw new MojoFailureException("Error reading support branch name from command line " + e.getMessage());
+            prompter.promptChoice("Support branches", "Please select a support branch to tag", choices);
+        } catch (IOException ex) {
+            throw new MojoFailureException("Error reading release name from command line " + ex.getMessage());
         }
-
-        return name;
+        return name.trim();
     }
 
     private void promptToPushSupportBranchAndTag(String supportBranch, String supportTag) throws MojoFailureException {
@@ -139,7 +163,7 @@ public class SupportTagMojo extends AbstractGitflowMojo {
         String answer = "";
         try {
             answer = prompter.prompt(message);
-        } catch (PrompterException e) {
+        } catch (IOException e) {
             throw new MojoFailureException("Error reading support branch name from command line " + e.getMessage());
         }
 
@@ -160,17 +184,4 @@ public class SupportTagMojo extends AbstractGitflowMojo {
         }
     }
 
-    private String getNextSupportVersion(String currentVersion) throws MojoFailureException {
-        getLog().debug("getNextSupportVersion from '" + currentVersion + "'");
-
-        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
-
-        StringBuilder sb = new StringBuilder(10);
-        Integer annotationRevision = artifactVersion.getAnnotationRevision();
-        if (null == annotationRevision) {
-            throw new MojoFailureException("Cannot find Maven buildNumber in support version " + currentVersion);
-        }
-        GenericArtifactVersion upgradeAnnotationRevision = artifactVersion.upgradeAnnotationRevision();
-        return upgradeAnnotationRevision.toString();
-    }
 }
