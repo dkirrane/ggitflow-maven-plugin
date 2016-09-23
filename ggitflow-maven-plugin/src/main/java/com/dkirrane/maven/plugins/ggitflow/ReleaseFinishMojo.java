@@ -210,9 +210,10 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         getLog().info("Finishing release '" + releaseName + "'");
 
         String releaseBranch = prefix + releaseName;
+        String developBranch = getGitflowInit().getDevelopBranch();
+        String masterBranch = getGitflowInit().getMasterBranch();
 
         /* Switch to develop branch and get its current version */
-        String developBranch = getGitflowInit().getDevelopBranch();
         getGitflowInit().executeLocal("git checkout " + developBranch);
         reloadReactorProjects();
         String developVersion = project.getVersion();
@@ -274,9 +275,13 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         try {
             gitflowRelease.finishToMaster(releaseBranch, pushReleaseFinish);
         } catch (GitflowException ge) {
-            throw new MojoFailureException(ge.getMessage());
+            String header = "Error merging branch '" + releaseBranch + "' into '" + masterBranch + "'";
+            freeMarker.logError(header, ge.getMessage());
+            throw new MojoFailureException(header);
         } catch (GitflowMergeConflictException gmce) {
-            throw new MojoFailureException(gmce.getMessage());
+            String header = "Merge conflict merging branch '" + releaseBranch + "' into '" + masterBranch + "'";
+            freeMarker.logMergeConflict(header, gmce.getMessage(), gmce.getConflictedFiles());
+            throw new MojoFailureException(header);
         }
 
         /* 2. make versions in release and develop branches match to avoid conflicts */
@@ -289,21 +294,17 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
             gitflowRelease.finishToDevelop(releaseBranch, pushReleaseFinish);
         } catch (GitflowException ge) {
             // reset setVersion commit and allow user fix whatever exception occurred
-            // but can only reset if the commit has not been pushed */
+            // but can only reset if the commit has not been pushed
             if (!pushReleaseFinish && setDevVersion) {
                 getGitflowInit().executeLocal("git reset --hard HEAD~1");
             }
-            throw new MojoFailureException(ge.getMessage());
+            String header = "Error merging branch '" + releaseBranch + "' into '" + developBranch + "'";
+            freeMarker.logError(header, ge.getMessage());
+            throw new MojoFailureException(header);
         } catch (GitflowMergeConflictException gmce) {
-            throw new MojoFailureException(gmce.getMessage());
-//            FixPomMergeConflicts fixPomMergeConflicts = new FixPomMergeConflicts();
-//            try {
-//                fixPomMergeConflicts.resolveConflicts2();
-//            } catch (GitflowException ge) {
-//                throw new MojoFailureException(ge.getMessage());
-//            } catch (GitflowMergeConflictException gmce2) {
-//                throw new MojoFailureException(gmce2.getMessage());
-//            }
+            String header = "Merge conflict merging branch '" + releaseBranch + "' into '" + developBranch + "'";
+            freeMarker.logMergeConflict(header, gmce.getMessage(), gmce.getConflictedFiles());
+            throw new MojoFailureException(header);
         }
 
         /* make sure we're on the develop branch */

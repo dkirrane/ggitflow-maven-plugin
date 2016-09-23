@@ -17,6 +17,7 @@ package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowInit;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import com.dkirrane.maven.plugins.ggitflow.prompt.FreeMarker;
 import com.dkirrane.maven.plugins.ggitflow.prompt.Prompter;
 import com.dkirrane.maven.plugins.ggitflow.util.Finder;
 import com.dkirrane.maven.plugins.ggitflow.util.Finder.Syntax;
@@ -35,6 +36,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -80,6 +82,8 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
 public class AbstractGitflowMojo extends AbstractMojo {
+    
+    Scanner scanner = new Scanner(System.in);
 
     public final Pattern matchSnapshotRegex = Pattern.compile("-SNAPSHOT");
 
@@ -96,7 +100,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
     private static final Plugin VERSIONS_MVN_PLUGIN = plugin(
             groupId("org.codehaus.mojo"),
             artifactId("versions-maven-plugin"),
-            version("2.1")
+            version("2.3")
     );
 
     @Parameter(defaultValue = "${session}", readonly = true)
@@ -119,6 +123,9 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
     @Component(role = Prompter.class)
     protected Prompter prompter;
+
+    @Component(role = FreeMarker.class)
+    protected FreeMarker freeMarker;
 
     /**
      * Gitflow branches and prefixes to use.
@@ -344,10 +351,11 @@ public class AbstractGitflowMojo extends AbstractMojo {
         getLog().debug("configuration " + configuration.toUnescapedString());
 
         /* Maven 3.3.x log settings */
-//        session.getRequest().setLoggingLevel(MavenExecutionRequest.LOGGING_LEVEL_WARN);
-//        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "error");
-//        System.setProperty("maven.logging.root.level", "error");
+        session.getRequest().setLoggingLevel(MavenExecutionRequest.LOGGING_LEVEL_ERROR);
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "error");
+        System.setProperty("maven.logging.root.level", "error");
         PrintStream stdout = System.out;
+        PrintStream stderr = System.err;
         PrintStream stoutStream = null;
         Path tempStoutFile = null;
         try {
@@ -359,6 +367,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                     tempStoutFile = Files.createTempFile(tempDir, logFileName, ".log");
                     stoutStream = new PrintStream(new FileOutputStream(tempStoutFile.toFile(), true));
                     System.setOut(stoutStream);
+                    System.setErr(stoutStream);
                 } catch (Exception ioe) {
                     getLog().warn("Failed to capture System.out", ioe);
                 }
@@ -379,6 +388,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         } catch (MojoExecutionException mee) {
             /* Reset System.out */
             System.setOut(stdout);
+            System.setErr(stderr);
             String rootCauseMessage = ExceptionUtils.getRootCauseMessage(mee);
             if (rootCauseMessage.contains("Project version is inherited from parent")) {
                 getLog().debug("Skipping " + mavenCommand + " for project " + projArtifactId + ". Project version is inherited from parent.");
@@ -390,6 +400,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
             if (!getLog().isDebugEnabled()) {
                 /* Reset System.out */
                 System.setOut(stdout);
+                System.setErr(stderr);
 
                 if (null != tempStoutFile) {
                     getLog().info(mavenCommand + " log " + tempStoutFile.toString());

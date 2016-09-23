@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * Prompt for user input
  *
- * @since 2.3
+ * @since 3.0
  */
 public interface Prompter {
 
