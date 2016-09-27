@@ -48,14 +48,14 @@ public class SupportStartMojo extends AbstractSupportMojo {
 
         List<String> localTags = getGitflowInit().gitLocalTags();
         if (localTags.isEmpty()) {
-            throw new MojoFailureException("Could not find any local tags to create support branch from!");
+            exceptionMapper.handle(new MojoFailureException("Could not find any local tags to create support branch from!"));
         }
 
         if (StringUtils.isBlank(startCommit)) {
             try {
                 startCommit = prompter.promptChoice("Support branches", "Please select a tag to create Support branch from", localTags);
             } catch (IOException ex) {
-                throw new MojoFailureException("Error reading tag name from command line " + ex.getMessage());
+                exceptionMapper.handle(new MojoFailureException("Error reading tag name from command line " + ex.getMessage()));
             }
         }
 

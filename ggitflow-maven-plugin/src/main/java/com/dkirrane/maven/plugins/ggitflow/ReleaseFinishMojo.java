@@ -112,7 +112,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         String prefix = getReleaseBranchPrefix();
         List<String> releaseBranches = getGitflowInit().gitLocalReleaseBranches();
         if (releaseBranches.isEmpty()) {
-            throw new MojoFailureException("Could not find any local release branch!");
+            exceptionMapper.handle(new MojoFailureException("Could not find any local release branch!"));
         }
 
         if (StringUtils.isBlank(releaseName)) {
@@ -127,7 +127,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         } else {
             releaseName = trimReleaseName(releaseName);
             if (!getGitflowInit().gitLocalBranchExists(prefix + releaseName)) {
-                throw new MojoFailureException("No local release branch named '" + prefix + releaseName + "' exists!");
+                exceptionMapper.handle(new MojoFailureException("No local release branch named '" + prefix + releaseName + "' exists!"));
             }
         }
 
@@ -243,7 +243,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         /* make sure we're on the develop branch */
         String currentBranch = getGitflowInit().gitCurrentBranch();
         if (!currentBranch.equals(developBranch)) {
-            throw new MojoFailureException("Current branch should be " + developBranch + " but was " + currentBranch);
+            new MojoFailureException("Current branch should be " + developBranch + " but was " + currentBranch);
         }
 
         /* Push merges and tag */

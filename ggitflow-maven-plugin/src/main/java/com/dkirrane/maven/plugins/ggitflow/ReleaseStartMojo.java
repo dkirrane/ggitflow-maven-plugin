@@ -88,7 +88,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
             try {
                 nextDevelopVersion = prompter.promptWithDefault("Please enter the next development version? ", nextDevelopVersion);
             } catch (IOException ex) {
-                throw new MojoExecutionException("Error reading next development version from command line " + ex.getMessage(), ex);
+                exceptionMapper.handle(new MojoExecutionException("Error reading next development version from command line " + ex.getMessage(), ex));
             }
         }
         getLog().debug("Next development version = " + developVersion);
@@ -105,7 +105,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
             try {
                 releaseName = prompter.promptWithDefault("Please enter the release branch name? " + prefix, releaseVersion);
             } catch (IOException ex) {
-                throw new MojoExecutionException("Error reading release name from command line " + ex.getMessage(), ex);
+                exceptionMapper.handle(new MojoExecutionException("Error reading release name from command line " + ex.getMessage(), ex));
             }
         } else {
             releaseName = releaseVersion;
@@ -114,7 +114,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         releaseName = trimReleaseName(releaseName);
 
         if (StringUtils.isBlank(releaseName)) {
-            throw new MojoFailureException("Parameter <releaseName> cannot be null or empty.");
+            exceptionMapper.handle(new MojoFailureException("Parameter <releaseName> cannot be null or empty."));
         }
 
         GenericArtifactVersion releaseArtifactVersion;
@@ -151,7 +151,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         // current branch should be the release branch
         String releaseBranch = getGitflowInit().gitCurrentBranch();
         if (!releaseBranch.startsWith(prefix)) {
-            throw new MojoFailureException("Failed to create release version.");
+            exceptionMapper.handle(new MojoFailureException("Failed to create release version."));
         }
 
         /* Update release branch dependencies to release version */

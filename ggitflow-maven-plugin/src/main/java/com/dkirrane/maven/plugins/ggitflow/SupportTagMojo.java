@@ -65,7 +65,7 @@ public class SupportTagMojo extends AbstractSupportMojo {
         String prefix = getSupportBranchPrefix();
         List<String> supportBranches = getGitflowInit().gitLocalSupportBranches();
         if (supportBranches.isEmpty()) {
-            throw new MojoFailureException("Could not find any local support branch!");
+            exceptionMapper.handle(new MojoFailureException("Could not find any local support branch!"));
         }
 
         if (StringUtils.isBlank(supportName)) {
