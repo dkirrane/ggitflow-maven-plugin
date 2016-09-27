@@ -6,7 +6,14 @@
 <@fg 34/><@bold/>=====${""?right_pad(header?length, "=")}=====<@reset/>
 <@fg 34/><@bold/>===  ${header?right_pad(header?length)}  ===<@reset/>
 <@fg 34/><@bold/>=====${""?right_pad(header?length, "=")}=====<@reset/>
-<#assign y = 0>
-<#list choices?chunk(5) as row>
-  <#list row as cell><#assign y++><@fg 34/><@bold/>${"(${y})"?right_pad(5)}<@reset/>${cell?right_pad(30)}</#list>
+
+<@fg 34/><@bold/>Pushing:<@reset/>
+<#list pushBranches as branch>
+    <@fg 34/><@bold/>- ${branch}<@reset/>
 </#list>
+
+<@fg 34/><@bold/>Deleting:<@reset/>
+<#list deleteBranches as branch>
+    <@fg 34/><@bold/>- ${branch}<@reset/>
+</#list>
+

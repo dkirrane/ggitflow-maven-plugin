@@ -65,13 +65,46 @@ public class FreeMarkerImpl implements FreeMarker {
             out.flush();
 
         } catch (TemplateException | IOException ex) {
-            LOG.error("{} {}", header, message, ex);
+            LOG.error("Failed to log Git error", ex);
+    }
+    }
+
+    @Override
+    public void logGitError(final String header, final String message, final Integer exitCode, final String stout, final String sterr) {
+        checkNotNull(header);
+
+        try {
+
+            freemarker.template.Configuration cfg = new freemarker.template.Configuration(freemarker.template.Configuration.getVersion());
+            cfg.setClassForTemplateLoading(PrompterImpl.class, "/freemarker");
+            cfg.setDefaultEncoding("UTF-8");
+            cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+            cfg.setLogTemplateExceptions(false);
+
+            Template template = cfg.getTemplate("git-error.ftl");
+
+            // Build the data-model
+            Map<String, Object> data = new HashMap<>();
+            data.put("header", header);
+            data.put("message", message);
+            data.put("exitCode", exitCode);
+            data.put("stout", stout);
+            data.put("sterr", sterr);
+
+            // Console output
+            Writer out = new OutputStreamWriter(System.out);
+            template.process(data, out);
+            out.flush();
+
+        } catch (TemplateException | IOException ex) {
+            LOG.error("Failed to log Git error", ex);
         }
     }
 
     @Override
-    public void logMergeConflict(String header, String message, List<File> conflictedFiles) {
+    public void logMergeConflict(String header, String footer, String message, List<File> conflictedFiles) {
         checkNotNull(header);
+        checkNotNull(footer);
         checkNotNull(message);
 
         try {
@@ -82,18 +115,12 @@ public class FreeMarkerImpl implements FreeMarker {
             cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
             cfg.setLogTemplateExceptions(false);
 
-            Template template;
+            Template template = cfg.getTemplate("merge-conflict.ftl");
             Map<String, Object> data = new HashMap<>();
-            if (null == conflictedFiles || conflictedFiles.isEmpty()) {
-                template = cfg.getTemplate("error.ftl");
-                data.put("header", header);
-                data.put("message", message);
-                data.put("message", message);
-            } else {
-                template = cfg.getTemplate("merge-conflict.ftl");
-                data.put("header", header);
-                data.put("conflicts", conflictedFiles);
-            }
+            data.put("header", header);
+            data.put("message", message);
+            data.put("conflicts", conflictedFiles);
+            data.put("footer", footer);
 
             // Console output
             Writer out = new OutputStreamWriter(System.out);
@@ -104,4 +131,5 @@ public class FreeMarkerImpl implements FreeMarker {
             LOG.error("{} {}", header, message, ex);
         }
     }
+
 }

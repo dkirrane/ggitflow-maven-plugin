@@ -16,6 +16,7 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowSupport;
+import com.dkirrane.gitflow.groovy.ex.GitCommandException;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import java.io.IOException;
 import java.util.List;
@@ -30,15 +31,6 @@ import org.codehaus.plexus.util.StringUtils;
  */
 @Mojo(name = "support-start", aggregator = true)
 public class SupportStartMojo extends AbstractSupportMojo {
-
-    /**
-     * If <code>true</code>, the support branch is pushed to the remote
-     * repository.
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "pushSupportBranch", defaultValue = "true", required = false)
-    protected boolean pushSupportBranch;
 
     /**
      * The commit to start the support branch from.
@@ -80,16 +72,20 @@ public class SupportStartMojo extends AbstractSupportMojo {
         gitflowSupport.setInit(getGitflowInit());
         gitflowSupport.setMsgPrefix(getMsgPrefix());
         gitflowSupport.setMsgSuffix(getMsgSuffix());
-        gitflowSupport.setPush(pushSupportBranch);
+        gitflowSupport.setPush(true);
         gitflowSupport.setStartCommit(startCommit);
 
         try {
             gitflowSupport.start(supportVersion);
+        } catch (GitCommandException gce) {
+            String header = "Failed to run support start";
+            exceptionMapper.handle(header, gce);
         } catch (GitflowException ge) {
-            throw new MojoFailureException(ge.getMessage());
+            String header = "Failed to run support start";
+            exceptionMapper.handle(header, ge);
         }
 
-        setVersion(supportSnapshotVersion, pushSupportBranch, prefix + supportVersion);
+        setVersion(supportSnapshotVersion, prefix + supportVersion, false);
 
         if (getGitflowInit().gitRemoteBranchExists(prefix + supportVersion)) {
             getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + prefix + supportVersion);

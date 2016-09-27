@@ -16,6 +16,7 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowRelease;
+import com.dkirrane.gitflow.groovy.ex.GitCommandException;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import java.io.IOException;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -73,9 +74,6 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
-
-        /* Fetch any new tags and prune any branches that may already be deleted */
-        getGitflowInit().executeRemote("git fetch --tags --prune");
 
         /* Switch to develop branch and get its current version */
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
@@ -137,13 +135,17 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         gitflowRelease.setInit(getGitflowInit());
         gitflowRelease.setMsgPrefix(getMsgPrefix());
         gitflowRelease.setMsgSuffix(getMsgSuffix());
-        gitflowRelease.setPush(pushReleaseBranch);
+        gitflowRelease.setPush(true);
         gitflowRelease.setStartCommit(startCommit);
 
         try {
             gitflowRelease.start(releaseName);
+        } catch (GitCommandException gce) {
+            String header = "Failed to run release start";
+            exceptionMapper.handle(header, gce);
         } catch (GitflowException ge) {
-            throw new MojoFailureException(ge.getMessage());
+            String header = "Failed to run release start";
+            exceptionMapper.handle(header, ge);
         }
 
         // current branch should be the release branch
@@ -162,12 +164,12 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         String developBranch = (String) getGitflowInit().getDevelopBrnName();
         getGitflowInit().executeLocal("git checkout " + developBranch);
         reloadReactorProjects();
-        setVersion(nextDevelopVersion, pushReleaseBranch, developBranch);
+        setVersion(nextDevelopVersion, developBranch, true);
 
         // checkout release branch again and update it's version to required release version
         getGitflowInit().executeLocal("git checkout " + releaseBranch);
         reloadReactorProjects();
-        setVersion(releaseArtifactVersion.setBuildSpecifier(SNAPSHOT_QUALIFIER).toString(), pushReleaseBranch, releaseBranch);
+        setVersion(releaseArtifactVersion.setBuildSpecifier(SNAPSHOT_QUALIFIER).toString(), releaseBranch, true);
     }
 
     public String getReleaseName() {

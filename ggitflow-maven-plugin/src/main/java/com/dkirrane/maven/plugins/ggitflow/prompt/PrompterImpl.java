@@ -93,11 +93,20 @@ public class PrompterImpl implements Prompter {
     }
 
     @Override
+    public boolean promptYesNo(final String message) throws IOException {
+        checkNotNull(message);
+
+        final String prompt = String.format("%s? (y/N): ", message);
+        String value = console.readLine(ansi().fg(GREEN).bold().a(prompt).boldOff().reset().toString());
+        return value.matches("^([yY][eE][sS]|[yY])$");
+    }
+
+    @Override
     public String promptWithDefault(final String message, final String defaultValue) throws IOException {
         checkNotNull(message);
         checkNotNull(defaultValue);
 
-        final String prompt = String.format("%s [%s]: ", message, defaultValue);
+        final String prompt = String.format("%s (%s): ", message, defaultValue);
         String value = console.readLine(ansi().fg(GREEN).bold().a(prompt).boldOff().reset().toString());
         if (StringUtils.isBlank(value)) {
             return defaultValue;
@@ -201,6 +210,36 @@ public class PrompterImpl implements Prompter {
             return value;
         } finally {
             console.removeCompleter(completer);
+        }
+    }
+
+    @Override
+    public void pushPrompt(String header, List<String> pushBranches, List<String> deleteBranches) {
+        checkNotNull(header);
+        checkNotNull(pushBranches);
+        checkNotNull(deleteBranches);
+
+        try {
+
+            freemarker.template.Configuration cfg = new freemarker.template.Configuration(freemarker.template.Configuration.getVersion());
+            cfg.setClassForTemplateLoading(PrompterImpl.class, "/freemarker");
+            cfg.setDefaultEncoding("UTF-8");
+            cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+            cfg.setLogTemplateExceptions(false);
+
+            Template template = cfg.getTemplate("pushing.ftl");
+            Map<String, Object> data = new HashMap<>();
+            data.put("header", header);
+            data.put("pushBranches", pushBranches);
+            data.put("deleteBranches", deleteBranches);
+
+            // Console output
+            Writer out = new OutputStreamWriter(System.out);
+            template.process(data, out);
+            out.flush();
+
+        } catch (TemplateException | IOException ex) {
+            LOG.error("Failed to prompt to push", ex);
         }
     }
 }

@@ -27,6 +27,7 @@ public interface FreeMarker {
 
     void logError(final String header, final String message);
 
-    void logMergeConflict(final String header, final String message, List<File> conflictedFiles);
+    void logGitError(final String header, final String message, final Integer exitCode, final String stout, final String sterr);
 
+    void logMergeConflict(final String header, final String footer, final String message, List<File> conflictedFiles);
 }

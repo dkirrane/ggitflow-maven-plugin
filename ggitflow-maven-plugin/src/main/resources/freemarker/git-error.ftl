@@ -7,14 +7,19 @@
 <@fg 31/><@bold/>===  ${header?right_pad(header?length)}  ===<@reset/>
 <@fg 31/><@bold/>=====${""?right_pad(header?length, "=")}=====<@reset/>
 
-<@fg 31/><@bold/>Files in conflict:<@reset/>
-<#if conflicts?has_content>
-    <#list conflicts as conflict>
-        <@fg 31/><@bold/>${conflict}<@reset/>
-    </#list>
-<#else>
-    <@fg 31/><@bold/>${message}<@reset/>
+<#if exitCode??>
+    <@fg 31/><@bold/>Git exiting with error code: ${exitCode}<@reset/>
 </#if>
 
-<@fg 31/><@bold/>${footer}<@reset/>
+<#if message??>
+    <@fg 31/><@bold/>Message: ${message}<@reset/>
+</#if>
+
+<#if stout??>
+    <@fg 31/><@bold/>Stout: ${stout}<@reset/>
+</#if>
+
+<#if sterr??>
+    <@fg 31/><@bold/>Sterr: ${sterr}<@reset/>
+</#if>
 

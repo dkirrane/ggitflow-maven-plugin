@@ -45,6 +45,15 @@ public interface Prompter {
     String prompt(String message) throws IOException;
 
     /**
+     * Prompt user with Yes/No message
+     *
+     * @param message
+     * @return
+     * @throws java.io.IOException
+     */
+    boolean promptYesNo(final String message) throws IOException;
+
+    /**
      * Prompt user for a string; if user response is blank use a default value.
      *
      * @param message
@@ -78,4 +87,13 @@ public interface Prompter {
      * @throws java.io.IOException
      */
     Integer promptInteger(String message, Integer min, Integer max) throws IOException;
+
+    /**
+     * Display a message to the user regards pushing/deleting branches
+     *
+     * @param header message heaeder to display
+     * @param pushBranches Git branches to push
+     * @param deleteBranches Git branches to delete
+     */
+    void pushPrompt(final String header, final List<String> pushBranches, final List<String> deleteBranches);
 }

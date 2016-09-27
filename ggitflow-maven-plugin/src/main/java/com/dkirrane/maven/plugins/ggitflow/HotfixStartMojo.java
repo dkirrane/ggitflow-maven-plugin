@@ -16,6 +16,7 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowHotfix;
+import com.dkirrane.gitflow.groovy.ex.GitCommandException;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -34,9 +35,6 @@ public class HotfixStartMojo extends AbstractHotfixMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
 
-        /* Fetch any new tags and prune any branches that may already be deleted */
-        getGitflowInit().executeRemote("git fetch --tags --prune");
-
         /* Switch to master branch and get current version i.e. lastest tag */
         getGitflowInit().executeLocal("git checkout " + getGitflowInit().getMasterBrnName());
         reloadReactorProjects();
@@ -54,17 +52,21 @@ public class HotfixStartMojo extends AbstractHotfixMojo {
         gitflowHotfix.setInit(getGitflowInit());
         gitflowHotfix.setMsgPrefix(getMsgPrefix());
         gitflowHotfix.setMsgSuffix(getMsgSuffix());
-        gitflowHotfix.setPush(pushHotfixBranch);
+        gitflowHotfix.setPush(true);
 
         try {
             gitflowHotfix.start(hotfixVersion);
+        } catch (GitCommandException gce) {
+            String header = "Failed to run hotfix start";
+            exceptionMapper.handle(header, gce);
         } catch (GitflowException ge) {
-            throw new MojoFailureException(ge.getMessage());
+            String header = "Failed to run hotfix start";
+            exceptionMapper.handle(header, ge);
         }
 
         String prefix = getGitflowInit().getHotfixBranchPrefix();
 
-        setVersion(hotfixSnapshotVersion, pushHotfixBranch, prefix + hotfixVersion);
+        setVersion(hotfixSnapshotVersion, prefix + hotfixVersion, true);
 
         if (getGitflowInit().gitRemoteBranchExists(prefix + hotfixVersion)) {
             getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + prefix + hotfixVersion);

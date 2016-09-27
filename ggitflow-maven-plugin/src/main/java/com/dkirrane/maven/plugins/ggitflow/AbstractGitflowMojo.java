@@ -15,9 +15,10 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
+import static com.dkirrane.gitflow.groovy.Constants.DEFAULT_VERSION_TAG_PREFIX;
 import com.dkirrane.gitflow.groovy.GitflowInit;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
-import com.dkirrane.maven.plugins.ggitflow.prompt.FreeMarker;
+import com.dkirrane.maven.plugins.ggitflow.ex.ExceptionMapper;
 import com.dkirrane.maven.plugins.ggitflow.prompt.Prompter;
 import com.dkirrane.maven.plugins.ggitflow.util.Finder;
 import com.dkirrane.maven.plugins.ggitflow.util.Finder.Syntax;
@@ -82,7 +83,7 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
 public class AbstractGitflowMojo extends AbstractMojo {
-    
+
     Scanner scanner = new Scanner(System.in);
 
     public final Pattern matchSnapshotRegex = Pattern.compile("-SNAPSHOT");
@@ -124,8 +125,8 @@ public class AbstractGitflowMojo extends AbstractMojo {
     @Component(role = Prompter.class)
     protected Prompter prompter;
 
-    @Component(role = FreeMarker.class)
-    protected FreeMarker freeMarker;
+    @Component(role = ExceptionMapper.class)
+    protected ExceptionMapper exceptionMapper;
 
     /**
      * Gitflow branches and prefixes to use.
@@ -165,8 +166,9 @@ public class AbstractGitflowMojo extends AbstractMojo {
         } else {
             getLog().debug("Gitflow pom  '" + project.getBasedir() + "'");
         }
-
         GitflowInit gitflowInit = getGitflowInit();
+
+        exceptionMapper.setRepoDir(gitflowInit.getRepoDir());
 
         gitflowInit.requireGitRepo();
         gitflowInit.checkRemoteConnection();
@@ -231,7 +233,15 @@ public class AbstractGitflowMojo extends AbstractMojo {
         return init;
     }
 
-    protected final boolean setVersion(String version, Boolean push, String branch) throws MojoExecutionException, MojoFailureException {
+    public String getVersionTagPrefix() {
+        String prefix = getGitflowInit().getVersionTagPrefix();
+        if (null == prefix) {
+            prefix = DEFAULT_VERSION_TAG_PREFIX;
+        }
+        return prefix;
+    }
+
+    protected final boolean setVersion(String version, String branch, boolean push) throws MojoExecutionException, MojoFailureException {
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
         session.setProjects(reactorProjects);
@@ -267,6 +277,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                     throw new MojoExecutionException("Failed to push version change " + version + " to origin. ExitCode:" + exitCode);
                 }
             }
+
             commitMade = true;
         }
         /* We don't want to fail maybe the version was manually set correctly */
@@ -493,6 +504,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         if (hasParentSnapshot || hasDepSnapshots) {
             throw new MojoExecutionException("Cannot release because SNAPSHOT dependencies exist");
         }
+        getLog().info("No SNAPSHOT dependencies found");
     }
 
     private boolean checkForSnapshot(String artifactId, List<Dependency> dependencies) throws MojoExecutionException {

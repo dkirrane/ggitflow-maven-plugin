@@ -16,17 +16,18 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowHotfix;
+import com.dkirrane.gitflow.groovy.ex.GitCommandException;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
-import static com.dkirrane.maven.plugins.ggitflow.AbstractGitflowMojo.DEFAULT_DEPLOY_ARGS;
-import com.google.common.collect.ImmutableList;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
+import org.jfrog.hudson.util.GenericArtifactVersion;
 
 /**
  * Merges a hotfix branch back into the develop and master branch and then
@@ -38,15 +39,6 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
     protected String hotfixName;
 
     /**
-     * If <code>true</code>, the hotfix finish merge to develop & master and
-     * created tag will get pushed to the remote repository
-     *
-     * @since 1.6
-     */
-    @Parameter(property = "pushHotfixFinish", defaultValue = "false", required = false)
-    protected boolean pushHotfixFinish;
-
-    /**
      * If <code>true</code>, the hotfix can still finish even if
      * <code>-SNAPSHOT</code> dependencies exists in the pom.
      *
@@ -56,51 +48,6 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
     private boolean allowSnapshots;
 
     /**
-     * Skips any calls to <code>mvn install</code>
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "skipBuild", defaultValue = "true", required = false)
-    private Boolean skipBuild;
-
-    /**
-     * Skips any calls to <code>mvn deploy</code>
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "skipDeploy", defaultValue = "true", required = false)
-    private Boolean skipDeploy;
-
-    /**
-     * Skips any tests during <code>mvn install</code> and
-     * <code>mvn deploy</code>
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "skipTests", defaultValue = "true", required = false)
-    private Boolean skipTests;
-
-    /**
-     * Whether to use the release profile that adds sources and javadoc to the
-     * released artifact, if appropriate. If set to true, the hotfix-finish will
-     * set the property "performRelease" to true, which activates the profile
-     * "release-profile", which is inherited from the super pom.
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "useReleaseProfile", defaultValue = "true", required = false)
-    private Boolean useReleaseProfile;
-
-    /**
-     * Comma separated profiles to enable on deployment, in addition to active
-     * profiles for project execution.
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "releaseProfiles", defaultValue = "", required = false)
-    private String releaseProfiles;
-
-    /**
      * If <code>true</code>, all commits to the branch will be squashed into a
      * single commit before the merge.
      *
@@ -108,24 +55,6 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
      */
     @Parameter(property = "squash", defaultValue = "false", required = false)
     private Boolean squash;
-
-    /**
-     * If <code>true</code>, the hotfix feature branch will not be deleted after
-     * the merge.
-     *
-     * @since 1.6
-     */
-    @Parameter(property = "keep", defaultValue = "false", required = false)
-    private Boolean keepLocal;
-
-    /**
-     * If <code>true</code>, the hotfix feature branch will not be deleted after
-     * the merge.
-     *
-     * @since 1.6
-     */
-    @Parameter(property = "keep", defaultValue = "true", required = false)
-    private Boolean keepRemote;
 
     /**
      * If <code>true</code>, the hotfix tag will be signed.
@@ -147,9 +76,6 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
         getLog().debug("Finishing hotfix");
-
-        /* Fetch any new tags and prune any branches that may already be deleted */
-        getGitflowInit().executeRemote("git fetch --tags --prune");
 
         /* Get hotfix branch name */
         String prefix = getHotfixBranchPrefix();
@@ -177,75 +103,100 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         getLog().info("Finishing hotfix '" + hotfixName + "'");
 
         String hotfixBranch = prefix + hotfixName;
-
-        /* Switch to develop branch and get its current version */
+        String tagName = getVersionTagPrefix() + hotfixName;
         String developBranch = getGitflowInit().getDevelopBranch();
-        getGitflowInit().executeLocal("git checkout " + developBranch);
-        reloadReactorProjects();
-        String developVersion = project.getVersion();
-        getLog().debug("develop version = " + developVersion);
+        String masterBranch = getGitflowInit().getMasterBranch();
+        String origin = getGitflowInit().getOrigin();
 
-        /* Switch to hotfix branch and set poms to hotfix version */
-        getGitflowInit().executeLocal("git checkout " + hotfixBranch);
-        reloadReactorProjects();
-        String hotfixVersion = project.getVersion();
-        getLog().debug("hotfix snapshot version = " + hotfixVersion);
-        String hotfixReleaseVersion = getReleaseVersion(hotfixVersion);
-        getLog().debug("hotfix release version = " + hotfixReleaseVersion);
-
-        boolean setVersion = setVersion(hotfixReleaseVersion, pushHotfixFinish, hotfixBranch);
-
-        if (!allowSnapshots) {
-            reloadReactorProjects();
-            try {
-                checkForSnapshotDependencies();
-            } catch (MojoExecutionException mee) {
-                // reset setVersion commit and allow user fix & push SNAPSHOT dependencies
-                // but can only reset if the commit has not been pushed */
-                if (!pushHotfixFinish && setVersion) {
-                    getGitflowInit().executeLocal("git reset --hard HEAD~1");
-                }
-                throw mee;
-            }
-        }
-
-        /* finish hotfix */
         GitflowHotfix gitflowHotfix = new GitflowHotfix();
         gitflowHotfix.setInit(getGitflowInit());
         gitflowHotfix.setMsgPrefix(getMsgPrefix());
         gitflowHotfix.setMsgSuffix(getMsgSuffix());
-        gitflowHotfix.setPush(pushHotfixBranch);
+        gitflowHotfix.setPush(false);
         gitflowHotfix.setSquash(squash);
-        gitflowHotfix.setKeepLocal(keepLocal);
-        gitflowHotfix.setKeepRemote(keepRemote);
         gitflowHotfix.setSign(sign);
         gitflowHotfix.setSigningkey(signingkey);
 
-        /* 1. merge to master */
-        try {
-            gitflowHotfix.finishToMaster(hotfixBranch, pushHotfixFinish);
-        } catch (GitflowException | GitflowMergeConflictException ge) {
-            throw new MojoFailureException(ge.getMessage());
+        /* Switch to hotfix branch and set poms to hotfix version */
+        getGitflowInit().executeLocal("git checkout " + hotfixBranch);
+        reloadReactorProjects();
+        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(project.getVersion());
+        String hotfixVersion;
+        if ("SNAPSHOT".equals(artifactVersion.getBuildSpecifier())) {
+            hotfixVersion = getReleaseVersion(project.getVersion());
+        } else {
+            hotfixVersion = project.getVersion();
+        }
+        getLog().debug("hotfix version = " + hotfixVersion);
+
+        /* If tag exists we skip merge to master as merge already took place. Possible re-run after merge conflict */
+        if (!getGitflowInit().gitTagExists(tagName)) { // @TODO and should also check that last hotfix branch commit is on master
+
+            /* Before setting hotfix version check if hotfix branch was already merged to master */
+            boolean setVersion = setVersion(hotfixVersion, hotfixBranch, false); // don't push so can can reset if needed
+
+            if (!allowSnapshots) {
+                reloadReactorProjects();
+                try {
+                    checkForSnapshotDependencies();
+                } catch (MojoExecutionException mee) {
+                    // reset setVersion commits to allow user fix & push SNAPSHOT dependencies
+                    // but can only reset if it the commits have not been pushed */
+                    if (setVersion) {
+                        getGitflowInit().executeLocal("git reset --hard HEAD~1");
+                    }
+                    exceptionMapper.handle(mee);
+                }
+            }
+
+            /* 1. merge to master */
+            try {
+                gitflowHotfix.finishToMaster(hotfixBranch, tagName);
+            } catch (GitCommandException gce) {
+                String header = "Error merging branch '" + hotfixBranch + "' into '" + masterBranch + "'";
+                exceptionMapper.handle(header, gce);
+            } catch (GitflowException ge) {
+                String header = "Error merging branch '" + hotfixBranch + "' into '" + masterBranch + "'";
+                exceptionMapper.handle(header, ge);
+            } catch (GitflowMergeConflictException gmce) {
+                String header = "Merge conflict merging branch '" + hotfixBranch + "' into '" + masterBranch + "'";
+                exceptionMapper.handle(header, gmce);
+            }
+        } else {
+            getLog().warn("Tag " + tagName + " already exists. Skipping merge of hotfix branch '" + hotfixBranch + "' into '" + masterBranch + "'");
         }
 
         /* 2. make versions in hotfix and develop branches match to avoid conflicts */
+        getGitflowInit().executeLocal("git checkout " + developBranch);
+        reloadReactorProjects();
+        String developVersion = project.getVersion();
+        getLog().debug("develop version = " + developVersion);
         getGitflowInit().executeLocal("git checkout " + hotfixBranch);
         reloadReactorProjects();
-        boolean setDevVersion = setVersion(developVersion, pushHotfixFinish, hotfixBranch);
+        boolean setDevVersion = setVersion(developVersion, hotfixBranch, false); // don't push so can can reset if needed
 
         /* 3. merge to develop */
         try {
-            gitflowHotfix.finishToDevelop(hotfixBranch, pushHotfixFinish);
-        } catch (GitflowException ge) {
+            gitflowHotfix.finishToDevelop(hotfixBranch, tagName);
+        } catch (GitCommandException gce) {
             // reset setVersion commit and allow user fix whatever exception occurred
-            // but can only reset if the commit has not been pushed */
-            if (!pushHotfixFinish && setDevVersion) {
+            // but can only reset if the commit has not been pushed
+            if (setDevVersion) {
                 getGitflowInit().executeLocal("git reset --hard HEAD~1");
             }
-            throw new MojoFailureException(ge.getMessage());
+            String header = "Error merging branch '" + hotfixBranch + "' into '" + developBranch + "'";
+            exceptionMapper.handle(header, gce);
+        } catch (GitflowException ge) {
+            // reset setVersion commit and allow user fix whatever exception occurred
+            // but can only reset if the commit has not been pushed
+            if (setDevVersion) {
+                getGitflowInit().executeLocal("git reset --hard HEAD~1");
+            }
+            String header = "Error merging branch '" + hotfixBranch + "' into '" + developBranch + "'";
+            exceptionMapper.handle(header, ge);
         } catch (GitflowMergeConflictException gmce) {
-            // If a merge conflict arises we don't want to reset setDevVersion commit
-            throw new MojoFailureException(gmce.getMessage());
+            String header = "Merge conflict merging branch '" + hotfixBranch + "' into '" + developBranch + "'";
+            exceptionMapper.handle(header, gmce);
         }
 
         /* make sure we're on the develop branch */
@@ -254,45 +205,29 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
             throw new MojoFailureException("Current branch should be " + developBranch + " but was " + currentBranch);
         }
 
-        /* Switch to hotfix tag and deploy it */
-        getGitflowInit().executeLocal("git checkout " + getGitflowInit().getVersionTagPrefix() + hotfixReleaseVersion);
-        reloadReactorProjects();
-        String tagVersion = project.getVersion();
-        getLog().debug("tag version = " + tagVersion);
+        /* Push merges and tag */
+        try {
+            prompter.pushPrompt("Are you ready to push?", Arrays.asList(tagName, masterBranch, developBranch), Arrays.asList(hotfixBranch, origin + '/' + hotfixBranch));
 
-        /* install or deploy */
-        if (skipDeploy == false) {
-            String goals = "clean deploy";
-            if (project.getDistributionManagement() != null
-                    && project.getDistributionManagement().getSite() != null) {
-                goals += " site-deploy";
+            boolean yes;
+            try {
+                yes = prompter.promptYesNo("Do you want to continue");
+            } catch (IOException e) {
+                throw new MojoFailureException("Error reading user input from command line " + e.getMessage());
             }
 
-            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<>();
-            additionalArgs.addAll(DEFAULT_DEPLOY_ARGS);
-            if (skipTests) {
-                additionalArgs.add("-DskipTests=true");
+            if (yes) {
+                gitflowHotfix.publish(hotfixBranch, tagName, true);
+            } else {
+                gitflowHotfix.publish(hotfixBranch, tagName, false);
             }
-            if (useReleaseProfile) {
-                additionalArgs.add("-DperformRelease=true");
-            }
-            if (StringUtils.isNotBlank(releaseProfiles)) {
-                Iterable<String> profiles = PROFILES_SPLITTER.split(releaseProfiles);
-                additionalArgs.add("-P " + PROFILES_JOINER.join(profiles));
-            }
-            runGoals(goals, additionalArgs.build());
-        } else if (skipBuild == false) {
-            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<>();
-            additionalArgs.addAll(DEFAULT_DEPLOY_ARGS);
-            if (skipTests) {
-                additionalArgs.add("-DskipTests=true");
-            }
-            runGoals("clean install", additionalArgs.build());
-        } else {
-            getLog().debug("Skipping both install and deploy for hotfix tag " + hotfixName);
+        } catch (GitCommandException gce) {
+            String header = "Failed to push hotfix finish";
+            exceptionMapper.handle(header, gce);
+        } catch (GitflowException ge) {
+            String header = "Failed to push hotfix finish";
+            exceptionMapper.handle(header, ge);
         }
-
-        getGitflowInit().executeLocal("git checkout " + developBranch);
     }
 
     private String promptForExistingHotfixBranch(String prefix, List<String> hotfixBranches) throws MojoFailureException {

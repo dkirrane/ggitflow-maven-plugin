@@ -43,15 +43,6 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
     @Parameter(property = "enableFeatureVersions", defaultValue = "true", required = false)
     protected boolean enableFeatureVersions;
 
-    /**
-     * If <code>true</code>, the feature branch is pushed to the remote
-     * repository
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "pushFeatureBranch", defaultValue = "false", required = false)
-    protected boolean pushFeatureBranch;
-
     public String getFeatureBranchPrefix() {
         String prefix = getGitflowInit().getFeatureBranchPrefix();
         if (StringUtils.isBlank(prefix)) {

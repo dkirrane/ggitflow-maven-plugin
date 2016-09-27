@@ -17,19 +17,9 @@ package com.dkirrane.maven.plugins.ggitflow;
 
 import static com.dkirrane.gitflow.groovy.Constants.DEFAULT_HOTFIX_BRN_PREFIX;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 
 public class AbstractHotfixMojo extends AbstractGitflowMojo {
-
-    /**
-     * If <code>true</code>, the hotfix branch is pushed to the remote
-     * repository
-     *
-     * @since 1.6
-     */
-    @Parameter(property = "pushHotfixBranch", defaultValue = "true", required = false)
-    protected boolean pushHotfixBranch;
 
     public String getHotfixBranchPrefix() {
         String prefix = getGitflowInit().getHotfixBranchPrefix();

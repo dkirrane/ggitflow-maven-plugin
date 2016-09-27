@@ -61,9 +61,6 @@ public class SupportTagMojo extends AbstractSupportMojo {
         super.execute();
         getLog().debug("Tagging support branch");
 
-        /* Fetch any new tags and prune any branches that may already be deleted */
-        getGitflowInit().executeRemote("git fetch --tags --prune");
-
         /* Get support branch name */
         String prefix = getSupportBranchPrefix();
         List<String> supportBranches = getGitflowInit().gitLocalSupportBranches();
@@ -83,7 +80,8 @@ public class SupportTagMojo extends AbstractSupportMojo {
         } else {
             supportName = trimSupportName(supportName);
             if (!getGitflowInit().gitLocalBranchExists(prefix + supportName)) {
-                throw new MojoFailureException("No local support branch named '" + prefix + supportName + "' exists!");
+                String msg = "No local support branch named '" + prefix + supportName + "' exists!";
+                exceptionMapper.handle(new MojoFailureException(msg));
             }
         }
 
@@ -109,7 +107,7 @@ public class SupportTagMojo extends AbstractSupportMojo {
         getGitflowInit().requireTagAbsent(supportVersion);
 
         /* Set support branch to release version */
-        boolean setVersion = setVersion(supportVersion, false, supportBranch);
+        boolean setVersion = setVersion(supportVersion, supportBranch, false);
 
         if (!allowSnapshots) {
             reloadReactorProjects();
@@ -120,7 +118,7 @@ public class SupportTagMojo extends AbstractSupportMojo {
                 if (setVersion) {
                     getGitflowInit().executeLocal("git reset --hard HEAD~1");
                 }
-                throw mee;
+                exceptionMapper.handle(mee);
             }
         }
 
@@ -132,7 +130,7 @@ public class SupportTagMojo extends AbstractSupportMojo {
 
         /* Increment support branch to next version */
         String nextSupportVersion = getNextSupportVersion(snapshotVersion);
-        setVersion(nextSupportVersion, false, supportBranch);
+        setVersion(nextSupportVersion, supportBranch, false);
         promptToPushSupportBranchAndTag(supportBranch, tagName);
 
     }

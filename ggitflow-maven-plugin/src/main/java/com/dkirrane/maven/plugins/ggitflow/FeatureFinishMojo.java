@@ -16,10 +16,11 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowFeature;
+import com.dkirrane.gitflow.groovy.ex.GitCommandException;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
-import com.google.common.collect.ImmutableList;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -32,15 +33,6 @@ import org.codehaus.plexus.util.StringUtils;
  */
 @Mojo(name = "feature-finish", aggregator = true)
 public class FeatureFinishMojo extends AbstractFeatureMojo {
-
-    /**
-     * If <code>true</code>, the feature finish merge to develop will get pushed
-     * to the remote repository
-     *
-     * @since 1.6
-     */
-    @Parameter(property = "pushFeatureFinish", defaultValue = "false", required = false)
-    protected boolean pushFeatureFinish;
 
     /**
      * If <code>true</code>, the feature branch will be rebased onto develop,
@@ -62,22 +54,6 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
     private final boolean isInteractive = false;
 
     /**
-     * Skips any calls to <code>mvn install</code>
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "skipBuild", defaultValue = "true", required = false)
-    private Boolean skipBuild;
-
-    /**
-     * Skips any tests during <code>mvn install</code>
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "skipTests", defaultValue = "true", required = false)
-    private Boolean skipTests;
-
-    /**
      * If <code>true</code>, all commits to the branch will be squashed into a
      * single commit before the merge.
      *
@@ -85,24 +61,6 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
      */
     @Parameter(property = "squash", defaultValue = "false", required = false)
     private Boolean squash;
-
-    /**
-     * If <code>true</code>, the local feature branch will not be deleted after
-     * the merge.
-     *
-     * @since 1.6
-     */
-    @Parameter(property = "keep", defaultValue = "false", required = false)
-    private Boolean keepLocal;
-
-    /**
-     * If <code>true</code>, the remote feature branch will not be deleted after
-     * the merge.
-     *
-     * @since 1.6
-     */
-    @Parameter(property = "keep", defaultValue = "true", required = false)
-    private Boolean keepRemote;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -127,50 +85,78 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
 
         getLog().info("Finishing feature '" + featureName + "'");
 
+        String featureBranch = prefix + featureName;
+        String developBranch = getGitflowInit().getDevelopBranch();
+        String masterBranch = getGitflowInit().getMasterBranch();
+        String origin = getGitflowInit().getOrigin();
+
         if (enableFeatureVersions) {
             /* Switch to develop branch and get its current version */
-            getGitflowInit().executeLocal("git checkout " + getGitflowInit().getDevelopBranch());
+            getGitflowInit().executeLocal("git checkout " + developBranch);
             reloadReactorProjects();
             String developVersion = project.getVersion();
             getLog().debug("develop version = " + developVersion);
 
             /* Switch to feature branch and get its current version */
-            getGitflowInit().executeLocal("git checkout " + prefix + featureName);
+            getGitflowInit().executeLocal("git checkout " + featureBranch);
             reloadReactorProjects();
             String featureVersion = project.getVersion();
             getLog().debug("feature version = " + featureVersion);
 
-            setVersion(developVersion, pushFeatureFinish, prefix + featureName);
-        }
-
-        if (skipBuild == false) {
-            ImmutableList.Builder<String> additionalArgs = new ImmutableList.Builder<>();
-            additionalArgs.addAll(DEFAULT_INSTALL_ARGS);
-            if (skipTests) {
-                additionalArgs.add("-DskipTests=true");
-            }
-            runGoals("clean install", additionalArgs.build());
-        } else {
-            getLog().debug("Skipping mvn install for feature " + featureName);
+            setVersion(developVersion, featureBranch, false);
         }
 
         GitflowFeature gitflowFeature = new GitflowFeature();
         gitflowFeature.setInit(getGitflowInit());
         gitflowFeature.setMsgPrefix(getMsgPrefix());
         gitflowFeature.setMsgSuffix(getMsgSuffix());
-        gitflowFeature.setPush(pushFeatureBranch);
+        gitflowFeature.setPush(false);
         gitflowFeature.setSquash(squash);
-        gitflowFeature.setKeepLocal(keepLocal);
-        gitflowFeature.setKeepRemote(keepRemote);
         gitflowFeature.setIsRebase(isRebase);
         gitflowFeature.setIsInteractive(isInteractive);
 
         try {
             gitflowFeature.finish(featureName);
+        } catch (GitCommandException gce) {
+            String header = "Error merging branch '" + featureBranch + "' into '" + masterBranch + "'";
+            exceptionMapper.handle(header, gce);
         } catch (GitflowException ge) {
-            throw new MojoFailureException(ge.getMessage());
+            String header = "Error merging branch '" + featureBranch + "' into '" + masterBranch + "'";
+            exceptionMapper.handle(header, ge);
         } catch (GitflowMergeConflictException gmce) {
-            throw new MojoFailureException(gmce.getMessage());
+            String header = "Merge conflict merging branch '" + featureBranch + "' into '" + masterBranch + "'";
+            exceptionMapper.handle(header, gmce);
+        }
+
+
+        /* make sure we're on the develop branch */
+        String currentBranch = getGitflowInit().gitCurrentBranch();
+        if (!currentBranch.equals(developBranch)) {
+            throw new MojoFailureException("Current branch should be " + developBranch + " but was " + currentBranch);
+        }
+
+        /* Push merges and tag */
+        try {
+            prompter.pushPrompt("Are you ready to push?", Arrays.asList(developBranch), Arrays.asList(featureBranch, origin + '/' + featureBranch));
+
+            boolean yes;
+            try {
+                yes = prompter.promptYesNo("Do you want to continue");
+            } catch (IOException e) {
+                throw new MojoFailureException("Error reading user input from command line " + e.getMessage());
+            }
+
+            if (yes) {
+                gitflowFeature.publish(featureBranch, true);
+            } else {
+                gitflowFeature.publish(featureBranch, false);
+            }
+        } catch (GitCommandException gce) {
+            String header = "Failed to push release finish";
+            exceptionMapper.handle(header, gce);
+        } catch (GitflowException ge) {
+            String header = "Failed to push release finish";
+            exceptionMapper.handle(header, ge);
         }
     }
 
