@@ -15,6 +15,7 @@
     <@fg 31/><@bold/>Message: ${message}<@reset/>
 </#if>
 
+<#-- 
 <#if stout??>
     <@fg 31/><@bold/>Stout: ${stout}<@reset/>
 </#if>
@@ -22,4 +23,5 @@
 <#if sterr??>
     <@fg 31/><@bold/>Sterr: ${sterr}<@reset/>
 </#if>
+-->
 
