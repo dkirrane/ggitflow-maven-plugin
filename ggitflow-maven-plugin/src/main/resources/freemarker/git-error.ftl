@@ -8,7 +8,7 @@
 <@fg 31/><@bold/>=====${""?right_pad(header?length, "=")}=====<@reset/>
 
 <#if exitCode??>
-    <@fg 31/><@bold/>Git exiting with error code: ${exitCode}<@reset/>
+    <@fg 31/><@bold/>Git exited code: ${exitCode}<@reset/>
 </#if>
 
 <#if message??>

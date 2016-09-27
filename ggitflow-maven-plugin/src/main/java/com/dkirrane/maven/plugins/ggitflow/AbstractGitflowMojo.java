@@ -17,6 +17,7 @@ package com.dkirrane.maven.plugins.ggitflow;
 
 import static com.dkirrane.gitflow.groovy.Constants.DEFAULT_VERSION_TAG_PREFIX;
 import com.dkirrane.gitflow.groovy.GitflowInit;
+import com.dkirrane.gitflow.groovy.ex.GitCommandException;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.maven.plugins.ggitflow.ex.ExceptionMapper;
 import com.dkirrane.maven.plugins.ggitflow.prompt.Prompter;
@@ -170,18 +171,33 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
         exceptionMapper.setRepoDir(gitflowInit.getRepoDir());
 
-        gitflowInit.requireGitRepo();
-        gitflowInit.checkRemoteConnection();
+        try {
+            gitflowInit.requireGitRepo();
+        } catch (GitflowException ge) {
+            exceptionMapper.handle("Invalid Git repo", ge);
+        }
+        try {
+            gitflowInit.checkRemoteConnection();
+        } catch (GitCommandException ge) {
+            exceptionMapper.handle("Git connection issue", ge);
+        }
+        try {
+            gitflowInit.requireCleanWorkingTree();
+        } catch (GitflowException ge) {
+            exceptionMapper.handle("Check git status", ge);
+        }
 
         if (!gitflowInit.gitflowIsInitialized()) {
             try {
                 gitflowInit.cmdDefault();
-            } catch (GitflowException ex) {
-                throw new MojoExecutionException("Failed to initialise Gitflow " + ex.getMessage(), ex);
+            } catch (GitCommandException gce) {
+                String header = "Unable to initialise Gitflow";
+                exceptionMapper.handle(header, gce);
+            } catch (GitflowException ge) {
+                String header = "Unable to initialise Gitflow";
+                exceptionMapper.handle(header, ge);
             }
         }
-
-        gitflowInit.requireCleanWorkingTree();
     }
 
     public String getMsgPrefix() {
