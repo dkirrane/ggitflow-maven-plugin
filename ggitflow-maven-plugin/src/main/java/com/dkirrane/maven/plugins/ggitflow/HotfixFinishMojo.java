@@ -57,6 +57,14 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
     private Boolean squash;
 
     /**
+     * The message to append add to the release tag
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "tagMsg", defaultValue = "", required = false)
+    private String tagMsg;
+
+    /**
      * If <code>true</code>, the hotfix tag will be signed.
      *
      * @since 1.2
@@ -114,6 +122,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         gitflowHotfix.setMsgSuffix(getMsgSuffix());
         gitflowHotfix.setPush(false);
         gitflowHotfix.setSquash(squash);
+        gitflowHotfix.setTagMsg(tagMsg);
         gitflowHotfix.setSign(sign);
         gitflowHotfix.setSigningkey(signingkey);
 

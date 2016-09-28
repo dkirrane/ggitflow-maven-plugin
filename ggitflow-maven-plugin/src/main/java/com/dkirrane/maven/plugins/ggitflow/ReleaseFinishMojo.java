@@ -88,6 +88,14 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
     private Boolean squash;
 
     /**
+     * The message to append add to the release tag
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "tagMsg", defaultValue = "", required = false)
+    private String tagMsg;
+
+    /**
      * If <code>true</code>, the release tag will be signed.
      *
      * @since 1.2
@@ -145,6 +153,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         gitflowRelease.setMsgSuffix(getMsgSuffix());
         gitflowRelease.setPush(false);
         gitflowRelease.setSquash(squash);
+        gitflowRelease.setTagMsg(tagMsg);
         gitflowRelease.setSign(sign);
         gitflowRelease.setSigningkey(signingkey);
 

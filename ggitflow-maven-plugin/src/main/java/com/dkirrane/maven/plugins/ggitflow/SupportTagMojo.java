@@ -41,6 +41,14 @@ public class SupportTagMojo extends AbstractSupportMojo {
     private Boolean allowSnapshots;
 
     /**
+     * The message to append add to the release tag
+     *
+     * @since 1.2
+     */
+    @Parameter(property = "tagMsg", defaultValue = "", required = false)
+    private String tagMsg;
+
+    /**
      * If <code>true</code>, the support tag will be signed.
      *
      * @since 2.3
@@ -123,9 +131,10 @@ public class SupportTagMojo extends AbstractSupportMojo {
         }
 
         /* tag support branch */
-        String tagMsg = "Support release version " + supportVersion;
+        tagMsg = StringUtils.isBlank(tagMsg) ? "" : " " + tagMsg;
+        String tagMessage = "Support release version " + supportVersion + tagMsg ;
         String tagName = supportVersion;
-        String tagString = getGitflowInit().executeLocal("git tag -a -m \"" + tagMsg + "\" " + tagName + " " + supportBranch);
+        String tagString = getGitflowInit().executeLocal("git tag -a -m \"" + tagMessage + "\" " + tagName + " " + supportBranch);
         getLog().debug("Git tag output = " + tagString);
 
         /* Increment support branch to next version */
