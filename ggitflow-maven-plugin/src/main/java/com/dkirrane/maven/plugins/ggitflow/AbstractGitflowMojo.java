@@ -21,8 +21,6 @@ import com.dkirrane.gitflow.groovy.ex.GitCommandException;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.maven.plugins.ggitflow.ex.ExceptionMapper;
 import com.dkirrane.maven.plugins.ggitflow.prompt.Prompter;
-import com.dkirrane.maven.plugins.ggitflow.util.Finder;
-import com.dkirrane.maven.plugins.ggitflow.util.Finder.Syntax;
 import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -32,9 +30,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +68,6 @@ import org.apache.maven.shared.release.env.ReleaseEnvironment;
 import org.apache.maven.shared.release.exec.MavenExecutor;
 import org.apache.maven.shared.release.exec.MavenExecutorException;
 import org.apache.maven.shared.release.util.ReleaseUtil;
-import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.dag.CycleDetectedException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -234,12 +234,23 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
             /* Create temp directory - delete any previous first */
             try {
-                Finder finder = new Finder(Syntax.glob, "mvn-gitflow*");
-                Files.walkFileTree(Paths.get(System.getProperty("java.io.tmpdir")), finder);
-                List<Path> paths = finder.getPaths();
-                getLog().debug("Deleting old temp directories " + paths);
-                for (Path path : paths) {
-                    FileUtils.deleteDirectory(path.toFile());
+                Path osTempDir = Paths.get(System.getProperty("java.io.tmpdir"));
+                for (File f : osTempDir.toFile().listFiles()) {
+                    if (f.isDirectory() && f.getName().startsWith("mvn-gitflow")) {
+                        Files.walkFileTree(f.toPath(), new SimpleFileVisitor<Path>() {
+                            @Override
+                            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                                Files.delete(file);
+                                return FileVisitResult.CONTINUE;
+                            }
+
+                            @Override
+                            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                                Files.delete(dir);
+                                return FileVisitResult.CONTINUE;
+                            }
+                        });
+                    }
                 }
                 tempDir = Files.createTempDirectory("mvn-gitflow");
             } catch (IOException ioe) {
