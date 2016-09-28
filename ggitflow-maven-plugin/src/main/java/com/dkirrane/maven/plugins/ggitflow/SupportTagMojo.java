@@ -155,16 +155,19 @@ public class SupportTagMojo extends AbstractSupportMojo {
 
     private void promptToPushSupportBranchAndTag(String supportBranch, String supportTag) throws MojoFailureException {
         String origin = getGitflowInit().getOrigin();
-        String message = "Do you want to push " + supportBranch + " branch and support tag " + supportTag + " to " + origin + "? (y/N)";
 
-        String answer = "";
-        try {
-            answer = prompter.prompt(message);
-        } catch (IOException e) {
-            throw new MojoFailureException("Error reading support branch name from command line " + e.getMessage());
+        boolean yes;
+        if (session.getRequest().isInteractiveMode()) {
+            try {
+                yes = prompter.promptYesNo("Do you want to push " + supportBranch + " branch and support tag " + supportTag + " to " + origin);
+            } catch (IOException e) {
+                throw new MojoFailureException("Error reading support branch name from command line " + e.getMessage());
+            }
+        } else {
+            yes = true; // push in maven --batch mode
         }
 
-        if (answer.matches("/^([yY][eE][sS]|[yY])$/")) {
+        if (yes) {
             if (getGitflowInit().gitRemoteBranchExists(supportBranch)) {
                 getGitflowInit().executeRemote("git push " + origin + " " + supportBranch);
                 getGitflowInit().executeRemote("git push " + origin + " " + supportTag);

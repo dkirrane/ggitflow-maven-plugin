@@ -207,19 +207,22 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
 
         /* Push merges and tag */
         try {
-            prompter.pushPrompt("Are you ready to push?", Arrays.asList(tagName, masterBranch, developBranch), Arrays.asList(hotfixBranch, origin + '/' + hotfixBranch));
+            if (session.getRequest().isInteractiveMode()) {
+                prompter.pushPrompt("Are you ready to push?", Arrays.asList(tagName, masterBranch, developBranch), Arrays.asList(hotfixBranch, origin + '/' + hotfixBranch));
+                boolean yes;
+                try {
+                    yes = prompter.promptYesNo("Do you want to continue");
+                } catch (IOException e) {
+                    throw new MojoFailureException("Error reading user input from command line " + e.getMessage());
+                }
 
-            boolean yes;
-            try {
-                yes = prompter.promptYesNo("Do you want to continue");
-            } catch (IOException e) {
-                throw new MojoFailureException("Error reading user input from command line " + e.getMessage());
-            }
-
-            if (yes) {
-                gitflowHotfix.publish(hotfixBranch, tagName, true);
+                if (yes) {
+                    gitflowHotfix.publish(hotfixBranch, tagName, true);
+                } else {
+                    gitflowHotfix.publish(hotfixBranch, tagName, false);
+                }
             } else {
-                gitflowHotfix.publish(hotfixBranch, tagName, false);
+                gitflowHotfix.publish(hotfixBranch, tagName, true);
             }
         } catch (GitCommandException gce) {
             String header = "Failed to push hotfix finish";

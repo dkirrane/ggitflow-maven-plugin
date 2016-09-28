@@ -248,19 +248,22 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
 
         /* Push merges and tag */
         try {
-            prompter.pushPrompt("Are you ready to push?", Arrays.asList(tagName, masterBranch, developBranch), Arrays.asList(releaseBranch, origin + '/' + releaseBranch));
+            if (session.getRequest().isInteractiveMode()) {
+                prompter.pushPrompt("Are you ready to push?", Arrays.asList(tagName, masterBranch, developBranch), Arrays.asList(releaseBranch, origin + '/' + releaseBranch));
+                boolean yes;
+                try {
+                    yes = prompter.promptYesNo("Do you want to continue");
+                } catch (IOException e) {
+                    throw new MojoFailureException("Error reading user input from command line " + e.getMessage());
+                }
 
-            boolean yes;
-            try {
-                yes = prompter.promptYesNo("Do you want to continue");
-            } catch (IOException e) {
-                throw new MojoFailureException("Error reading user input from command line " + e.getMessage());
-            }
-
-            if (yes) {
-                gitflowRelease.publish(releaseBranch, tagName, true);
+                if (yes) {
+                    gitflowRelease.publish(releaseBranch, tagName, true);
+                } else {
+                    gitflowRelease.publish(releaseBranch, tagName, false);
+                }
             } else {
-                gitflowRelease.publish(releaseBranch, tagName, false);
+                gitflowRelease.publish(releaseBranch, tagName, true);
             }
         } catch (GitCommandException gce) {
             String header = "Failed to push release finish";

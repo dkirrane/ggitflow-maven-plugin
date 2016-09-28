@@ -137,19 +137,22 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
 
         /* Push merges and tag */
         try {
-            prompter.pushPrompt("Are you ready to push?", Arrays.asList(developBranch), Arrays.asList(featureBranch, origin + '/' + featureBranch));
+            if (session.getRequest().isInteractiveMode()) {
+                prompter.pushPrompt("Are you ready to push?", Arrays.asList(developBranch), Arrays.asList(featureBranch, origin + '/' + featureBranch));
+                boolean yes;
+                try {
+                    yes = prompter.promptYesNo("Do you want to continue");
+                } catch (IOException e) {
+                    throw new MojoFailureException("Error reading user input from command line " + e.getMessage());
+                }
 
-            boolean yes;
-            try {
-                yes = prompter.promptYesNo("Do you want to continue");
-            } catch (IOException e) {
-                throw new MojoFailureException("Error reading user input from command line " + e.getMessage());
-            }
-
-            if (yes) {
-                gitflowFeature.publish(featureBranch, true);
+                if (yes) {
+                    gitflowFeature.publish(featureBranch, true);
+                } else {
+                    gitflowFeature.publish(featureBranch, false);
+                }
             } else {
-                gitflowFeature.publish(featureBranch, false);
+                gitflowFeature.publish(featureBranch, true);
             }
         } catch (GitCommandException gce) {
             String header = "Failed to push release finish";
