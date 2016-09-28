@@ -19,7 +19,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netbeans.hint.license>apache20</netbeans.hint.license>
 
-        <maven.version>3.3.9</maven.version>
+        <maven.version>3.0.5</maven.version>
         <maven.plugin.version>3.5</maven.plugin.version>
         <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
         <plexus.component.version>1.6</plexus.component.version>
@@ -75,7 +75,10 @@
         <!-- For Release versions the Sonatype Nexus Stage rules require artifacts to be signed -->
         <!-- http://blog.sonatype.com/2010/01/how-to-generate-pgp-signatures-with-maven -->
         <!-- 1. Setup gpg, @see https://github.com/dkirrane/ggitflow/blob/develop/gradle.properties.sample -->
-        <!-- 2. Run Maven deploy sign from Git terminal: mvn clean deploy -Prelease-sign-artifacts -->
+        <!-- 2. Run Maven deploy sign from Git terminal:
+                    export M2_HOME=C:/apache-maven-3.0.5
+                    mvn clean deploy -Prelease-sign-artifacts
+        -->
         <!-- 3. Login to Nexus to release from the Stage: https://oss.sonatype.org | Login | Staging Repositories | Search for: com.dkirrane | Release -->
         <profile>
             <id>release-sign-artifacts</id>

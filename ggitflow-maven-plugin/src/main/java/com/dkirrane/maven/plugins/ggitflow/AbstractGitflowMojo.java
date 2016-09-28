@@ -45,7 +45,6 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.execution.ReactorManager;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Plugin;
@@ -61,6 +60,7 @@ import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.ProjectBuildingRequest;
 import org.apache.maven.project.ProjectBuildingResult;
+import org.apache.maven.project.ProjectSorter;
 import org.apache.maven.shared.release.ReleaseResult;
 import org.apache.maven.shared.release.env.DefaultReleaseEnvironment;
 import org.apache.maven.shared.release.env.ReleaseEnvironment;
@@ -536,31 +536,36 @@ public class AbstractGitflowMojo extends AbstractMojo {
         return hasSnapshotDependency;
     }
 
-    protected void reloadReactorProjects() {
+    protected final void reloadReactorProjects() {
         getLog().debug("Reloading poms...");
 
         List<MavenProject> updatedReactorProjects = new ArrayList<>();
 
         MavenProject rootProject = ReleaseUtil.getRootProject(reactorProjects);
         getLog().debug("rootProject = " + rootProject);
-        if (rootProject.getFile().exists() && rootProject.getFile().canRead()) {
-            MavenExecutionRequest mavenExecutionRequest = session.getRequest();
-            ProjectBuildingRequest projectBuildingRequest = mavenExecutionRequest.getProjectBuildingRequest();
-            try {
-                List<ProjectBuildingResult> buildResults = projectBuilder.build(newArrayList(rootProject.getFile()), true, projectBuildingRequest);
-                for (ProjectBuildingResult buildResult : buildResults) {
-                    MavenProject reloadProject = buildResult.getProject();
-                    reloadProject.setActiveProfiles(rootProject.getActiveProfiles());
-                    updatedReactorProjects.add(reloadProject);
+        try {
+            if (rootProject.getFile().exists() && rootProject.getFile().canRead()) {
+                MavenExecutionRequest mavenExecutionRequest = session.getRequest();
+                ProjectBuildingRequest projectBuildingRequest = mavenExecutionRequest.getProjectBuildingRequest();
+                try {
+                    List<ProjectBuildingResult> buildResults = projectBuilder.build(newArrayList(rootProject.getFile()), true, projectBuildingRequest);
+                    for (ProjectBuildingResult buildResult : buildResults) {
+                        MavenProject reloadProject = buildResult.getProject();
+                        reloadProject.setActiveProfiles(rootProject.getActiveProfiles());
+                        updatedReactorProjects.add(reloadProject);
+                    }
+                } catch (ProjectBuildingException ex) {
+                    getLog().error("Build error reloading Maven projects", ex);
                 }
-            } catch (ProjectBuildingException ex) {
-                getLog().error("Build error reloading Maven projects", ex);
             }
+        } catch (Exception ex) {
+            getLog().error("Failed to reload reactor projects", ex);
+            throw ex;
         }
 
         try {
-            ReactorManager reactorManager = new ReactorManager(updatedReactorProjects);
-            updatedReactorProjects = reactorManager.getSortedProjects();
+            ProjectSorter projectSorter = new ProjectSorter(updatedReactorProjects);
+            updatedReactorProjects = projectSorter.getSortedProjects();
         } catch (CycleDetectedException | DuplicateProjectException ex) {
             getLog().error("Failed to sort reactor projects", ex);
         }
@@ -570,19 +575,27 @@ public class AbstractGitflowMojo extends AbstractMojo {
         reactorProjects = updatedReactorProjects;
 
         if (getLog().isDebugEnabled()) {
-            getLog().debug("Updated MavenSession: " + session);
-            getLog().debug("Updated MavenProject: " + project);
-            getLog().debug("Updated reactorProjects: ");
+            getLog().debug("Reloaded MavenProject: " + project);
+            getLog().debug("Reloaded reactorProjects: ");
             for (int i = 0; i < reactorProjects.size(); i++) {
                 MavenProject updatedReactorProject = updatedReactorProjects.get(i);
-                System.out.println("");
-                System.out.printf(" %d) %s:%s \n \t\t\t Parent: %s \n \t\t\t DependencyManagement:%s \n \t\t\t Dependencies:%s \n",
-                        i,
-                        updatedReactorProject.getArtifactId(), updatedReactorProject.getVersion(),
-                        updatedReactorProject.getParentArtifact(),
-                        null != updatedReactorProject.getDependencyManagement() ? updatedReactorProject.getDependencyManagement().getDependencies() : null,
-                        updatedReactorProject.getDependencies());
-                System.out.println("");
+                System.out.printf(" %-4s %-70s [Parent:%s]\n",
+                        i + ")",
+                        updatedReactorProject.getArtifact(),
+                        updatedReactorProject.getParentArtifact());
+//                DependencyManagement dependencyManagement = updatedReactorProject.getDependencyManagement();
+//                if (null != dependencyManagement && null != dependencyManagement.getDependencies()) {
+//                    System.out.printf("\t\t\t DependencyManagement:\n");
+//                    for (Dependency dependency : dependencyManagement.getDependencies()) {
+//                        System.out.printf("\t\t\t\t\t %s:%s:%s \n", dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
+//                    }
+//                }
+//                if (null != updatedReactorProject.getDependencies()) {
+//                    System.out.printf("\t\t\t Dependencies:\n");
+//                    for (Dependency dependency : updatedReactorProject.getDependencies()) {
+//                        System.out.printf("\t\t\t\t\t %s:%s:%s \n", dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
+//                    }
+//                }
             }
         }
 
