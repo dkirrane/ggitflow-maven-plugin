@@ -243,7 +243,7 @@ public class ReleaseFinishMojo extends AbstractReleaseMojo {
         /* make sure we're on the develop branch */
         String currentBranch = getGitflowInit().gitCurrentBranch();
         if (!currentBranch.equals(developBranch)) {
-            new MojoFailureException("Current branch should be " + developBranch + " but was " + currentBranch);
+            throw new MojoFailureException("Current branch should be " + developBranch + " but was " + currentBranch);
         }
 
         /* Push merges and tag */
