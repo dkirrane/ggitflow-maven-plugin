@@ -91,34 +91,44 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
                 exceptionMapper.handle(new MojoExecutionException("Error reading next development version from command line " + ex.getMessage(), ex));
             }
         }
-        GenericArtifactVersion nextDevelopArtifactVersion = new GenericArtifactVersion(nextDevelopVersion);
+        GenericArtifactVersion nextDevelopArtifactVersion = new GenericArtifactVersion(developVersion);
         getLog().debug("Next development version = " + nextDevelopArtifactVersion);
 
-        /* Get release version */
+        /* Get suggested release version */
         String releaseVersion = getReleaseVersion(developVersion);
         getLog().debug("release version = " + releaseVersion);
 
-        /* Get release branch name */
-        if (StringUtils.isBlank(releaseName)) {
-            releaseName = releaseVersion;
-        }
+        /* create release branch */
         String prefix = getReleaseBranchPrefix();
-        if (session.getRequest().isInteractiveMode()) {
+        if (!StringUtils.isBlank(releaseName)) {
+            getLog().debug("Using releaseName passed  '" + releaseName + "'");
+        } else if (session.getRequest().isInteractiveMode()) {
             try {
-                releaseName = prompter.promptWithDefault("Please enter the release branch name? " + prefix, releaseName);
-                releaseName = trimRefName(releaseName);
+                releaseName = prompter.promptWithDefault("Please enter the release branch name? " + prefix, releaseVersion);
             } catch (IOException ex) {
                 exceptionMapper.handle(new MojoExecutionException("Error reading release name from command line " + ex.getMessage(), ex));
             }
-        }
-        String releaseBranchName = namer.getBranchName(prefix, releaseName, releaseVersion);
-
-        GenericArtifactVersion releaseArtifactVersion = new GenericArtifactVersion(releaseVersion);
-        if (SNAPSHOT_QUALIFIER.equals(releaseArtifactVersion.getBuildSpecifier())) {
-            throw new IllegalArgumentException("The release version contains a SNAPSHOT build specifier");
+        } else {
+            releaseName = releaseVersion;
         }
 
-        getLog().info("Starting release '" + releaseBranchName + "'");
+        releaseName = trimReleaseName(releaseName);
+
+        if (StringUtils.isBlank(releaseName)) {
+            exceptionMapper.handle(new MojoFailureException("Parameter <releaseName> cannot be null or empty."));
+        }
+
+        GenericArtifactVersion releaseArtifactVersion;
+        try {
+            releaseArtifactVersion = new GenericArtifactVersion(releaseName);
+            if (SNAPSHOT_QUALIFIER.equals(releaseArtifactVersion.getBuildSpecifier())) {
+                throw new IllegalArgumentException("Parameter <releaseName> is not a release version as it contains SNAPSHOT build specifier");
+            }
+        } catch (IllegalArgumentException e) {
+            throw new MojoExecutionException("Parameter <releaseName> value '" + releaseName + "' is not a valid Maven release version.");
+        }
+
+        getLog().info("Starting release '" + releaseName + "'");
         getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
         getLog().debug("msgSuffix '" + getMsgSuffix() + "'");
 
@@ -130,7 +140,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         gitflowRelease.setStartCommit(startCommit);
 
         try {
-            gitflowRelease.start(releaseBranchName);
+            gitflowRelease.start(releaseName);
         } catch (GitCommandException gce) {
             String header = "Failed to run release start";
             exceptionMapper.handle(header, gce);
