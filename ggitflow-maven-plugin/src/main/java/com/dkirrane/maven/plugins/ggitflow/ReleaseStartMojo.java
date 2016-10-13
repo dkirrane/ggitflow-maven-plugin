@@ -91,43 +91,34 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
                 exceptionMapper.handle(new MojoExecutionException("Error reading next development version from command line " + ex.getMessage(), ex));
             }
         }
-        getLog().debug("Next development version = " + developVersion);
+        GenericArtifactVersion nextDevelopArtifactVersion = new GenericArtifactVersion(nextDevelopVersion);
+        getLog().debug("Next development version = " + nextDevelopArtifactVersion);
 
-        /* Get suggested release version */
+        /* Get release version */
         String releaseVersion = getReleaseVersion(developVersion);
         getLog().debug("release version = " + releaseVersion);
 
-        /* create release branch */
+        /* Get release branch name */
+        if (StringUtils.isBlank(releaseName)) {
+            releaseName = releaseVersion;
+        }
         String prefix = getReleaseBranchPrefix();
-        if (!StringUtils.isBlank(releaseName)) {
-            getLog().debug("Using releaseName passed  '" + releaseName + "'");
-        } else if (session.getRequest().isInteractiveMode()) {
+        if (session.getRequest().isInteractiveMode()) {
             try {
-                releaseName = prompter.promptWithDefault("Please enter the release branch name? " + prefix, releaseVersion);
+                releaseName = prompter.promptWithDefault("Please enter the release branch name? " + prefix, releaseName);
+                releaseName = trimRefName(releaseName);
             } catch (IOException ex) {
                 exceptionMapper.handle(new MojoExecutionException("Error reading release name from command line " + ex.getMessage(), ex));
             }
-        } else {
-            releaseName = releaseVersion;
+        }
+        String releaseBranchName = namer.getBranchName(prefix, releaseName, releaseVersion);
+
+        GenericArtifactVersion releaseArtifactVersion = new GenericArtifactVersion(releaseVersion);
+        if (SNAPSHOT_QUALIFIER.equals(releaseArtifactVersion.getBuildSpecifier())) {
+            throw new IllegalArgumentException("The release version contains a SNAPSHOT build specifier");
         }
 
-        releaseName = trimReleaseName(releaseName);
-
-        if (StringUtils.isBlank(releaseName)) {
-            exceptionMapper.handle(new MojoFailureException("Parameter <releaseName> cannot be null or empty."));
-        }
-
-        GenericArtifactVersion releaseArtifactVersion;
-        try {
-            releaseArtifactVersion = new GenericArtifactVersion(releaseName);
-            if (SNAPSHOT_QUALIFIER.equals(releaseArtifactVersion.getBuildSpecifier())) {
-                throw new IllegalArgumentException("Parameter <releaseName> is not a release version as it contains SNAPSHOT build specifier");
-            }
-        } catch (IllegalArgumentException e) {
-            throw new MojoExecutionException("Parameter <releaseName> value '" + releaseName + "' is not a valid Maven release version.");
-        }
-
-        getLog().info("Starting release '" + releaseName + "'");
+        getLog().info("Starting release '" + releaseBranchName + "'");
         getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
         getLog().debug("msgSuffix '" + getMsgSuffix() + "'");
 
@@ -139,7 +130,7 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         gitflowRelease.setStartCommit(startCommit);
 
         try {
-            gitflowRelease.start(releaseName);
+            gitflowRelease.start(releaseBranchName);
         } catch (GitCommandException gce) {
             String header = "Failed to run release start";
             exceptionMapper.handle(header, gce);
@@ -170,10 +161,6 @@ public class ReleaseStartMojo extends AbstractReleaseMojo {
         getGitflowInit().executeLocal("git checkout " + releaseBranch);
         reloadReactorProjects();
         setVersion(releaseArtifactVersion.setBuildSpecifier(SNAPSHOT_QUALIFIER).toString(), releaseBranch, true);
-    }
-
-    public String getReleaseName() {
-        return releaseName;
     }
 
     private String getNextDevelopVersion(String developVersion) {

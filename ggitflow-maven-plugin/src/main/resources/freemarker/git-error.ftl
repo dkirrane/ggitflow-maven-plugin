@@ -8,20 +8,18 @@
 <@fg 31/><@bold/>=====${""?right_pad(header?length, "=")}=====<@reset/>
 
 <#if exitCode??>
-    <@fg 31/><@bold/>Git exited code: ${exitCode}<@reset/>
+<@fg 31/><@bold/>Git exited code: ${exitCode}<@reset/>
 </#if>
 
 <#if message??>
-    <@fg 31/><@bold/>Message: ${message}<@reset/>
+<@fg 31/><@bold/>Message: ${message}<@reset/>
 </#if>
 
-<#-- 
 <#if stout??>
-    <@fg 31/><@bold/>Stout: ${stout}<@reset/>
+<@fg 31/><@bold/>${stout}<@reset/>
 </#if>
 
 <#if sterr??>
-    <@fg 31/><@bold/>Sterr: ${sterr}<@reset/>
+<@fg 31/><@bold/>${sterr}<@reset/>
 </#if>
--->
 
