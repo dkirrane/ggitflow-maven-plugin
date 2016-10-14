@@ -91,9 +91,10 @@ public interface Prompter {
     /**
      * Display a message to the user regards pushing/deleting branches
      *
-     * @param header message heaeder to display
+     * @param header message header to display
+     * @param pushTags Git tags to push
      * @param pushBranches Git branches to push
      * @param deleteBranches Git branches to delete
      */
-    void pushPrompt(final String header, final List<String> pushBranches, final List<String> deleteBranches);
+    void pushPrompt(final String header, final List<String> pushTags, final List<String> pushBranches, final List<String> deleteBranches);
 }

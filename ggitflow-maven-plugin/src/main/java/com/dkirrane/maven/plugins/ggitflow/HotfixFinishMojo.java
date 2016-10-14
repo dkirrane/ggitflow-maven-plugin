@@ -217,7 +217,7 @@ public class HotfixFinishMojo extends AbstractHotfixMojo {
         /* Push merges and tag */
         try {
             if (session.getRequest().isInteractiveMode()) {
-                prompter.pushPrompt("Are you ready to push?", Arrays.asList(tagName, masterBranch, developBranch), Arrays.asList(hotfixBranch, origin + '/' + hotfixBranch));
+                prompter.pushPrompt("Are you ready to push?", Arrays.asList(tagName), Arrays.asList(masterBranch, developBranch), Arrays.asList(hotfixBranch, origin + '/' + hotfixBranch));
                 boolean yes;
                 try {
                     yes = prompter.promptYesNo("Do you want to continue");

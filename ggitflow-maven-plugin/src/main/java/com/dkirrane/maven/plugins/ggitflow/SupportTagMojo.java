@@ -16,6 +16,8 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -165,12 +167,13 @@ public class SupportTagMojo extends AbstractSupportMojo {
     private void promptToPushSupportBranchAndTag(String supportBranch, String supportTag) throws MojoFailureException {
         String origin = getGitflowInit().getOrigin();
 
-        boolean yes;
+        boolean yes = false;
         if (session.getRequest().isInteractiveMode()) {
+            prompter.pushPrompt("Are you ready to push?", Arrays.asList(supportTag), Arrays.asList(supportBranch), Collections.EMPTY_LIST);
             try {
-                yes = prompter.promptYesNo("Do you want to push " + supportBranch + " branch and support tag " + supportTag + " to " + origin);
+                yes = prompter.promptYesNo("Do you want to continue");
             } catch (IOException e) {
-                throw new MojoFailureException("Error reading support branch name from command line " + e.getMessage());
+                throw new MojoFailureException("Error reading user input from command line " + e.getMessage());
             }
         } else {
             yes = true; // push in maven --batch mode
@@ -178,8 +181,10 @@ public class SupportTagMojo extends AbstractSupportMojo {
 
         if (yes) {
             if (getGitflowInit().gitRemoteBranchExists(supportBranch)) {
-                getGitflowInit().executeRemote("git push " + origin + " " + supportBranch);
+                getLog().info("Pushing tag " + supportTag);
                 getGitflowInit().executeRemote("git push " + origin + " " + supportTag);
+                getLog().info("Pushing " + supportBranch);
+                getGitflowInit().executeRemote("git push " + origin + " " + supportBranch);
             } else {
                 getLog().info("");
                 getLog().warn("===> Branch '" + supportBranch + "' does not exist on '" + origin + "'");

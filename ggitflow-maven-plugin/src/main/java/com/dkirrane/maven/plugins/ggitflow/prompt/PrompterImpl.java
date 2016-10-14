@@ -214,8 +214,9 @@ public class PrompterImpl implements Prompter {
     }
 
     @Override
-    public void pushPrompt(String header, List<String> pushBranches, List<String> deleteBranches) {
+    public void pushPrompt(String header, List<String> pushTags, List<String> pushBranches, List<String> deleteBranches) {
         checkNotNull(header);
+        checkNotNull(pushTags);
         checkNotNull(pushBranches);
         checkNotNull(deleteBranches);
 
@@ -230,6 +231,7 @@ public class PrompterImpl implements Prompter {
             Template template = cfg.getTemplate("pushing.ftl");
             Map<String, Object> data = new HashMap<>();
             data.put("header", header);
+            data.put("pushTags", pushTags);
             data.put("pushBranches", pushBranches);
             data.put("deleteBranches", deleteBranches);
 

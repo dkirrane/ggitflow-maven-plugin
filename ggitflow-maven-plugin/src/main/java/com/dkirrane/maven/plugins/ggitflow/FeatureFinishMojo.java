@@ -21,6 +21,7 @@ import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.gitflow.groovy.ex.GitflowMergeConflictException;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -138,7 +139,7 @@ public class FeatureFinishMojo extends AbstractFeatureMojo {
         /* Push merges and tag */
         try {
             if (session.getRequest().isInteractiveMode()) {
-                prompter.pushPrompt("Are you ready to push?", Arrays.asList(developBranch), Arrays.asList(featureBranch, origin + '/' + featureBranch));
+                prompter.pushPrompt("Are you ready to push?", Collections.EMPTY_LIST, Arrays.asList(developBranch), Arrays.asList(featureBranch, origin + '/' + featureBranch));
                 boolean yes;
                 try {
                     yes = prompter.promptYesNo("Do you want to continue");
