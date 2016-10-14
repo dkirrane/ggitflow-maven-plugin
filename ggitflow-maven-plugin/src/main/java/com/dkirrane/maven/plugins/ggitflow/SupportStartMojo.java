@@ -53,7 +53,7 @@ public class SupportStartMojo extends AbstractSupportMojo {
 
         if (StringUtils.isBlank(startCommit)) {
             try {
-                startCommit = prompter.promptChoice("Support branches", "Please select a tag to create Support branch from", localTags);
+                startCommit = prompter.promptChoice("Tags", "Please select a tag to create Support branch from", localTags);
             } catch (IOException ex) {
                 exceptionMapper.handle(new MojoFailureException("Error reading tag name from command line " + ex.getMessage()));
             }

@@ -157,7 +157,7 @@ public class SupportTagMojo extends AbstractSupportMojo {
 
         String name = "";
         try {
-            prompter.promptChoice("Support branches", "Please select a support branch to tag", choices);
+            name = prompter.promptChoice("Support branches", "Please select a support branch to tag", choices);
         } catch (IOException ex) {
             throw new MojoFailureException("Error reading release name from command line " + ex.getMessage());
         }
