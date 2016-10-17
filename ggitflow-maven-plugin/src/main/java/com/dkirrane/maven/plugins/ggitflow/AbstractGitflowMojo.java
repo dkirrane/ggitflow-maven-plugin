@@ -46,6 +46,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.execution.ReactorManager;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Plugin;
@@ -61,7 +62,6 @@ import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.ProjectBuildingRequest;
 import org.apache.maven.project.ProjectBuildingResult;
-import org.apache.maven.project.ProjectSorter;
 import org.apache.maven.shared.release.ReleaseResult;
 import org.apache.maven.shared.release.env.DefaultReleaseEnvironment;
 import org.apache.maven.shared.release.env.ReleaseEnvironment;
@@ -575,8 +575,8 @@ public class AbstractGitflowMojo extends AbstractMojo {
         }
 
         try {
-            ProjectSorter projectSorter = new ProjectSorter(updatedReactorProjects);
-            updatedReactorProjects = projectSorter.getSortedProjects();
+            ReactorManager reactorManager = new ReactorManager(updatedReactorProjects);
+            updatedReactorProjects = reactorManager.getSortedProjects();
         } catch (CycleDetectedException | DuplicateProjectException ex) {
             getLog().error("Failed to sort reactor projects", ex);
         }
