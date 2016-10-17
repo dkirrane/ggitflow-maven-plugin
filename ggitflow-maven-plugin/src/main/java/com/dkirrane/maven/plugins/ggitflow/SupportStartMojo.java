@@ -45,11 +45,20 @@ public class SupportStartMojo extends AbstractSupportMojo {
         super.execute();
 
         String prefix = getGitflowInit().getSupportBranchPrefix();
+        String masterBranch = getGitflowInit().getMasterBranch();
 
-        List<String> localTags = getGitflowInit().gitLocalTags();
+        List<String> localTags = getGitflowInit().gitLocalTagsOnBranch(masterBranch);
         if (localTags.isEmpty()) {
-            exceptionMapper.handle(new MojoFailureException("Could not find any local tags to create support branch from!"));
+            exceptionMapper.handle(new MojoFailureException("Could not find any local Git tags (on master) to create support branch from!"));
         }
+
+//        if (StringUtils.isBlank(supportName)) {
+//            try {
+//                supportName = prompter.promptWithDefault("Enter an optional support branch name (e.g SP1, SP2)? " + prefix, "");
+//            } catch (IOException ex) {
+//                exceptionMapper.handle(new MojoExecutionException("Error reading support name from command line " + ex.getMessage(), ex));
+//            }
+//        }
 
         if (StringUtils.isBlank(startCommit)) {
             try {
