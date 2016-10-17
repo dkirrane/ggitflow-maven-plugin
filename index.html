@@ -1,75 +1,72 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en-us">
   <head>
-    <meta charset='utf-8' />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Ggitflow-maven-plugin : Gitflow Maven Plugin that uses Groovy Gitflow" />
-
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
-
-    <title>Ggitflow-maven-plugin</title>
+    <meta charset="UTF-8">
+    <title>Ggitflow-maven-plugin by dkirrane</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
   </head>
-
   <body>
+    <section class="page-header">
+      <h1 class="project-name">Ggitflow-maven-plugin</h1>
+      <h2 class="project-tagline">Gitflow Maven Plugin that uses Groovy Gitflow</h2>
+      <a href="https://github.com/dkirrane/ggitflow-maven-plugin" class="btn">View on GitHub</a>
+      <a href="https://github.com/dkirrane/ggitflow-maven-plugin/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/dkirrane/ggitflow-maven-plugin/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/dkirrane/ggitflow-maven-plugin">View on GitHub</a>
+    <section class="main-content">
+      <h1>
+<a id="gitflow-maven-plugin" class="anchor" href="#gitflow-maven-plugin" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Gitflow Maven Plugin</h1>
 
-          <h1 id="project_title">Ggitflow-maven-plugin</h1>
-          <h2 id="project_tagline">Gitflow Maven Plugin that uses Groovy Gitflow</h2>
+<p><code>gitflow-maven-plugin</code> provides Maven support for Vincent Driessen's branching model <a href="http://nvie.com/posts/a-successful-git-branching-model/">http://nvie.com/posts/a-successful-git-branching-model/</a>.</p>
 
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/dkirrane/ggitflow-maven-plugin/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/dkirrane/ggitflow-maven-plugin/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h1>
-<a name="gitflow-maven-plugin" class="anchor" href="#gitflow-maven-plugin"><span class="octicon octicon-link"></span></a>Gitflow Maven Plugin</h1>
-
-<p><code>Ggitflow-maven-plugin</code> provides Maven support for Vincent Driessen's branching model <a href="http://nvie.com/posts/a-successful-git-branching-model/">http://nvie.com/posts/a-successful-git-branching-model/</a>.</p>
-
-<p>Think of <code>Ggitflow-maven-plugin</code> as the <code>maven-release-plugin</code> for the Gitflow branching model.</p>
+<p>Think of <code>gitflow-maven-plugin</code> as the <code>maven-release-plugin</code> for the Gitflow branching model.</p>
 
 <p>The plugin uses <a href="http://dkirrane.github.io/ggitflow/">GGitflow</a>, therefore it uses the git console directly under the hood rather than JGit.</p>
 
 <h1>
-<a name="maven-settings" class="anchor" href="#maven-settings"><span class="octicon octicon-link"></span></a>Maven settings</h1>
+<a id="maven-settings" class="anchor" href="#maven-settings" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Maven settings</h1>
 
 <p>Add the following to your Maven <code>settings.xml</code></p>
 
-<div class="highlight highlight-xml"><pre><span class="nt">&lt;pluginGroups&gt;</span>
-   <span class="nt">&lt;pluginGroup&gt;</span>com.dkirrane.maven.plugins<span class="nt">&lt;/pluginGroup&gt;</span>
-<span class="nt">&lt;/pluginGroups&gt;</span>
-</pre></div>
+<div class="highlight highlight-text-xml"><pre>&lt;<span class="pl-ent">pluginGroups</span>&gt;
+   &lt;<span class="pl-ent">pluginGroup</span>&gt;com.dkirrane.maven.plugins&lt;/<span class="pl-ent">pluginGroup</span>&gt;
+&lt;/<span class="pl-ent">pluginGroups</span>&gt;</pre></div>
 
 <h1>
-<a name="credentials" class="anchor" href="#credentials"><span class="octicon octicon-link"></span></a>Credentials</h1>
+<a id="credentials" class="anchor" href="#credentials" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Credentials</h1>
 
 <p>For Git https connections the <code>netrc</code> file allows you to permanently store the repo credentials to use when you clone, pull, push or fetch. Note, this does require you to store your passwords in plain text.</p>
 
 <h3>
-<a name="windows" class="anchor" href="#windows"><span class="octicon octicon-link"></span></a>Windows</h3>
+<a id="windows" class="anchor" href="#windows" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Windows</h3>
 
 <ul>
+<li>Store your Git credentials with <a href="https://help.github.com/articles/caching-your-github-password-in-git/">git credential.helper</a>
+<em><strong>or</strong></em>
+</li>
 <li>Create a text file called <code>_netrc</code> in your home directory (<code>%USERPROFILE%/_netrc</code>). </li>
 <li>Add credentials to the file for the Git server in the same format as described below.</li>
-</ul><h3>
-<a name="linux-or-osx" class="anchor" href="#linux-or-osx"><span class="octicon octicon-link"></span></a>Linux or OSX</h3>
+</ul>
+
+<h3>
+<a id="linux-or-osx" class="anchor" href="#linux-or-osx" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Linux or OSX</h3>
 
 <ul>
+<li>Store your Git credentials with <a href="https://help.github.com/articles/caching-your-github-password-in-git/#platform-linux">git credential.helper</a>
+<em><strong>or</strong></em>
+</li>
 <li>Create a file called <code>.netrc</code> in your home directory (<code>~/.netrc</code>).</li>
 <li>Add credentials to the file for the Git server in the same format as described below.</li>
 <li><code>chmod 600 ~/.netrc</code></li>
-</ul><h3>
-<a name="sample-netrc-file" class="anchor" href="#sample-netrc-file"><span class="octicon octicon-link"></span></a>Sample netrc file</h3>
+</ul>
+
+<h3>
+<a id="sample-netrc-file" class="anchor" href="#sample-netrc-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sample netrc file</h3>
 
 <pre><code>machine github.com
 login myusername
@@ -81,109 +78,100 @@ password mypassword
 </code></pre>
 
 <h1>
-<a name="goals" class="anchor" href="#goals"><span class="octicon octicon-link"></span></a>Goals</h1>
+<a id="goals" class="anchor" href="#goals" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Goals</h1>
 
 <p><a href="http://dkirrane.github.io/ggitflow-maven-plugin/plugin-info.html">Plugin Documentation</a></p>
 
 <h2>
-<a name="sample-pom-configuration" class="anchor" href="#sample-pom-configuration"><span class="octicon octicon-link"></span></a>Sample POM configuration</h2>
+<a id="sample-pom-configuration" class="anchor" href="#sample-pom-configuration" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sample POM configuration</h2>
 
 <p>Add the following to your top-level parent aggregator POM.</p>
 
-<div class="highlight highlight-xml"><pre><span class="nt">&lt;plugin&gt;</span>
-    <span class="nt">&lt;groupId&gt;</span>com.dkirrane.maven.plugins<span class="nt">&lt;/groupId&gt;</span>
-    <span class="nt">&lt;artifactId&gt;</span>ggitflow-maven-plugin<span class="nt">&lt;/artifactId&gt;</span>
-    <span class="nt">&lt;version&gt;</span>1.5-SNAPSHOT<span class="nt">&lt;/version&gt;</span>
-    <span class="nt">&lt;configuration&gt;</span>
-        <span class="c">&lt;!-- Optional Config For all parameters see: --&gt;</span>
-        <span class="c">&lt;!-- http://dkirrane.github.io/ggitflow-maven-plugin/plugin-info.html --&gt;</span>
-        <span class="c">&lt;!--</span>
-<span class="c">        &lt;prefixes&gt;</span>
-<span class="c">            &lt;masterBranch&gt;master&lt;/masterBranch&gt;</span>
-<span class="c">            &lt;developBranch&gt;development&lt;/developBranch&gt;</span>
-<span class="c">            &lt;featureBranchPrefix&gt;feature/&lt;/featureBranchPrefix&gt;</span>
-<span class="c">            &lt;releaseBranchPrefix&gt;release/&lt;/releaseBranchPrefix&gt;</span>
-<span class="c">            &lt;hotfixBranchPrefix&gt;hotfix/&lt;/hotfixBranchPrefix&gt;</span>
-<span class="c">            &lt;supportBranchPrefix&gt;support/&lt;/supportBranchPrefix&gt;</span>
-<span class="c">            &lt;versionTagPrefix&gt;v-&lt;/versionTagPrefix&gt;</span>
-<span class="c">        &lt;/prefixes&gt;</span>
-<span class="c">        &lt;includes&gt;com.dep.one,com.dep.two&lt;/includes&gt;</span>
-<span class="c">        &lt;msgPrefix&gt;[ggitflow-maven-plugin]&lt;/msgPrefix&gt;</span>
-<span class="c">        &lt;msgSuffix&gt;+review @reviewer123&lt;/msgSuffix&gt;</span>
-<span class="c">        &lt;enableFeatureVersions&gt;true&lt;/enableFeatureVersions&gt;</span>
-<span class="c">        &lt;releaseProfiles&gt;my-profile1, my-profile2&lt;/releaseProfiles&gt;</span>
-<span class="c">        &lt;pushFeatures&gt;true&lt;/pushFeatures&gt;</span>
-<span class="c">        &lt;pushReleases&gt;true&lt;/pushReleases&gt;</span>
-<span class="c">        &lt;pushHotfixes&gt;true&lt;/pushHotfixes&gt;</span>
-<span class="c">        &lt;pushSupport&gt;true&lt;/pushSupport&gt;</span>
-<span class="c">        &lt;skipBuild&gt;true&lt;/skipBuild&gt;</span>
-<span class="c">        &lt;skipDeploy&gt;true&lt;/skipDeploy&gt;</span>
-<span class="c">        &lt;skipTests&gt;true&lt;/skipTests&gt;</span>
-<span class="c">        --&gt;</span>
-    <span class="nt">&lt;/configuration&gt;</span>
-<span class="nt">&lt;/plugin&gt;</span>
-</pre></div>
+<div class="highlight highlight-text-xml"><pre>&lt;<span class="pl-ent">plugin</span>&gt;
+    &lt;<span class="pl-ent">groupId</span>&gt;com.dkirrane.maven.plugins&lt;/<span class="pl-ent">groupId</span>&gt;
+    &lt;<span class="pl-ent">artifactId</span>&gt;ggitflow-maven-plugin&lt;/<span class="pl-ent">artifactId</span>&gt;
+    &lt;<span class="pl-ent">version</span>&gt;3.0&lt;/<span class="pl-ent">version</span>&gt;
+    &lt;<span class="pl-ent">configuration</span>&gt;
+        <span class="pl-c">&lt;!-- Optional Config For all parameters see: --&gt;</span>
+        <span class="pl-c">&lt;!-- http://dkirrane.github.io/ggitflow-maven-plugin/plugin-info.html --&gt;</span>
+        <span class="pl-c">&lt;!--</span>
+<span class="pl-c">        &lt;prefixes&gt;</span>
+<span class="pl-c">            &lt;masterBranch&gt;master&lt;/masterBranch&gt;</span>
+<span class="pl-c">            &lt;developBranch&gt;development&lt;/developBranch&gt;</span>
+<span class="pl-c">            &lt;featureBranchPrefix&gt;feature/&lt;/featureBranchPrefix&gt;</span>
+<span class="pl-c">            &lt;releaseBranchPrefix&gt;release/&lt;/releaseBranchPrefix&gt;</span>
+<span class="pl-c">            &lt;hotfixBranchPrefix&gt;hotfix/&lt;/hotfixBranchPrefix&gt;</span>
+<span class="pl-c">            &lt;supportBranchPrefix&gt;support/&lt;/supportBranchPrefix&gt;</span>
+<span class="pl-c">            &lt;versionTagPrefix&gt;v-&lt;/versionTagPrefix&gt;</span>
+<span class="pl-c">        &lt;/prefixes&gt;</span>
+<span class="pl-c">        &lt;msgPrefix&gt;[ggitflow-maven-plugin]&lt;/msgPrefix&gt;</span>
+<span class="pl-c">        &lt;msgSuffix&gt;+review @reviewer123&lt;/msgSuffix&gt;</span>
+<span class="pl-c">        &lt;enableFeatureVersions&gt;true&lt;/enableFeatureVersions&gt;</span>
+<span class="pl-c">        &lt;releaseProfiles&gt;my-profile1, my-profile2&lt;/releaseProfiles&gt;</span>
+<span class="pl-c">        --&gt;</span>
+    &lt;/<span class="pl-ent">configuration</span>&gt;
+&lt;/<span class="pl-ent">plugin</span>&gt;</pre></div>
 
-<hr><p><img class="emoji" title=":no_entry:" alt=":no_entry:" src="https://github.global.ssl.fastly.net/images/icons/emoji/no_entry.png" height="20" width="20" align="absmiddle"> Note for Windows users
-<code>ggitflow-maven-plugin</code> uses the git console therefore the below Maven commands must be run from a git terminal like <a href="http://msysgit.github.io/">Git BASH</a></p>
+<hr>
+
+<p><g-emoji alias="no_entry" fallback-src="https://assets-cdn.github.com/images/icons/emoji/unicode/26d4.png" ios-version="6.0">⛔️</g-emoji> Note for Windows users
+<code>ggitflow-maven-plugin</code> uses the git console therefore the below Maven commands must be run from a git terminal like Git BASH <a href="https://git-for-windows.github.io/">Git for Windows</a></p>
 
 <h3>
-<a name="start--finish-a-feature-branch" class="anchor" href="#start--finish-a-feature-branch"><span class="octicon octicon-link"></span></a>Start &amp; Finish a Feature branch</h3>
+<a id="start--finish-a-feature-branch" class="anchor" href="#start--finish-a-feature-branch" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Start &amp; Finish a Feature branch</h3>
 
-<div class="highlight highlight-bash"><pre>mvn ggitflow:feature-start
-mvn ggitflow:feature-finish -DskipTests -DskipBuild        <span class="c"># optionally skip test &amp; install phase</span>
-</pre></div>
-
-<h3>
-<a name="start--finish-a-release-branch" class="anchor" href="#start--finish-a-release-branch"><span class="octicon octicon-link"></span></a>Start &amp; Finish a Release branch</h3>
-
-<div class="highlight highlight-bash"><pre>mvn ggitflow:release-start
-mvn ggitflow:release-finish -DskipTests -DskipBuild -DskipDeploy      <span class="c"># optionally skip test, install &amp; deploy phase</span>
-</pre></div>
+<div class="highlight highlight-source-shell"><pre>mvn gitflow:feature-start
+mvn gitflow:feature-finish</pre></div>
 
 <h3>
-<a name="start--finish-a-hotfix-branch" class="anchor" href="#start--finish-a-hotfix-branch"><span class="octicon octicon-link"></span></a>Start &amp; Finish a Hotfix branch</h3>
+<a id="start--finish-a-release-branch" class="anchor" href="#start--finish-a-release-branch" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Start &amp; Finish a Release branch</h3>
 
-<div class="highlight highlight-bash"><pre>mvn ggitflow:hotfix-start
-mvn ggitflow:hotfix-finish -DskipTests -DskipBuild -DskipDeploy       <span class="c"># optionally skip test, install &amp; deploy phase</span>
-</pre></div>
-
-<h3>
-<a name="start-a-support-branch" class="anchor" href="#start-a-support-branch"><span class="octicon octicon-link"></span></a>Start a Support branch</h3>
-
-<div class="highlight highlight-bash"><pre>mvn ggitflow:support-start
-</pre></div>
+<div class="highlight highlight-source-shell"><pre>mvn gitflow:release-start
+mvn gitflow:release-finish</pre></div>
 
 <h3>
-<a name="repository" class="anchor" href="#repository"><span class="octicon octicon-link"></span></a>Repository</h3>
+<a id="start--finish-a-hotfix-branch" class="anchor" href="#start--finish-a-hotfix-branch" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Start &amp; Finish a Hotfix branch</h3>
+
+<div class="highlight highlight-source-shell"><pre>mvn gitflow:hotfix-start
+mvn gitflow:hotfix-finish</pre></div>
+
+<h3>
+<a id="start-a-support-branch" class="anchor" href="#start-a-support-branch" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Start a Support branch</h3>
+
+<div class="highlight highlight-source-shell"><pre>mvn gitflow:support-start</pre></div>
+
+<h3>
+<a id="tag-a-support-branch" class="anchor" href="#tag-a-support-branch" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Tag a Support branch</h3>
+
+<div class="highlight highlight-source-shell"><pre>mvn gitflow:tag</pre></div>
+
+<h3>
+<a id="repository" class="anchor" href="#repository" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Repository</h3>
 
 <p>Snapshots of this plugin can be downloaded from <a href="https://oss.sonatype.org/">Sonatype OSS</a>.
 Simply add the following to your pom.</p>
 
-<div class="highlight highlight-xml"><pre><span class="nt">&lt;pluginRepositories&gt;</span>
-    <span class="nt">&lt;pluginRepository&gt;</span>
-        <span class="nt">&lt;id&gt;</span>sonatype<span class="nt">&lt;/id&gt;</span>
-        <span class="nt">&lt;url&gt;</span>https://oss.sonatype.org/content/groups/public<span class="nt">&lt;/url&gt;</span>
-    <span class="nt">&lt;/pluginRepository&gt;</span>
-<span class="nt">&lt;/pluginRepositories&gt;</span>
-</pre></div>
+<div class="highlight highlight-text-xml"><pre>&lt;<span class="pl-ent">pluginRepositories</span>&gt;
+    &lt;<span class="pl-ent">pluginRepository</span>&gt;
+        &lt;<span class="pl-ent">id</span>&gt;sonatype&lt;/<span class="pl-ent">id</span>&gt;
+        &lt;<span class="pl-ent">url</span>&gt;https://oss.sonatype.org/content/groups/public&lt;/<span class="pl-ent">url</span>&gt;
+    &lt;/<span class="pl-ent">pluginRepository</span>&gt;
+&lt;/<span class="pl-ent">pluginRepositories</span>&gt;</pre></div>
 
 <h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+<a id="authors-and-contributors" class="anchor" href="#authors-and-contributors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Authors and Contributors</h3>
 
 <p>Desmond (Dessie) Kirrane (<a href="https://github.com/dkirrane" class="user-mention">@dkirrane</a>)</p>
-      </section>
-    </div>
 
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Ggitflow-maven-plugin maintained by <a href="https://github.com/dkirrane">dkirrane</a></p>
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/dkirrane/ggitflow-maven-plugin">Ggitflow-maven-plugin</a> is maintained by <a href="https://github.com/dkirrane">dkirrane</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
       </footer>
-    </div>
 
-              <script type="text/javascript">
+    </section>
+
+            <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
           </script>
@@ -193,7 +181,6 @@ Simply add the following to your pom.</p>
             pageTracker._trackPageview();
             } catch(err) {}
           </script>
-
 
   </body>
 </html>
