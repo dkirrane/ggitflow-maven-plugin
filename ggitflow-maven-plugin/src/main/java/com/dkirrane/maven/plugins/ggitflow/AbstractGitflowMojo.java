@@ -20,6 +20,7 @@ import com.dkirrane.gitflow.groovy.GitflowInit;
 import com.dkirrane.gitflow.groovy.ex.GitCommandException;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.maven.plugins.ggitflow.ex.ExceptionMapper;
+import com.dkirrane.maven.plugins.ggitflow.name.Namer;
 import com.dkirrane.maven.plugins.ggitflow.prompt.Prompter;
 import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 import com.google.common.base.Joiner;
@@ -125,6 +126,9 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
     @Component(role = Prompter.class)
     protected Prompter prompter;
+
+    @Component(role = Namer.class)
+    protected Namer namer;
 
     @Component(role = ExceptionMapper.class)
     protected ExceptionMapper exceptionMapper;
