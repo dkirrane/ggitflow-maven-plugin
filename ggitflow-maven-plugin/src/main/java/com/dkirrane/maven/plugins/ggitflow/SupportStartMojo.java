@@ -54,7 +54,8 @@ public class SupportStartMojo extends AbstractSupportMojo {
 
 //        if (StringUtils.isBlank(supportName)) {
 //            try {
-//                supportName = prompter.promptWithDefault("Enter an optional support branch name (e.g SP1, SP2)? " + prefix, "");
+//                supportName = prompter.promptWithDefault("Enter a support branch name (optional, examples SP1, SP2)? ", "");
+//                supportName = namer.trimRefName(supportName);
 //            } catch (IOException ex) {
 //                exceptionMapper.handle(new MojoExecutionException("Error reading support name from command line " + ex.getMessage(), ex));
 //            }
@@ -72,8 +73,9 @@ public class SupportStartMojo extends AbstractSupportMojo {
         reloadReactorProjects();
         String supportVersion = getSupportVersion(project.getVersion());
         String supportSnapshotVersion = getSupportSnapshotVersion(project.getVersion());
+        String supportBranchName = namer.getBranchName(prefix, supportName, supportVersion);
 
-        getLog().info("Starting support branch '" + supportVersion + "'");
+        getLog().info("Starting support branch '" + supportBranchName + "'");
         getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
         getLog().debug("msgSuffix '" + getMsgSuffix() + "'");
 
@@ -85,7 +87,7 @@ public class SupportStartMojo extends AbstractSupportMojo {
         gitflowSupport.setStartCommit(startCommit);
 
         try {
-            gitflowSupport.start(supportVersion);
+            gitflowSupport.start(supportBranchName);
         } catch (GitCommandException gce) {
             String header = "Failed to run support start";
             exceptionMapper.handle(header, gce);
@@ -94,10 +96,10 @@ public class SupportStartMojo extends AbstractSupportMojo {
             exceptionMapper.handle(header, ge);
         }
 
-        setVersion(supportSnapshotVersion, prefix + supportVersion, false);
+        setVersion(supportSnapshotVersion, supportBranchName, false);
 
-        if (getGitflowInit().gitRemoteBranchExists(prefix + supportVersion)) {
-            getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + prefix + supportVersion);
+        if (getGitflowInit().gitRemoteBranchExists(supportBranchName)) {
+            getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + supportBranchName);
         }
     }
 

@@ -33,14 +33,15 @@ public class NamerImpl implements Namer {
 
     @Override
     public String trimRefName(String refName) {
-        validate(refName, notEmptyString(), new IllegalArgumentException("Argument refName cannot be null or emtpy"));
+        if (StringUtils.isBlank(refName)) {
+            return "";
+        }
 
         /* Valid Git ref name: https://www.kernel.org/pub/software/scm/git/docs/git-check-ref-format.html */
         return refName
                 .replaceAll("\\.lock", "") // cannot end with the sequence .lock
                 .replaceAll("^[.]+", "") // cannot begin with a dot .
                 .replaceAll("/\\.", "") // cannot contain /.
-                //                .replaceAll("[.]+$", "") // cannot end with a dot .
                 .replaceAll("\\.{2,}", "") // cannot have two consecutive dots .. anywhere
                 .replaceAll("[\040\0177 ~^:]+", "") // cannot have ASCII control characters (i.e. bytes whose values are lower than \040, or \177 DEL), space, tilde ~, caret ^, or colon : anywhere
                 .replaceAll("[?*\\[\\]]+", "") // cannot have question-mark ?, asterisk *, or open bracket [ anywhere
@@ -61,7 +62,7 @@ public class NamerImpl implements Namer {
 
         String branchName;
         if (StringUtils.isBlank(name)) {
-            branchName = prefix + version;
+            branchName = prefix + version; // just use Gitflwo branch prefix and version
         } else {
             name = name.replaceFirst("^" + Pattern.quote(prefix), "");
             if (name.equals(version)) {
