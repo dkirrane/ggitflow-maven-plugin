@@ -55,9 +55,7 @@ public final class MavenUtil {
             return model;
         } catch (FileNotFoundException ex) {
             throw new MojoExecutionException("POM " + pomFile.getAbsolutePath() + " could not be parsed.", ex);
-        } catch (IOException ex) {
-            throw new MojoExecutionException("POM " + pomFile.getAbsolutePath() + " could not be parsed.", ex);
-        } catch (XmlPullParserException ex) {
+        } catch (IOException | XmlPullParserException ex) {
             throw new MojoExecutionException("POM " + pomFile.getAbsolutePath() + " could not be parsed.", ex);
         } finally {
             if (null != fileReader) {

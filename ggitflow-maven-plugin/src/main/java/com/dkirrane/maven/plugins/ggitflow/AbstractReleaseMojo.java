@@ -31,21 +31,29 @@ public class AbstractReleaseMojo extends AbstractGitflowMojo {
     @Parameter(property = "releaseName", required = false)
     protected String releaseName;
 
-    /**
-     * If <code>true</code>, the release branch is pushed to the remote
-     * repository.
-     *
-     * @since 1.6
-     */
-    @Parameter(property = "pushReleaseBranch", defaultValue = "true", required = false)
-    protected boolean pushReleaseBranch;
-
     public String getReleaseBranchPrefix() {
         String prefix = getGitflowInit().getReleaseBranchPrefix();
         if (StringUtils.isBlank(prefix)) {
             prefix = DEFAULT_RELEASE_BRN_PREFIX;
         }
         return prefix;
+    }
+
+    public String trimReleaseName(String name) throws MojoFailureException {
+        if (StringUtils.isBlank(name)) {
+            throw new MojoFailureException("Missing argument <name>");
+        }
+
+        // remove whitespace
+        name = name.replaceAll("\\s+", "");
+
+        // trim off starting any leading 'release/' prefix
+        String prefix = getReleaseBranchPrefix();
+        if (name.startsWith(prefix)) {
+            name = name.substring(prefix.length());
+        }
+
+        return name;
     }
 
     public String getNextDevelopmentVersion(String version) throws MojoFailureException {

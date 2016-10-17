@@ -16,14 +16,15 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowFeature;
+import com.dkirrane.gitflow.groovy.ex.GitCommandException;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
 import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
+import java.io.IOException;
 import org.apache.maven.model.Model;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -46,13 +47,13 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
 
         String prefix = getFeatureBranchPrefix();
         if (StringUtils.isBlank(featureName)) {
-            String message = "What is the feature branch name? " + prefix;
+            String message = "Please enter a feature branch name? " + prefix;
             try {
                 featureName = prompter.prompt(message);
                 if (StringUtils.isBlank(featureName)) {
                     throw new MojoFailureException("Parameter <featureName> cannot be null or empty.");
                 }
-            } catch (PrompterException ex) {
+            } catch (IOException ex) {
                 throw new MojoExecutionException("Error reading feature name from command line " + ex.getMessage(), ex);
             }
         }
@@ -66,13 +67,17 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
         gitflowFeature.setInit(getGitflowInit());
         gitflowFeature.setMsgPrefix(getMsgPrefix());
         gitflowFeature.setMsgSuffix(getMsgSuffix());
-        gitflowFeature.setPush(pushFeatureBranch);
+        gitflowFeature.setPush(true);
         gitflowFeature.setStartCommit(startCommit);
 
         try {
             gitflowFeature.start(featureName);
+        } catch (GitCommandException gce) {
+            String header = "Failed to run feature start";
+            exceptionMapper.handle(header, gce);
         } catch (GitflowException ge) {
-            throw new MojoFailureException(ge.getMessage());
+            String header = "Failed to run feature start";
+            exceptionMapper.handle(header, ge);
         }
 
         if (enableFeatureVersions) {
@@ -81,7 +86,7 @@ public class FeatureStartMojo extends AbstractFeatureMojo {
             String currentVersion = model.getVersion();
 
             String featureVersion = getFeatureVersion(currentVersion, featureName);
-            setVersion(featureVersion, pushFeatureBranch, prefix + featureName);
+            setVersion(featureVersion, prefix + featureName, true);
 
             if (getGitflowInit().gitRemoteBranchExists(prefix + featureName)) {
                 getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + prefix + featureName);

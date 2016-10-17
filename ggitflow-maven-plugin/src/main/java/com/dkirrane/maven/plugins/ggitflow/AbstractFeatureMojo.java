@@ -43,15 +43,6 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
     @Parameter(property = "enableFeatureVersions", defaultValue = "true", required = false)
     protected boolean enableFeatureVersions;
 
-    /**
-     * If <code>true</code>, the feature branch is pushed to the remote
-     * repository
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "pushFeatureBranch", defaultValue = "false", required = false)
-    protected boolean pushFeatureBranch;
-
     public String getFeatureBranchPrefix() {
         String prefix = getGitflowInit().getFeatureBranchPrefix();
         if (StringUtils.isBlank(prefix)) {
@@ -60,21 +51,21 @@ public class AbstractFeatureMojo extends AbstractGitflowMojo {
         return prefix;
     }
 
-    public String trimFeatureName(String featureLabel) throws MojoFailureException {
-        if (StringUtils.isBlank(featureLabel)) {
-            throw new MojoFailureException("Missing argument <featureName>");
-        }  
-        
+    public String trimFeatureName(String name) throws MojoFailureException {
+        if (StringUtils.isBlank(name)) {
+            throw new MojoFailureException("Missing argument <name>");
+        }
+
         // remove whitespace
-        featureLabel = featureLabel.replaceAll("\\s+", "");
+        name = name.replaceAll("\\s+", "");
 
         // trim off starting any leading 'feature/' prefix
-        String featureBranchPrefix = getFeatureBranchPrefix();
-        if (featureLabel.startsWith(featureBranchPrefix)) {
-            featureLabel = featureLabel.substring(featureBranchPrefix.length());
-        }            
-        
-        return featureLabel;
+        String prefix = getFeatureBranchPrefix();
+        if (name.startsWith(prefix)) {
+            name = name.substring(prefix.length());
+        }
+
+        return name;
     }
 
     public String getFeatureVersion(String currentVersion, String featureLabel) throws MojoFailureException {

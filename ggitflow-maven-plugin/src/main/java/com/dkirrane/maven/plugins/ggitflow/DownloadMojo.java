@@ -15,23 +15,19 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
+import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
 
 /**
- * Mojo used for Testing
+ * Mojo to just download Gitflow plugin. Does nothing
  */
-//@Mojo(name = "debug-start", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
-public class DebuggingMojo extends AbstractGitflowMojo {
+@Mojo(name = "download", aggregator = true, defaultPhase = LifecyclePhase.PROCESS_SOURCES)
+public class DownloadMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        super.execute();
-
-        reloadReactorProjects();
-
-        setVersion("1.4", "someBranchName", false);
-
-        runGoals("clean deploy", DEFAULT_DEPLOY_ARGS);
     }
 }

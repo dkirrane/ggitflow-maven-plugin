@@ -16,32 +16,21 @@
 package com.dkirrane.maven.plugins.ggitflow;
 
 import com.dkirrane.gitflow.groovy.GitflowSupport;
+import com.dkirrane.gitflow.groovy.ex.GitCommandException;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
+import java.io.IOException;
 import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.components.interactivity.PrompterException;
 import org.codehaus.plexus.util.StringUtils;
-import org.jfrog.hudson.util.GenericArtifactVersion;
-import static org.jfrog.hudson.util.GenericArtifactVersion.DEFAULT_VERSION_COMPONENT_SEPARATOR;
-import static org.jfrog.hudson.util.GenericArtifactVersion.SNAPSHOT_QUALIFIER;
 
 /**
  * Creates a new support branch from a specific commit on the master branch.
  */
 @Mojo(name = "support-start", aggregator = true)
-public class SupportStartMojo extends AbstractGitflowMojo {
-
-    /**
-     * If <code>true</code>, the support branch is pushed to the remote
-     * repository.
-     *
-     * @since 1.2
-     */
-    @Parameter(property = "pushSupportBranch", defaultValue = "true", required = false)
-    protected boolean pushSupportBranch;
+public class SupportStartMojo extends AbstractSupportMojo {
 
     /**
      * The commit to start the support branch from.
@@ -56,22 +45,37 @@ public class SupportStartMojo extends AbstractGitflowMojo {
         super.execute();
 
         String prefix = getGitflowInit().getSupportBranchPrefix();
+        String masterBranch = getGitflowInit().getMasterBranch();
 
-        List<String> tags = getGitflowInit().gitAllTags();
-        if (tags.isEmpty()) {
-            throw new MojoFailureException("Could not find any tags to create support branch from!");
+        List<String> localTags = getGitflowInit().gitLocalTagsOnBranch(masterBranch);
+        if (localTags.isEmpty()) {
+            exceptionMapper.handle(new MojoFailureException("Could not find any local Git tags (on master) to create support branch from!"));
         }
 
+//        if (StringUtils.isBlank(supportName)) {
+//            try {
+//                supportName = prompter.promptWithDefault("Enter a support branch name (optional, examples SP1, SP2)? ", "");
+//                supportName = namer.trimRefName(supportName);
+//            } catch (IOException ex) {
+//                exceptionMapper.handle(new MojoExecutionException("Error reading support name from command line " + ex.getMessage(), ex));
+//            }
+//        }
+
         if (StringUtils.isBlank(startCommit)) {
-            startCommit = promptForExistingTagName(tags, tags.get(tags.size() - 1));
+            try {
+                startCommit = prompter.promptChoice("Tags", "Please select a tag to create Support branch from", localTags);
+            } catch (IOException ex) {
+                exceptionMapper.handle(new MojoFailureException("Error reading tag name from command line " + ex.getMessage()));
+            }
         }
 
         getGitflowInit().executeLocal("git checkout " + startCommit);
         reloadReactorProjects();
         String supportVersion = getSupportVersion(project.getVersion());
         String supportSnapshotVersion = getSupportSnapshotVersion(project.getVersion());
+        String supportBranchName = namer.getBranchName(prefix, supportName, supportVersion);
 
-        getLog().info("Starting support branch '" + supportVersion + "'");
+        getLog().info("Starting support branch '" + supportBranchName + "'");
         getLog().debug("msgPrefix '" + getMsgPrefix() + "'");
         getLog().debug("msgSuffix '" + getMsgSuffix() + "'");
 
@@ -79,78 +83,24 @@ public class SupportStartMojo extends AbstractGitflowMojo {
         gitflowSupport.setInit(getGitflowInit());
         gitflowSupport.setMsgPrefix(getMsgPrefix());
         gitflowSupport.setMsgSuffix(getMsgSuffix());
-        gitflowSupport.setPush(pushSupportBranch);
+        gitflowSupport.setPush(true);
         gitflowSupport.setStartCommit(startCommit);
 
         try {
-            gitflowSupport.start(supportVersion);
+            gitflowSupport.start(supportBranchName);
+        } catch (GitCommandException gce) {
+            String header = "Failed to run support start";
+            exceptionMapper.handle(header, gce);
         } catch (GitflowException ge) {
-            throw new MojoFailureException(ge.getMessage());
+            String header = "Failed to run support start";
+            exceptionMapper.handle(header, ge);
         }
 
-        setVersion(supportSnapshotVersion, pushSupportBranch, prefix + supportVersion);
+        setVersion(supportSnapshotVersion, supportBranchName, false);
 
-        if (getGitflowInit().gitRemoteBranchExists(prefix + supportVersion)) {
-            getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + prefix + supportVersion);
+        if (getGitflowInit().gitRemoteBranchExists(supportBranchName)) {
+            getGitflowInit().executeRemote("git push " + getGitflowInit().getOrigin() + " " + supportBranchName);
         }
     }
 
-    private String promptForExistingTagName(List<String> branches, String defaultBrnName) throws MojoFailureException {
-        String message = "Create a support branch from tag:";
-
-        String name = "";
-        try {
-            name = prompter.prompt(message, branches, defaultBrnName);
-        } catch (PrompterException e) {
-            throw new MojoFailureException("Error reading selected Tag name from command line " + e.getMessage());
-        }
-
-        return name;
-    }
-
-    private String getSupportVersion(String currentVersion) throws MojoFailureException {
-        getLog().debug("getSupportVersion from '" + currentVersion + "'");
-
-        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
-
-        StringBuilder sb = new StringBuilder(10);
-        int pCount = artifactVersion.getPrimaryNumberCount();
-        if (pCount < 3) {
-            // Support versions should be like 1.0-xx e.g. 1.0-1, 1.0-2 etc
-            sb.append(artifactVersion.getPrimaryNumbersAsString()).append('-').append("xx");
-            sb.append(artifactVersion.getAnnotationAsString()).append(artifactVersion.getBuildSpecifierAsString());
-        } else {
-            // Support versions should be like 1.0.1-xx e.g. 1.0.1-1, 1.0.1-2 etc
-            if (null != artifactVersion.getAnnotation()) {
-                throw new MojoFailureException("Cannot start Support branch. Primary number " + artifactVersion.getPrimaryNumbersAsString() + " and annotations are already set " + artifactVersion.getAnnotation());
-            }
-            sb.append(artifactVersion.getPrimaryNumbersAsString()).append('-').append("xx");
-        }
-
-        return sb.toString();
-    }
-
-    private String getSupportSnapshotVersion(String currentVersion) throws MojoFailureException {
-        getLog().debug("getSupportSnapshotVersion from '" + currentVersion + "'");
-
-        GenericArtifactVersion artifactVersion = new GenericArtifactVersion(currentVersion);
-
-        StringBuilder sb = new StringBuilder(10);
-        int pCount = artifactVersion.getPrimaryNumberCount();
-        if (pCount < 3) {
-            // Support versions should be like 1.0-xx e.g. 1.0-1, 1.0-2 etc
-            sb.append(artifactVersion.getPrimaryNumbersAsString()).append('-').append("1");
-            sb.append(artifactVersion.getAnnotationAsString());
-        } else {
-            // Support versions should be like 1.0.1-xx e.g. 1.0.1-1, 1.0.1-2 etc
-            if (null != artifactVersion.getAnnotation()) {
-                throw new MojoFailureException("Cannot start Support branch. Primary number " + artifactVersion.getPrimaryNumbersAsString() + " and annotations are already set " + artifactVersion.getAnnotation());
-            }
-            sb.append(artifactVersion.getPrimaryNumbersAsString()).append('-').append("1");
-        }
-
-        sb.append(DEFAULT_VERSION_COMPONENT_SEPARATOR).append(SNAPSHOT_QUALIFIER);
-
-        return sb.toString();
-    }
 }

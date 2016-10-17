@@ -43,7 +43,7 @@ public class Finder extends SimpleFileVisitor<Path> {
     }
 
     private final PathMatcher matcher;
-    private List<Path> files = new ArrayList<Path>();
+    private List<Path> files = new ArrayList<>();
 
     /**
      *

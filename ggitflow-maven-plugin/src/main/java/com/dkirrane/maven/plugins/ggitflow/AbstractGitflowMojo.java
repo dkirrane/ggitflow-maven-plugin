@@ -15,56 +15,60 @@
  */
 package com.dkirrane.maven.plugins.ggitflow;
 
+import static com.dkirrane.gitflow.groovy.Constants.DEFAULT_VERSION_TAG_PREFIX;
 import com.dkirrane.gitflow.groovy.GitflowInit;
+import com.dkirrane.gitflow.groovy.ex.GitCommandException;
 import com.dkirrane.gitflow.groovy.ex.GitflowException;
-import com.dkirrane.maven.plugins.ggitflow.util.Finder;
-import com.dkirrane.maven.plugins.ggitflow.util.Finder.Syntax;
+import com.dkirrane.maven.plugins.ggitflow.ex.ExceptionMapper;
+import com.dkirrane.maven.plugins.ggitflow.name.Namer;
+import com.dkirrane.maven.plugins.ggitflow.prompt.Prompter;
 import com.dkirrane.maven.plugins.ggitflow.util.MavenUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import static com.google.common.collect.Lists.newArrayList;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.execution.ReactorManager;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Plugin;
-import org.apache.maven.model.building.ModelBuildingRequest;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.DefaultProjectBuildingRequest;
 import org.apache.maven.project.DuplicateProjectException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.ProjectBuildingRequest;
-import org.apache.maven.project.ProjectSorter;
+import org.apache.maven.project.ProjectBuildingResult;
 import org.apache.maven.shared.release.ReleaseResult;
 import org.apache.maven.shared.release.env.DefaultReleaseEnvironment;
 import org.apache.maven.shared.release.env.ReleaseEnvironment;
 import org.apache.maven.shared.release.exec.MavenExecutor;
 import org.apache.maven.shared.release.exec.MavenExecutorException;
-import org.codehaus.plexus.components.interactivity.Prompter;
-import org.codehaus.plexus.util.FileUtils;
+import org.apache.maven.shared.release.util.ReleaseUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.dag.CycleDetectedException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -82,6 +86,8 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
 public class AbstractGitflowMojo extends AbstractMojo {
 
+    Scanner scanner = new Scanner(System.in);
+
     public final Pattern matchSnapshotRegex = Pattern.compile("-SNAPSHOT");
 
     public static final ImmutableList<String> DEFAULT_INSTALL_ARGS = ImmutableList.of(
@@ -97,8 +103,35 @@ public class AbstractGitflowMojo extends AbstractMojo {
     private static final Plugin VERSIONS_MVN_PLUGIN = plugin(
             groupId("org.codehaus.mojo"),
             artifactId("versions-maven-plugin"),
-            version("2.1")
+            version("2.3")
     );
+
+    @Parameter(defaultValue = "${session}", readonly = true)
+    protected MavenSession session;
+
+    @Parameter(defaultValue = "${project}", readonly = true)
+    protected MavenProject project;
+
+    @Parameter(defaultValue = "${reactorProjects}", readonly = true, required = true)
+    protected List<MavenProject> reactorProjects;
+
+    @Component
+    private ProjectBuilder projectBuilder;
+
+    @Component
+    protected BuildPluginManager pluginManager;
+
+    @Component
+    protected Map<String, MavenExecutor> mavenExecutors;
+
+    @Component(role = Prompter.class)
+    protected Prompter prompter;
+
+    @Component(role = Namer.class)
+    protected Namer namer;
+
+    @Component(role = ExceptionMapper.class)
+    protected ExceptionMapper exceptionMapper;
 
     /**
      * Gitflow branches and prefixes to use.
@@ -124,91 +157,6 @@ public class AbstractGitflowMojo extends AbstractMojo {
     @Parameter(property = "msgSuffix", defaultValue = "", required = false)
     protected String msgSuffix;
 
-    /**
-     * Component used to prompt for input.
-     */
-    @Component
-    protected Prompter prompter;
-
-    @Component
-    protected Map<String, MavenExecutor> mavenExecutors;
-
-    @Component
-    protected ArtifactResolver artifactResolver;
-
-    /**
-     * @parameter default-value="${project.artifacts}"
-     * @required
-     * @readonly
-     */
-    protected Collection artifacts;
-
-    /**
-     * @parameter expression="${localRepository}"
-     */
-    protected ArtifactRepository localRepository;
-
-    /**
-     * @parameter expression="${project.remoteArtifactRepositories}"
-     */
-    protected List remoteArtifactRepositories;
-
-//    @Component
-//    protected MavenProjectBuilder projectBuilder;
-//    @Component
-//    protected DefaultProjectBuilder projectBuilder;
-//    /**
-//     * @parameter property="plugin"
-//     * @required
-//     */
-//    @Component
-//    protected PluginDescriptor pluginDescriptor;
-//
-    /**
-     * The projects in the reactor.
-     */
-    @Parameter(defaultValue = "${reactorProjects}", readonly = true, required = true)
-    protected List<MavenProject> reactorProjects;
-
-    /**
-     * The project builder
-     */
-    @Component
-    private ProjectBuilder projectBuilder;
-
-    /**
-     * The project currently being build.
-     *
-     * @parameter expression="${project}"
-     * @required
-     * @readonly
-     */
-    @Component
-    protected MavenProject project;
-
-    /**
-     * The current Maven session.
-     *
-     * @parameter expression="${session}"
-     * @required
-     * @readonly
-     */
-    @Component
-    protected MavenSession session;
-
-    /**
-     * The Maven BuildPluginManager component.
-     *
-     * @component
-     * @required
-     */
-    @Component
-    protected BuildPluginManager pluginManager;
-
-//    @Parameter(defaultValue = "${basedir}", readonly = true, required = true)
-//    protected File basedir;
-//    @Component
-//    protected Settings settings;
     private GitflowInit init;
     private Path tempDir;
 
@@ -216,27 +164,44 @@ public class AbstractGitflowMojo extends AbstractMojo {
         return project;
     }
 
+    @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (null == project) {
             throw new NullPointerException("MavenProject is null");
         } else {
             getLog().debug("Gitflow pom  '" + project.getBasedir() + "'");
         }
-
         GitflowInit gitflowInit = getGitflowInit();
 
-        gitflowInit.requireGitRepo();
-        gitflowInit.checkRemoteConnection();
+        exceptionMapper.setRepoDir(gitflowInit.getRepoDir());
+
+        try {
+            gitflowInit.requireGitRepo();
+        } catch (GitflowException ge) {
+            exceptionMapper.handle("Invalid Git repo", ge);
+        }
+        try {
+            gitflowInit.checkRemoteConnection();
+        } catch (GitCommandException ge) {
+            exceptionMapper.handle("Git connection issue", ge);
+        }
+        try {
+            gitflowInit.requireCleanWorkingTree();
+        } catch (GitflowException ge) {
+            exceptionMapper.handle("Check git status", ge);
+        }
 
         if (!gitflowInit.gitflowIsInitialized()) {
             try {
                 gitflowInit.cmdDefault();
-            } catch (GitflowException ex) {
-                throw new MojoExecutionException("Failed to initialise Gitflow " + ex.getMessage(), ex);
+            } catch (GitCommandException gce) {
+                String header = "Unable to initialise Gitflow";
+                exceptionMapper.handle(header, gce);
+            } catch (GitflowException ge) {
+                String header = "Unable to initialise Gitflow";
+                exceptionMapper.handle(header, ge);
             }
         }
-
-        gitflowInit.requireCleanWorkingTree();
     }
 
     public String getMsgPrefix() {
@@ -273,12 +238,23 @@ public class AbstractGitflowMojo extends AbstractMojo {
 
             /* Create temp directory - delete any previous first */
             try {
-                Finder finder = new Finder(Syntax.glob, "mvn-gitflow*");
-                Files.walkFileTree(Paths.get(System.getProperty("java.io.tmpdir")), finder);
-                List<Path> paths = finder.getPaths();
-                getLog().debug("Deleting old temp directories " + paths);
-                for (Path path : paths) {
-                    FileUtils.deleteDirectory(path.toFile());
+                Path osTempDir = Paths.get(System.getProperty("java.io.tmpdir"));
+                for (File f : osTempDir.toFile().listFiles()) {
+                    if (f.isDirectory() && f.getName().startsWith("mvn-gitflow")) {
+                        Files.walkFileTree(f.toPath(), new SimpleFileVisitor<Path>() {
+                            @Override
+                            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                                Files.delete(file);
+                                return FileVisitResult.CONTINUE;
+                            }
+
+                            @Override
+                            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                                Files.delete(dir);
+                                return FileVisitResult.CONTINUE;
+                            }
+                        });
+                    }
                 }
                 tempDir = Files.createTempDirectory("mvn-gitflow");
             } catch (IOException ioe) {
@@ -288,7 +264,15 @@ public class AbstractGitflowMojo extends AbstractMojo {
         return init;
     }
 
-    protected final boolean setVersion(String version, Boolean push, String branch) throws MojoExecutionException, MojoFailureException {
+    public String getVersionTagPrefix() {
+        String prefix = getGitflowInit().getVersionTagPrefix();
+        if (null == prefix) {
+            prefix = DEFAULT_VERSION_TAG_PREFIX;
+        }
+        return prefix;
+    }
+
+    protected final boolean setVersion(String version, String branch, boolean push) throws MojoExecutionException, MojoFailureException {
         MavenProject rootProject = MavenUtil.getRootProject(reactorProjects);
         session.setCurrentProject(rootProject);
         session.setProjects(reactorProjects);
@@ -324,6 +308,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                     throw new MojoExecutionException("Failed to push version change " + version + " to origin. ExitCode:" + exitCode);
                 }
             }
+
             commitMade = true;
         }
         /* We don't want to fail maybe the version was manually set correctly */
@@ -408,10 +393,11 @@ public class AbstractGitflowMojo extends AbstractMojo {
         getLog().debug("configuration " + configuration.toUnescapedString());
 
         /* Maven 3.3.x log settings */
-//        session.getRequest().setLoggingLevel(MavenExecutionRequest.LOGGING_LEVEL_WARN);
-//        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "error");
-//        System.setProperty("maven.logging.root.level", "error");
+        session.getRequest().setLoggingLevel(MavenExecutionRequest.LOGGING_LEVEL_ERROR);
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "error");
+        System.setProperty("maven.logging.root.level", "error");
         PrintStream stdout = System.out;
+        PrintStream stderr = System.err;
         PrintStream stoutStream = null;
         Path tempStoutFile = null;
         try {
@@ -423,6 +409,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
                     tempStoutFile = Files.createTempFile(tempDir, logFileName, ".log");
                     stoutStream = new PrintStream(new FileOutputStream(tempStoutFile.toFile(), true));
                     System.setOut(stoutStream);
+                    System.setErr(stoutStream);
                 } catch (Exception ioe) {
                     getLog().warn("Failed to capture System.out", ioe);
                 }
@@ -443,6 +430,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         } catch (MojoExecutionException mee) {
             /* Reset System.out */
             System.setOut(stdout);
+            System.setErr(stderr);
             String rootCauseMessage = ExceptionUtils.getRootCauseMessage(mee);
             if (rootCauseMessage.contains("Project version is inherited from parent")) {
                 getLog().debug("Skipping " + mavenCommand + " for project " + projArtifactId + ". Project version is inherited from parent.");
@@ -454,6 +442,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
             if (!getLog().isDebugEnabled()) {
                 /* Reset System.out */
                 System.setOut(stdout);
+                System.setErr(stderr);
 
                 if (null != tempStoutFile) {
                     getLog().info(mavenCommand + " log " + tempStoutFile.toString());
@@ -546,6 +535,7 @@ public class AbstractGitflowMojo extends AbstractMojo {
         if (hasParentSnapshot || hasDepSnapshots) {
             throw new MojoExecutionException("Cannot release because SNAPSHOT dependencies exist");
         }
+        getLog().info("No SNAPSHOT dependencies found");
     }
 
     private boolean checkForSnapshot(String artifactId, List<Dependency> dependencies) throws MojoExecutionException {
@@ -561,69 +551,76 @@ public class AbstractGitflowMojo extends AbstractMojo {
         return hasSnapshotDependency;
     }
 
-    protected final void reloadReactorProjects() throws MojoExecutionException {
+    protected final void reloadReactorProjects() {
         getLog().debug("Reloading poms...");
 
-        List<MavenProject> newReactorProjects;
+        List<MavenProject> updatedReactorProjects = new ArrayList<>();
+
+        MavenProject rootProject = ReleaseUtil.getRootProject(reactorProjects);
+        getLog().debug("rootProject = " + rootProject);
         try {
-            newReactorProjects = buildReactorProjects();
-        } catch (ProjectBuildingException e) {
-            getLog().error("Re-parse aborted due to malformed pom.xml file(s)", e);
-            throw new MojoExecutionException("Re-parse aborted due to malformed pom.xml file(s)", e);
-        } catch (CycleDetectedException e) {
-            getLog().error("Re-parse aborted due to dependency cycle in project model", e);
-            throw new MojoExecutionException("Re-parse aborted due to dependency cycle in project model", e);
-        } catch (DuplicateProjectException e) {
-            getLog().error("Re-parse aborted due to duplicate projects in project model", e);
-            throw new MojoExecutionException("Re-parse aborted due to duplicate projects in project model", e);
-        } catch (Exception e) {
-            getLog().error("Re-parse aborted due a problem that prevented sorting the project model", e);
-            throw new MojoExecutionException("Re-parse aborted due a problem that prevented sorting the project model", e);
+            if (rootProject.getFile().exists() && rootProject.getFile().canRead()) {
+                MavenExecutionRequest mavenExecutionRequest = session.getRequest();
+                ProjectBuildingRequest projectBuildingRequest = mavenExecutionRequest.getProjectBuildingRequest();
+                try {
+                    List<ProjectBuildingResult> buildResults = projectBuilder.build(newArrayList(rootProject.getFile()), true, projectBuildingRequest);
+                    for (ProjectBuildingResult buildResult : buildResults) {
+                        MavenProject reloadProject = buildResult.getProject();
+                        reloadProject.setActiveProfiles(rootProject.getActiveProfiles());
+                        updatedReactorProjects.add(reloadProject);
+                    }
+                } catch (ProjectBuildingException ex) {
+                    getLog().error("Build error reloading Maven projects", ex);
+                }
+            }
+        } catch (Exception ex) {
+            getLog().error("Failed to reload reactor projects", ex);
+            throw ex;
         }
-        MavenProject newProject = findProject(newReactorProjects, this.project);
-        if (newProject == null) {
-            throw new MojoExecutionException("A pom.xml change appears to have removed " + this.project.getId() + " from the build plan.");
+
+        try {
+            ReactorManager reactorManager = new ReactorManager(updatedReactorProjects);
+            updatedReactorProjects = reactorManager.getSortedProjects();
+        } catch (CycleDetectedException | DuplicateProjectException ex) {
+            getLog().error("Failed to sort reactor projects", ex);
         }
 
-        this.project = newProject;
-        this.reactorProjects = newReactorProjects;
+        session.setProjects(updatedReactorProjects);
+        project = ReleaseUtil.getRootProject(updatedReactorProjects);
+        reactorProjects = updatedReactorProjects;
 
-        getLog().debug("Reloading poms complete...");
-    }
-
-    private List<MavenProject> buildReactorProjects() throws Exception {
-
-        List<MavenProject> projects = new ArrayList<MavenProject>();
-        for (MavenProject p : reactorProjects) {
-            ProjectBuildingRequest request = new DefaultProjectBuildingRequest();
-
-            request.setProcessPlugins(false);
-            request.setProfiles(request.getProfiles());
-            request.setActiveProfileIds(session.getRequest().getActiveProfiles());
-            request.setInactiveProfileIds(session.getRequest().getInactiveProfiles());
-            request.setRemoteRepositories(session.getRequest().getRemoteRepositories());
-            request.setSystemProperties(session.getSystemProperties());
-            request.setUserProperties(session.getUserProperties());
-            request.setRemoteRepositories(session.getRequest().getRemoteRepositories());
-            request.setPluginArtifactRepositories(session.getRequest().getPluginArtifactRepositories());
-            request.setRepositorySession(session.getRepositorySession());
-            request.setLocalRepository(localRepository);
-            request.setBuildStartTime(session.getRequest().getStartTime());
-            request.setResolveDependencies(false);
-            request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_STRICT);
-            projects.add(projectBuilder.build(p.getFile(), request).getProject());
-        }
-        return new ProjectSorter(projects).getSortedProjects();
-    }
-
-    private MavenProject findProject(List<MavenProject> newReactorProjects, MavenProject oldProject) {
-        for (MavenProject newProject : newReactorProjects) {
-            if (oldProject.getGroupId().equals(newProject.getGroupId())
-                    && oldProject.getArtifactId().equals(newProject.getArtifactId())) {
-                return newProject;
+        if (getLog().isDebugEnabled()) {
+            getLog().debug("Reloaded MavenProject: " + project);
+            getLog().debug("Reloaded reactorProjects: ");
+            for (int i = 0; i < reactorProjects.size(); i++) {
+                MavenProject updatedReactorProject = updatedReactorProjects.get(i);
+                System.out.printf(" %-4s %-70s [Parent:%s]\n",
+                        i + ")",
+                        updatedReactorProject.getArtifact(),
+                        updatedReactorProject.getParentArtifact());
+//                DependencyManagement dependencyManagement = updatedReactorProject.getDependencyManagement();
+//                if (null != dependencyManagement && null != dependencyManagement.getDependencies()) {
+//                    System.out.printf("\t\t\t DependencyManagement:\n");
+//                    for (Dependency dependency : dependencyManagement.getDependencies()) {
+//                        System.out.printf("\t\t\t\t\t %s:%s:%s \n", dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
+//                    }
+//                }
+//                if (null != updatedReactorProject.getDependencies()) {
+//                    System.out.printf("\t\t\t Dependencies:\n");
+//                    for (Dependency dependency : updatedReactorProject.getDependencies()) {
+//                        System.out.printf("\t\t\t\t\t %s:%s:%s \n", dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
+//                    }
+//                }
             }
         }
-        return null;
+
+        getLog().debug("Reloading poms complete");
+    }
+
+    protected List<String> rearrange(String input, List<String> strings) {
+        strings.remove(input);
+        strings.add(0, input);
+        return strings;
     }
 
 }
