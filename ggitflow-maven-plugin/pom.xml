@@ -5,12 +5,12 @@
     <parent>
         <groupId>com.dkirrane.maven.plugins</groupId>
         <artifactId>ggitflow-maven</artifactId>
-        <version>3.0-SNAPSHOT</version>
+        <version>3.0</version>
     </parent>
 
     <groupId>com.dkirrane.maven.plugins</groupId>
     <artifactId>ggitflow-maven-plugin</artifactId>
-    <version>3.0-SNAPSHOT</version>
+    <version>3.0</version>
     <packaging>maven-plugin</packaging>
     <name>ggitflow-maven-plugin</name>
 
@@ -18,7 +18,7 @@
         <dependency>
             <groupId>com.dkirrane.groovy.gitflow</groupId>
             <artifactId>ggitflow</artifactId>
-            <version>3.0-SNAPSHOT</version>
+            <version>3.0</version>
         </dependency>
 
         <dependency>
